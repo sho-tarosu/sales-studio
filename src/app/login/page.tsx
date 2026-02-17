@@ -1,4 +1,5 @@
 'use client';
+import Image from 'next/image';
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
@@ -52,9 +53,24 @@ export default function LoginPage() {
           textAlign: 'center',
           marginBottom: '32px',
         }}>
-          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#fff' }}>
-            ▶ Sales Studio
-          </div>
+          <div style={{ 
+  display: 'flex', 
+  alignItems: 'center', 
+  justifyContent: 'center', 
+  gap: '10px',             /* 画像と文字の隙間 */
+  fontSize: '24px', 
+  fontWeight: 'bold', 
+  color: '#fff' 
+}}>
+  {/* ここに画像を表示！ */}
+  <Image 
+    src="/logo-w.png" 
+    alt="ロゴ" 
+    width={32} 
+    height={32} 
+  />
+  Sales Studio
+</div>
           <div style={{ fontSize: '13px', color: '#aaa', marginTop: '8px' }}>
             ログインしてください
           </div>
