@@ -58,37 +58,51 @@ function isOrangeBackground(color: { red?: number | null; green?: number | null;
   return r > 0.7 && g > 0.1 && g < 0.88 && b < 0.45 && r > g + 0.08;
 }
 
-// セル値と祝日日付セットを同時に取得（B列の背景色でオレンジ判定）
+// セル値と祝日日付セットを取得する。
+// 値取得（values.get）が主系で、書式取得（spreadsheets.get）はベストエフォート。
+// 書式取得に失敗しても値は必ず返す。
 export async function getShiftSheetDataWithHolidays(
   sheetName: string
 ): Promise<{ values: string[][]; holidayDates: Set<string> }> {
   const sheets = await getSheetsClient();
   const spreadsheetId = process.env.SHIFT_SPREADSHEET_ID;
 
-  const res = await sheets.spreadsheets.get({
-    spreadsheetId: spreadsheetId!,
-    ranges: [sheetName],
-    includeGridData: true,
-    fields: 'sheets(data(rowData(values(formattedValue,effectiveFormat(backgroundColor)))))',
+  // ① 値取得（従来と同じ方法。シートがなければ空配列）
+  const valRes = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: sheetName,
   });
+  const values = (valRes.data.values || []) as string[][];
 
-  const rowData = res.data.sheets?.[0]?.data?.[0]?.rowData ?? [];
-  const values: string[][] = [];
+  // ② B列の背景色取得（失敗時は祝日なしで続行）
   const holidayDates = new Set<string>();
+  try {
+    const fmtPromise = sheets.spreadsheets.get({
+      spreadsheetId: spreadsheetId!,
+      ranges: [`${sheetName}!B:B`],
+      includeGridData: true,
+    }).then((r) => r.data);
 
-  for (const rd of rowData) {
-    const cells = rd.values ?? [];
-    const row = cells.map((c) => (c.formattedValue as string) ?? '');
-    values.push(row);
+    // 書式取得は最大5秒。超えたら祝日なしで続行
+    const fmtData = await Promise.race([
+      fmtPromise,
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+    ]);
 
-    // B列（index 1）の背景色がオレンジなら祝日
-    const colBBg = cells[1]?.effectiveFormat?.backgroundColor;
-    if (isOrangeBackground(colBBg)) {
-      const dateStr = row[0];
-      if (dateStr && /\d/.test(dateStr)) {
-        holidayDates.add(dateStr);
+    if (fmtData) {
+      const rowData = fmtData.sheets?.[0]?.data?.[0]?.rowData ?? [];
+      for (let i = 0; i < rowData.length; i++) {
+        const colBBg = rowData[i]?.values?.[0]?.effectiveFormat?.backgroundColor;
+        if (isOrangeBackground(colBBg)) {
+          const dateStr = values[i]?.[0];
+          if (dateStr && /\d/.test(dateStr)) {
+            holidayDates.add(dateStr);
+          }
+        }
       }
     }
+  } catch {
+    // 書式取得失敗は無視（祝日色分けなしで表示）
   }
 
   return { values, holidayDates };
