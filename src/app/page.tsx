@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { TabName, DashboardData } from '@/types';
+import { TabName, DashboardData, ShiftRow } from '@/types';
 import AuthGuard from '@/components/AuthGuard';
 import Sidebar from '@/components/Sidebar';
 import BottomNav from '@/components/BottomNav';
@@ -13,6 +13,7 @@ import RankingList from '@/components/RankingList';
 import RankingTable from '@/components/RankingTable';
 import AnalysisView from '@/components/AnalysisView';
 import AttendanceTable from '@/components/AttendanceTable';
+import ShiftView from '@/components/ShiftView';
 
 const TAB_TITLES: Record<TabName, string> = {
   'dashboard': '獲得状況',
@@ -21,6 +22,7 @@ const TAB_TITLES: Record<TabName, string> = {
   'ranking': 'ランキング (詳細)',
   'analysis': '分析・比較',
   'attendance': '出勤管理',
+  'shift': 'シフト',
 };
 
 export default function Home() {
@@ -34,6 +36,32 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState('更新中...');
+
+  const [shiftRows, setShiftRows] = useState<ShiftRow[]>([]);
+  const [tokyoStaffNames, setTokyoStaffNames] = useState<string[]>([]);
+  const [fukuokaStaffNames, setFukuokaStaffNames] = useState<string[]>([]);
+  const [shiftLoading, setShiftLoading] = useState(false);
+  const [shiftFetchedMonth, setShiftFetchedMonth] = useState<string | null>(null);
+
+  const fetchShift = useCallback(async (month: string) => {
+    setShiftLoading(true);
+    try {
+      const res = await fetch(`/api/shift?month=${month}`);
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'シフトデータの取得に失敗しました');
+      }
+      const json: { rows: ShiftRow[]; tokyoStaffNames: string[]; fukuokaStaffNames: string[] } = await res.json();
+      setShiftRows(json.rows);
+      setTokyoStaffNames(json.tokyoStaffNames);
+      setFukuokaStaffNames(json.fukuokaStaffNames);
+      setShiftFetchedMonth(month);
+    } catch {
+      setShiftRows([]);
+    } finally {
+      setShiftLoading(false);
+    }
+  }, []);
 
   const fetchData = useCallback(async (month: string) => {
     setLoading(true);
@@ -58,6 +86,21 @@ export default function Home() {
   useEffect(() => {
     fetchData(selectedMonth);
   }, [selectedMonth, fetchData]);
+
+  // シフトタブが表示中に月が変わったら再取得
+  useEffect(() => {
+    if (activeTab === 'shift') {
+      fetchShift(selectedMonth);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMonth]);
+
+  // シフトタブに切り替わったとき（未取得 or 月が変わっていたら取得）
+  useEffect(() => {
+    if (activeTab === 'shift' && shiftFetchedMonth !== selectedMonth) {
+      fetchShift(selectedMonth);
+    }
+  }, [activeTab, selectedMonth, shiftFetchedMonth, fetchShift]);
 
   const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedMonth(e.target.value);
@@ -146,6 +189,16 @@ export default function Home() {
               <AttendanceTable data={data} selectedMonth={selectedMonth} />
             )}
           </>
+        )}
+
+        {activeTab === 'shift' && (
+          <ShiftView
+            rows={shiftRows}
+            tokyoStaffNames={tokyoStaffNames}
+            fukuokaStaffNames={fukuokaStaffNames}
+            loading={shiftLoading}
+            selectedMonth={selectedMonth}
+          />
         )}
       </main>
 

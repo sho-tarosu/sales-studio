@@ -17,6 +17,7 @@ const menuItems: { id: TabName; label: string }[] = [
   { id: 'ranking', label: 'ランキング (詳細)' },
   { id: 'analysis', label: '分析・比較' },
   { id: 'attendance', label: '出勤管理' },
+  { id: 'shift', label: 'シフト' },
 ];
 
 export default function Sidebar({ activeTab, onTabChange, userName, userRole }: SidebarProps) {

@@ -12,6 +12,7 @@ const navItems: { id: TabName; icon: string; label: string }[] = [
   { id: 'ranking', icon: '📜', label: '詳細' },
   { id: 'analysis', icon: '📈', label: '分析' },
   { id: 'attendance', icon: '📅', label: '出勤' },
+  { id: 'shift', icon: '🗓️', label: 'シフト' },
 ];
 
 export default function BottomNav({ onTabChange }: BottomNavProps) {

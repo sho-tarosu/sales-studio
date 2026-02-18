@@ -38,6 +38,16 @@ export async function getSheetData(sheetName: string): Promise<string[][]> {
   return (res.data.values || []) as string[][];
 }
 
+export async function getShiftSheetData(sheetName: string): Promise<string[][]> {
+  const sheets = await getSheetsClient();
+  const spreadsheetId = process.env.SHIFT_SPREADSHEET_ID;
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: sheetName,
+  });
+  return (res.data.values || []) as string[][];
+}
+
 export async function getUserById(userId: string): Promise<(User & { passwordHash: string; rowIndex: number }) | null> {
   const rows = await getSheetData(USER_SHEET_NAME);
   // Skip header row

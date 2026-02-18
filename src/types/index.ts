@@ -68,12 +68,25 @@ export interface DashboardData {
   daysInMonth: number;
 }
 
+export interface ShiftRow {
+  date: string;
+  dayOfWeek: string;
+  location: string;
+  startTime: string;
+  order1: string;
+  order2: string;
+  staff: string[];
+  agency: string;
+  sheetRegion: '東京' | '福岡';
+}
+
 export type TabName =
   | 'dashboard'
   | 'visual-ranking'
   | 'stacked-chart'
   | 'ranking'
   | 'analysis'
-  | 'attendance';
+  | 'attendance'
+  | 'shift';
 
 export type AnalysisMode = 'overall' | 'individual' | 'site' | 'compare';
