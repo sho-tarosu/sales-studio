@@ -41,24 +41,35 @@ export default function Home() {
   const [tokyoStaffNames, setTokyoStaffNames] = useState<string[]>([]);
   const [fukuokaStaffNames, setFukuokaStaffNames] = useState<string[]>([]);
   const [shiftLoading, setShiftLoading] = useState(false);
+  const [shiftError, setShiftError] = useState<string | null>(null);
   const [shiftFetchedMonth, setShiftFetchedMonth] = useState<string | null>(null);
 
   const fetchShift = useCallback(async (month: string) => {
     setShiftLoading(true);
+    setShiftError(null);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000); // 15秒タイムアウト
     try {
-      const res = await fetch(`/api/shift?month=${month}`);
+      const res = await fetch(`/api/shift?month=${month}`, { signal: controller.signal });
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'シフトデータの取得に失敗しました');
+        const text = await res.text();
+        let msg = 'シフトデータの取得に失敗しました';
+        try { msg = JSON.parse(text).error || msg; } catch { /* ignore */ }
+        throw new Error(msg);
       }
       const json: { rows: ShiftRow[]; tokyoStaffNames: string[]; fukuokaStaffNames: string[] } = await res.json();
       setShiftRows(json.rows);
       setTokyoStaffNames(json.tokyoStaffNames);
       setFukuokaStaffNames(json.fukuokaStaffNames);
-      setShiftFetchedMonth(month);
-    } catch {
+    } catch (e) {
+      const msg = e instanceof Error
+        ? (e.name === 'AbortError' ? 'タイムアウトしました。再度お試しください。' : e.message)
+        : 'シフトデータの取得に失敗しました';
+      setShiftError(msg);
       setShiftRows([]);
     } finally {
+      clearTimeout(timer);
+      setShiftFetchedMonth(month); // 成功・失敗どちらでも更新して再トリガーを防ぐ
       setShiftLoading(false);
     }
   }, []);
@@ -87,15 +98,7 @@ export default function Home() {
     fetchData(selectedMonth);
   }, [selectedMonth, fetchData]);
 
-  // シフトタブが表示中に月が変わったら再取得
-  useEffect(() => {
-    if (activeTab === 'shift') {
-      fetchShift(selectedMonth);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedMonth]);
-
-  // シフトタブに切り替わったとき（未取得 or 月が変わっていたら取得）
+  // シフトタブ表示中 or 切り替え時に（未取得 or 月が変わっていたら）取得
   useEffect(() => {
     if (activeTab === 'shift' && shiftFetchedMonth !== selectedMonth) {
       fetchShift(selectedMonth);
@@ -197,12 +200,13 @@ export default function Home() {
             tokyoStaffNames={tokyoStaffNames}
             fukuokaStaffNames={fukuokaStaffNames}
             loading={shiftLoading}
+            error={shiftError}
             selectedMonth={selectedMonth}
           />
         )}
       </main>
 
-      <BottomNav onTabChange={setActiveTab} />
+      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </AuthGuard>
   );
 }

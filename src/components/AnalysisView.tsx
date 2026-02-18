@@ -29,26 +29,6 @@ function SiteBarChart({ sites, nameWidth = 100 }: { sites: Record<string, number
   );
 }
 
-function NestedPieSection({ title, ages, types }: { title: string; ages: Record<string, number>; types: Record<string, number> }) {
-  return (
-    <>
-      <div className="compare-header">{title}</div>
-      <div className="chart-card">
-        <h3 style={{ fontSize: '14px', color: '#aaa', marginBottom: 10 }}>現場別</h3>
-      </div>
-      <div className="chart-card">
-        <h3 style={{ fontSize: '14px', color: '#aaa', marginBottom: 10 }}>客層・年代</h3>
-        <div className="pie-container">
-          <div className="nested-pie-wrapper">
-            <DoughnutChart dataMap={ages} cutout="70%" className="outer-pie-canvas" />
-            <DoughnutChart dataMap={types} cutout="60%" className="inner-pie-canvas" />
-            <div className="pie-center-text">年代<br />・<br />客層</div>
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
 
 function SingleColumn({ title, stats, isCompact = false }: { title: string; stats: { sites: Record<string, number>; ages: Record<string, number>; types: Record<string, number> }; isCompact?: boolean }) {
   return (

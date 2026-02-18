@@ -48,6 +48,52 @@ export async function getShiftSheetData(sheetName: string): Promise<string[][]> 
   return (res.data.values || []) as string[][];
 }
 
+// B列の背景色がオレンジ系かどうか（祝日判定）
+function isOrangeBackground(color: { red?: number | null; green?: number | null; blue?: number | null } | null | undefined): boolean {
+  if (!color) return false;
+  const r = color.red ?? 0;
+  const g = color.green ?? 0;
+  const b = color.blue ?? 0;
+  // オレンジ系: 赤が強く・緑が中程度・青が少ない。白(1,1,1)・黄(1,1,0)と区別する
+  return r > 0.7 && g > 0.1 && g < 0.88 && b < 0.45 && r > g + 0.08;
+}
+
+// セル値と祝日日付セットを同時に取得（B列の背景色でオレンジ判定）
+export async function getShiftSheetDataWithHolidays(
+  sheetName: string
+): Promise<{ values: string[][]; holidayDates: Set<string> }> {
+  const sheets = await getSheetsClient();
+  const spreadsheetId = process.env.SHIFT_SPREADSHEET_ID;
+
+  const res = await sheets.spreadsheets.get({
+    spreadsheetId: spreadsheetId!,
+    ranges: [sheetName],
+    includeGridData: true,
+    fields: 'sheets(data(rowData(values(formattedValue,effectiveFormat(backgroundColor)))))',
+  });
+
+  const rowData = res.data.sheets?.[0]?.data?.[0]?.rowData ?? [];
+  const values: string[][] = [];
+  const holidayDates = new Set<string>();
+
+  for (const rd of rowData) {
+    const cells = rd.values ?? [];
+    const row = cells.map((c) => (c.formattedValue as string) ?? '');
+    values.push(row);
+
+    // B列（index 1）の背景色がオレンジなら祝日
+    const colBBg = cells[1]?.effectiveFormat?.backgroundColor;
+    if (isOrangeBackground(colBBg)) {
+      const dateStr = row[0];
+      if (dateStr && /\d/.test(dateStr)) {
+        holidayDates.add(dateStr);
+      }
+    }
+  }
+
+  return { values, holidayDates };
+}
+
 export async function getUserById(userId: string): Promise<(User & { passwordHash: string; rowIndex: number }) | null> {
   const rows = await getSheetData(USER_SHEET_NAME);
   // Skip header row

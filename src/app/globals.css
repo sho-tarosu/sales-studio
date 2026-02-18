@@ -74,14 +74,11 @@ body {
 .brand-icon {
   width: 28px;
   height: 28px;
-  background: linear-gradient(135deg, #e53e3e, #991b1b);
   border-radius: 7px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
 }
 
 .menu-item {
@@ -105,9 +102,10 @@ body {
 }
 
 .menu-item.active {
-  background-color: var(--accent-glow);
-  color: var(--accent-hover);
-  border-color: rgba(229, 62, 62, 0.25);
+  background-color: rgba(255, 255, 255, 0.07);
+  color: var(--text-main);
+  border-color: transparent;
+  box-shadow: none;
 }
 
 /* ─── Main Content ─────────────────────────────── */
@@ -251,9 +249,9 @@ input[type="month"]:focus {
 .bar-row { display: flex; align-items: center; gap: 10px; }
 .bar-name { width: 100px; font-size: 12px; text-align: right; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bar-area { flex: 1; height: 22px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; overflow: hidden; position: relative; display: flex; }
-.bar-fill { height: 100%; background-color: var(--accent-color); width: 0%; transition: width 1s ease-out; }
+.bar-fill { height: 100%; background-color: #3ea6ff; width: 0%; transition: width 1s ease-out; }
 .bar-part { height: 100%; transition: width 1s ease-out; }
-.bar-part-mnp { background-color: var(--accent-color); }
+.bar-part-mnp { background-color: #3ea6ff; }
 .bar-part-new { background-color: var(--accent-yellow); }
 .bar-part-cu { background-color: var(--accent-yellow); }
 .bar-val { position: absolute; right: 8px; top: 0; bottom: 0; display: flex; align-items: center; font-size: 11px; font-weight: bold; color: white; text-shadow: 0 0 2px #000; }
@@ -371,34 +369,35 @@ input[type="month"]:focus {
 
 .shift-region-toggle {
   display: flex;
-  background: var(--card-bg);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  padding: 4px;
-  gap: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 3px;
 }
 
 .shift-region-btn {
-  padding: 7px 24px;
-  border-radius: 7px;
+  padding: 6px 16px;
+  border-radius: 6px;
   border: none;
   background: transparent;
-  color: var(--text-sub);
+  color: #a1a1aa;
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
-  transition: var(--transition);
+  transition: color 0.15s, background 0.15s;
 }
 
 .shift-region-btn.active {
-  background: var(--accent-color);
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+  background: #ffffff;
+  color: #0a0a0a;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
 .shift-region-btn:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.08);
+  color: #e4e4e7;
 }
 
 .shift-meta {
@@ -490,12 +489,12 @@ input[type="month"]:focus {
   border-bottom: 2px solid var(--accent-color) !important;
 }
 
-.shift-col-date.weekend-sat { color: #aaaaaa; }
+.shift-col-date.weekend-sat { color: #7dd3fc; }
 .shift-col-date.weekend-sun { color: #f87171; }
 
 .shift-date-num { font-size: 12px; font-weight: 600; line-height: 1.4; }
 .shift-date-dow { font-size: 10px; margin-top: 1px; }
-.shift-date-dow.sat { color: #aaaaaa; }
+.shift-date-dow.sat { color: #7dd3fc; }
 .shift-date-dow.sun { color: #f87171; }
 
 /* Header: total column */
@@ -536,7 +535,7 @@ input[type="month"]:focus {
 }
 
 .shift-data-cell.today { background: rgba(229, 62, 62, 0.07); }
-.shift-data-cell.weekend-sat { background: rgba(255, 255, 255, 0.02); }
+.shift-data-cell.weekend-sat { background: rgba(125,211,252,0.05); }
 .shift-data-cell.weekend-sun { background: rgba(239, 68, 68, 0.05); }
 
 /* Row hover — applied via JS className or tr:hover */
@@ -576,6 +575,270 @@ input[type="month"]:focus {
   border-left: 2px solid var(--border-color) !important;
   text-align: center;
   vertical-align: middle;
+}
+
+/* ─── 現場別 (Location View) ──────────────────── */
+
+/* Controls: 左側トグルグループ */
+.shift-controls-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.shift-controls .shift-meta {
+  margin-left: auto;
+}
+
+/* 現場別テーブル ヘッダーセル共通 */
+.loc-th {
+  background: var(--bg-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-sub);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 10px 12px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.loc-th-date   { min-width: 58px; text-align: center; border-right: 2px solid var(--border-color) !important; }
+.loc-th-dow    { min-width: 44px; text-align: center; }
+.loc-th-place  { min-width: 150px; }
+.loc-th-time   { min-width: 68px; text-align: center; }
+.loc-th-staff  { min-width: 220px; }
+.loc-th-agency { min-width: 130px; }
+
+/* 日付セル */
+.loc-date-cell {
+  background: var(--card-bg);
+  text-align: center;
+  vertical-align: middle;
+  padding: 0 8px;
+  height: 46px;
+  border-right: 2px solid var(--border-color) !important;
+}
+
+.loc-date-cell.today {
+  background: rgba(229, 62, 62, 0.07);
+  border-left: 3px solid var(--accent-color) !important;
+}
+
+.loc-date-cell.weekend-sat { color: #7dd3fc; }
+.loc-date-cell.weekend-sun { color: #f87171; }
+
+.loc-date-num {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* 曜日セル */
+.loc-dow-cell {
+  text-align: center;
+  vertical-align: middle;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0 6px;
+  color: var(--text-sub);
+}
+
+.loc-dow-cell.sat { color: #7dd3fc; }
+.loc-dow-cell.sun { color: #f87171; }
+
+/* 店舗名セル */
+.loc-place-cell {
+  font-size: 13px;
+  font-weight: 600;
+  vertical-align: middle;
+  padding: 8px 14px;
+  color: var(--text-main);
+}
+
+/* 時間セル */
+.loc-time-cell {
+  text-align: center;
+  vertical-align: middle;
+  font-size: 12px;
+  color: var(--text-sub);
+  padding: 8px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* スタッフセル */
+.loc-staff-cell {
+  vertical-align: middle;
+  padding: 6px 14px;
+}
+
+.loc-staff-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.loc-staff-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-main);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+}
+
+/* 代理店セル */
+.loc-agency-cell {
+  vertical-align: middle;
+  padding: 8px 12px;
+}
+
+.loc-agency-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* 現場別テーブル ホバー */
+.location-table .shift-row:hover td                    { background: rgba(255, 255, 255, 0.03); }
+.location-table .shift-row:hover .loc-date-cell        { background: rgba(255, 255, 255, 0.04); }
+.location-table .shift-row:hover .loc-date-cell.today  { background: rgba(229, 62, 62, 0.12); }
+
+/* ─── 分析ダッシュボード ────────────────────────────────────────────── */
+
+.shift-analysis {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 0;
+}
+
+.analysis-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px 24px 24px;
+}
+
+.analysis-card-header {
+  margin-bottom: 16px;
+}
+
+.analysis-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin: 0 0 4px 0;
+}
+
+.analysis-sub {
+  font-size: 12px;
+  color: var(--text-sub);
+  margin: 0;
+}
+
+.analysis-scroll {
+  overflow-x: auto;
+}
+
+/* ヒートマップテーブル共通 */
+.heatmap-table {
+  border-collapse: separate;
+  border-spacing: 2px;
+}
+
+.hm-corner {
+  min-width: 88px;
+  background: transparent;
+}
+
+.hm-col-th {
+  padding: 0 1px;
+  vertical-align: bottom;
+  text-align: center;
+  background: transparent;
+  border: none;
+}
+
+.hm-col-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-sub);
+  white-space: nowrap;
+  max-height: 76px;
+  overflow: hidden;
+}
+
+.hm-total-th .hm-col-label {
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+.hm-row-th {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-main);
+  text-align: right;
+  padding: 0 10px 0 0;
+  white-space: nowrap;
+  vertical-align: middle;
+  background: transparent;
+}
+
+.hm-cell {
+  min-width: 36px;
+  width: 36px;
+  height: 30px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.92);
+  border-radius: 4px;
+  vertical-align: middle;
+  cursor: default;
+  transition: filter 0.15s;
+}
+
+.hm-cell:hover {
+  filter: brightness(1.25);
+}
+
+/* 代理店ヒートマップ: シアン系 */
+.hm-agency-cell {
+  background: rgba(34, 211, 238, calc(var(--intensity, 0) * 0.78));
+}
+
+/* 組み合わせヒートマップ: バイオレット系 */
+.hm-pair-cell {
+  background: rgba(167, 139, 250, calc(var(--intensity, 0) * 0.78));
+}
+
+/* 対角セル（自分自身）*/
+.hm-self-cell {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 4px;
+  cursor: not-allowed;
+}
+
+/* 合計列 */
+.hm-total-cell {
+  background: rgba(255, 255, 255, 0.08) !important;
+  font-weight: 700;
+  color: var(--text-main);
+  border-radius: 4px;
 }
 
 /* ─── Views & Mobile ───────────────────────────── */

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { getShiftSheetData } from '@/lib/sheets';
+import { getShiftSheetDataWithHolidays } from '@/lib/sheets';
 import type { ShiftRow } from '@/types';
 
 function buildSheetName(month: string, region: '東京' | '福岡'): string {
@@ -17,7 +17,11 @@ const REGION_COLS = {
   '福岡': { staffEnd: 11, agencyIdx: 11 },
 } as const;
 
-function parseShiftRows(rows: string[][], region: '東京' | '福岡'): ShiftRow[] {
+function parseShiftRows(
+  rows: string[][],
+  region: '東京' | '福岡',
+  holidayDates: Set<string>
+): ShiftRow[] {
   const { staffEnd, agencyIdx } = REGION_COLS[region];
   const result: ShiftRow[] = [];
   for (const row of rows) {
@@ -35,6 +39,7 @@ function parseShiftRows(rows: string[][], region: '東京' | '福岡'): ShiftRow
       staff,
       agency: row[agencyIdx] ?? '',
       sheetRegion: region,
+      isHoliday: holidayDates.has(date),
     });
   }
   return result;
@@ -61,21 +66,34 @@ export async function GET(request: NextRequest) {
     searchParams.get('month') ||
     `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
+  // シートが存在しない or Google API がハングした場合でも10秒で空データを返す
+  async function safeGet(sheetName: string): Promise<{ values: string[][]; holidayDates: Set<string> }> {
+    const empty = { values: [] as string[][], holidayDates: new Set<string>() };
+    const timeout = new Promise<typeof empty>((resolve) =>
+      setTimeout(() => resolve(empty), 10000)
+    );
+    try {
+      return await Promise.race([getShiftSheetDataWithHolidays(sheetName), timeout]);
+    } catch {
+      return empty;
+    }
+  }
+
   try {
-    const [tokyoRows, fukuokaRows] = await Promise.all([
-      getShiftSheetData(buildSheetName(month, '東京')),
-      getShiftSheetData(buildSheetName(month, '福岡')),
+    const [tokyo, fukuoka] = await Promise.all([
+      safeGet(buildSheetName(month, '東京')),
+      safeGet(buildSheetName(month, '福岡')),
     ]);
 
     const rows: ShiftRow[] = [
-      ...parseShiftRows(tokyoRows, '東京'),
-      ...parseShiftRows(fukuokaRows, '福岡'),
+      ...parseShiftRows(tokyo.values, '東京', tokyo.holidayDates),
+      ...parseShiftRows(fukuoka.values, '福岡', fukuoka.holidayDates),
     ];
 
     // ヘッダー行（インデックス2）からスタッフ名を取得
     // 東京: Y列(24)以降、福岡: Q列(16)以降、「クロ」の手前まで
-    const tokyoHeader = tokyoRows[2] ?? [];
-    const fukuokaHeader = fukuokaRows[2] ?? [];
+    const tokyoHeader = tokyo.values[2] ?? [];
+    const fukuokaHeader = fukuoka.values[2] ?? [];
     const tokyoStaffNames = extractStaffNames(tokyoHeader, 24);
     const fukuokaStaffNames = extractStaffNames(fukuokaHeader, 16);
 

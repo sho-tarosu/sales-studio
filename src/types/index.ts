@@ -78,6 +78,7 @@ export interface ShiftRow {
   staff: string[];
   agency: string;
   sheetRegion: '東京' | '福岡';
+  isHoliday: boolean;
 }
 
 export type TabName =
