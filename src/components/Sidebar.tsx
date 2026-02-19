@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { LayoutDashboard, BarChart2, Layers, List, TrendingUp, Clock, Calendar } from 'lucide-react';
 import { TabName } from '@/types';
 import { signOut } from 'next-auth/react';
 
@@ -11,69 +12,18 @@ interface SidebarProps {
   userRole?: string;
 }
 
-// ─── SVG Icons ─────────────────────────────────────────────────────────────
-
-const GridIcon = () => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="3" width="7" height="7" rx="1.5" />
-    <rect x="14" y="3" width="7" height="7" rx="1.5" />
-    <rect x="3" y="14" width="7" height="7" rx="1.5" />
-    <rect x="14" y="14" width="7" height="7" rx="1.5" />
-  </svg>
-);
-
-const BarChartIcon = () => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M18 20V10M12 20V4M6 20v-6" />
-  </svg>
-);
-
-const LayersIcon = () => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polygon points="12,2 2,7 12,12 22,7" />
-    <polyline points="2,17 12,22 22,17" />
-    <polyline points="2,12 12,17 22,12" />
-  </svg>
-);
-
-const ListIcon = () => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
-  </svg>
-);
-
-const TrendIcon = () => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="22,12 18,12 15,21 9,3 6,12 2,12" />
-  </svg>
-);
-
-const ClockIcon = () => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10" />
-    <polyline points="12,6 12,12 16,14" />
-  </svg>
-);
-
-const CalendarIcon = () => (
-  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-    <line x1="16" y1="2" x2="16" y2="6" />
-    <line x1="8" y1="2" x2="8" y2="6" />
-    <line x1="3" y1="10" x2="21" y2="10" />
-  </svg>
-);
-
 // ─── Menu Config ──────────────────────────────────────────────────────────
 
+const ICON_PROPS = { size: 16, strokeWidth: 1.75 } as const;
+
 const menuItems: { id: TabName; label: string; icon: React.ReactNode }[] = [
-  { id: 'dashboard',      label: 'ダッシュボード',     icon: <GridIcon /> },
-  { id: 'visual-ranking', label: 'ランキング',          icon: <BarChartIcon /> },
-  { id: 'stacked-chart',  label: 'MNP・新規・SU',       icon: <LayersIcon /> },
-  { id: 'ranking',        label: 'ランキング (詳細)',    icon: <ListIcon /> },
-  { id: 'analysis',       label: '分析・比較',          icon: <TrendIcon /> },
-  { id: 'attendance',     label: '出勤管理',            icon: <ClockIcon /> },
-  { id: 'shift',          label: 'シフト',              icon: <CalendarIcon /> },
+  { id: 'dashboard',      label: 'ダッシュボード',     icon: <LayoutDashboard {...ICON_PROPS} /> },
+  { id: 'visual-ranking', label: 'ランキング',          icon: <BarChart2        {...ICON_PROPS} /> },
+  { id: 'stacked-chart',  label: 'MNP・新規・SU',       icon: <Layers           {...ICON_PROPS} /> },
+  { id: 'ranking',        label: 'ランキング (詳細)',    icon: <List             {...ICON_PROPS} /> },
+  { id: 'analysis',       label: '分析・比較',          icon: <TrendingUp       {...ICON_PROPS} /> },
+  { id: 'attendance',     label: '出勤管理',            icon: <Clock            {...ICON_PROPS} /> },
+  { id: 'shift',          label: 'シフト',              icon: <Calendar         {...ICON_PROPS} /> },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────

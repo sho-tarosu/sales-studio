@@ -3,6 +3,9 @@ import { getSheetData } from '@/lib/sheets';
 import { aggregateMainSheet, aggregateAgeSheet, aggregateTypeSheet } from '@/lib/aggregator';
 import { auth } from '@/lib/auth';
 
+// Vercelのキャッシュを無効化し、常に最新データを取得する
+export const dynamic = 'force-dynamic';
+
 const SHEET_NAME_MAIN = '合算データ';
 const SHEET_NAME_AGE = 'グラフ用データ_年代';
 const SHEET_NAME_TYPE = 'グラフ用データ_家族構成';

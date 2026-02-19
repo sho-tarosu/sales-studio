@@ -3,6 +3,9 @@ import { auth } from '@/lib/auth';
 import { getShiftSheetDataWithHolidays } from '@/lib/sheets';
 import type { ShiftRow } from '@/types';
 
+// Vercelのキャッシュを無効化し、常に最新データを取得する
+export const dynamic = 'force-dynamic';
+
 function buildSheetName(month: string, region: '東京' | '福岡'): string {
   const [year, mo] = month.split('-');
   const yy = year.slice(2);
@@ -74,7 +77,8 @@ export async function GET(request: NextRequest) {
     );
     try {
       return await Promise.race([getShiftSheetDataWithHolidays(sheetName), timeout]);
-    } catch {
+    } catch (e) {
+      console.error(`[shift API] シートデータ取得エラー (${sheetName}):`, e);
       return empty;
     }
   }

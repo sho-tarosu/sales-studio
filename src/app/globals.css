@@ -440,10 +440,14 @@ input[type="month"]:focus {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  /* overflow: clip はborder-radiusクリップを保ちつつ、子要素のスクロールを妨げない */
+  overflow: clip;
 }
 
-.shift-scroll { overflow-x: auto; }
+.shift-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* iOS慣性スクロール */
+}
 
 .shift-table {
   border-collapse: collapse;
@@ -460,26 +464,46 @@ input[type="month"]:focus {
 .shift-sticky-col {
   position: sticky;
   left: 0;
-  z-index: 2;
+  z-index: 10; /* ボディ行の固定列 */
+}
+
+/* thead内の固定列は最前面（ヘッダーが横スクロールに沈まないよう） */
+thead .shift-sticky-col {
+  z-index: 30;
 }
 
 /* Header: staff label */
 .shift-col-label {
-  padding: 10px 16px;
-  font-size: 11px;
+  padding: 6px 8px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--text-sub);
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  background: var(--bg-secondary);
-  border-right: 2px solid var(--border-color) !important;
+  background: var(--bg-color);
+  vertical-align: bottom;
+  /* border-rightの代わりにbox-shadowを使用。
+     box-shadowはsticky要素と一緒に動くため、border-collapse:collapseの
+     ボーダー共有による隙間が発生しない。 */
+  box-shadow: 2px 0 0 var(--border-color);
+}
+
+/* 月ラベル（スタッフ列ヘッダー上部） */
+.shift-label-month {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+  text-transform: none;
+  margin-bottom: 2px;
+  line-height: 1.2;
 }
 
 /* Header: date columns */
 .shift-col-date {
-  padding: 7px 4px;
+  padding: 6px 2px;
   text-align: center;
-  min-width: 52px;
+  min-width: 38px;
   vertical-align: middle;
   background: var(--bg-secondary);
 }
@@ -492,8 +516,8 @@ input[type="month"]:focus {
 .shift-col-date.weekend-sat { color: #7dd3fc; }
 .shift-col-date.weekend-sun { color: #f87171; }
 
-.shift-date-num { font-size: 12px; font-weight: 600; line-height: 1.4; }
-.shift-date-dow { font-size: 10px; margin-top: 1px; }
+.shift-date-num { font-size: 11px; font-weight: 600; line-height: 1.3; }
+.shift-date-dow { font-size: 9px; margin-top: 1px; }
 .shift-date-dow.sat { color: #7dd3fc; }
 .shift-date-dow.sun { color: #f87171; }
 
@@ -516,14 +540,20 @@ input[type="month"]:focus {
 
 /* Staff name cell */
 .shift-staff-name {
-  padding: 0 16px;
-  font-size: 13px;
+  padding: 0 8px;
+  font-size: 12px;
   font-weight: 500;
-  min-width: 120px;
+  min-width: 80px;
+  max-width: 80px;
+  width: 80px;
   height: 38px;
-  background: var(--card-bg);
-  border-right: 2px solid var(--border-color) !important;
+  background: var(--bg-color);
+  /* box-shadowでボーダー代替（sticky + border-collapse:collapseの隙間対策） */
+  box-shadow: 2px 0 0 var(--border-color);
   vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Data cells */
@@ -535,13 +565,13 @@ input[type="month"]:focus {
 }
 
 .shift-data-cell.today { background: rgba(229, 62, 62, 0.07); }
-.shift-data-cell.weekend-sat { background: rgba(125,211,252,0.05); }
-.shift-data-cell.weekend-sun { background: rgba(239, 68, 68, 0.05); }
+/* 土日祝の背景色なし（文字色のみ列ヘッダーで区別） */
 
 /* Row hover — applied via JS className or tr:hover */
 .shift-row:hover .shift-data-cell { background: rgba(255, 255, 255, 0.04); }
 .shift-row:hover .shift-data-cell.today { background: rgba(229, 62, 62, 0.12); }
-.shift-row:hover .shift-staff-name { background: rgba(255, 255, 255, 0.04); }
+/* sticky列のホバーは透け防止のため不透明色を維持 */
+.shift-row:hover .shift-staff-name { background: var(--bg-color); }
 
 /* Location pill */
 .shift-pill {
@@ -604,25 +634,50 @@ input[type="month"]:focus {
   white-space: nowrap;
 }
 
-.loc-th-date   { min-width: 58px; text-align: center; border-right: 2px solid var(--border-color) !important; }
-.loc-th-dow    { min-width: 44px; text-align: center; }
+/* 日付ヘッダー（sticky 1列目） */
+.loc-th-date {
+  width: 40px;
+  min-width: 40px;
+  text-align: center;
+  padding: 8px 4px;
+  background: var(--bg-color);
+  box-shadow: 2px 0 0 var(--border-color); /* border-right代替・隙間対策 */
+}
+
+/* 曜日ヘッダー（sticky 2列目） */
+.loc-th-dow {
+  position: sticky;
+  left: 40px; /* 日付列幅に合わせたオフセット */
+  z-index: 10;
+  width: 28px;
+  min-width: 28px;
+  text-align: center;
+  padding: 8px 2px;
+  background: var(--bg-color);
+  box-shadow: 2px 0 0 var(--border-color);
+}
+
+thead .loc-th-dow { z-index: 30; } /* 最前面 */
+
 .loc-th-place  { min-width: 150px; }
 .loc-th-time   { min-width: 68px; text-align: center; }
 .loc-th-staff  { min-width: 220px; }
 .loc-th-agency { min-width: 130px; }
 
-/* 日付セル */
+/* 日付セル（sticky 1列目） */
 .loc-date-cell {
-  background: var(--card-bg);
+  background: var(--bg-color);
   text-align: center;
   vertical-align: middle;
-  padding: 0 8px;
+  padding: 0 4px;
   height: 46px;
-  border-right: 2px solid var(--border-color) !important;
+  width: 40px;
+  min-width: 40px;
+  box-shadow: 2px 0 0 var(--border-color); /* border-right代替・隙間対策 */
 }
 
 .loc-date-cell.today {
-  background: rgba(229, 62, 62, 0.07);
+  background: rgba(229, 62, 62, 0.12);
   border-left: 3px solid var(--accent-color) !important;
 }
 
@@ -630,19 +685,26 @@ input[type="month"]:focus {
 .loc-date-cell.weekend-sun { color: #f87171; }
 
 .loc-date-num {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   line-height: 1;
 }
 
-/* 曜日セル */
+/* 曜日セル（sticky 2列目） */
 .loc-dow-cell {
+  position: sticky;
+  left: 40px; /* 日付列幅に合わせたオフセット */
+  z-index: 10;
+  background: var(--bg-color);
   text-align: center;
   vertical-align: middle;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
-  padding: 0 6px;
+  padding: 0 2px;
+  width: 28px;
+  min-width: 28px;
   color: var(--text-sub);
+  box-shadow: 2px 0 0 var(--border-color);
 }
 
 .loc-dow-cell.sat { color: #7dd3fc; }
@@ -711,8 +773,10 @@ input[type="month"]:focus {
 
 /* 現場別テーブル ホバー */
 .location-table .shift-row:hover td                    { background: rgba(255, 255, 255, 0.03); }
-.location-table .shift-row:hover .loc-date-cell        { background: rgba(255, 255, 255, 0.04); }
+/* sticky固定列はホバー時も不透明背景を維持 */
+.location-table .shift-row:hover .loc-date-cell        { background: var(--bg-color); }
 .location-table .shift-row:hover .loc-date-cell.today  { background: rgba(229, 62, 62, 0.12); }
+.location-table .shift-row:hover .loc-dow-cell         { background: var(--bg-color); }
 
 /* ─── 分析ダッシュボード ────────────────────────────────────────────── */
 
@@ -860,8 +924,15 @@ input[type="month"]:focus {
     align-items: center;
     z-index: 100;
   }
+  .main-content {
+    padding: 16px 12px;
+    padding-bottom: 72px;
+  }
   .dashboard-split, .compare-grid { grid-template-columns: 1fr; }
   .kpi-grid { grid-template-columns: 1fr 1fr; }
   .header-area { flex-direction: column; align-items: flex-start; gap: 10px; }
   .full-ranking-table { min-width: 600px; }
+  /* シフト表コントロールをスマホ向けに調整 */
+  .shift-controls { gap: 8px; }
+  .shift-region-btn { padding: 5px 10px; font-size: 12px; }
 }

@@ -10,18 +10,27 @@ export async function getSheetsClient() {
 
   if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
     // Vercel: credentials from environment variable
-    const credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+    let credentials;
+    try {
+      credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+    } catch (e) {
+      console.error('[sheets] GOOGLE_SERVICE_ACCOUNT_JSON のJSONパースに失敗しました。値が正しい形式か確認してください:', e);
+      throw new Error('GOOGLE_SERVICE_ACCOUNT_JSON のJSONパースに失敗しました');
+    }
     auth = new google.auth.GoogleAuth({
       credentials,
       scopes: SCOPES,
     });
-  } else {
+  } else if (process.env.GOOGLE_SERVICE_ACCOUNT_PATH) {
     // Local: credentials from file
-    const keyFilePath = path.resolve(process.env.GOOGLE_SERVICE_ACCOUNT_PATH || './service-account.json');
+    const keyFilePath = path.resolve(process.env.GOOGLE_SERVICE_ACCOUNT_PATH);
     auth = new google.auth.GoogleAuth({
       keyFile: keyFilePath,
       scopes: SCOPES,
     });
+  } else {
+    console.error('[sheets] Google認証情報が設定されていません。Vercelでは GOOGLE_SERVICE_ACCOUNT_JSON、ローカルでは GOOGLE_SERVICE_ACCOUNT_PATH を設定してください。');
+    throw new Error('Google認証情報が設定されていません (GOOGLE_SERVICE_ACCOUNT_JSON または GOOGLE_SERVICE_ACCOUNT_PATH が必要)');
   }
 
   const sheets = google.sheets({ version: 'v4', auth });
@@ -31,6 +40,10 @@ export async function getSheetsClient() {
 export async function getSheetData(sheetName: string): Promise<string[][]> {
   const sheets = await getSheetsClient();
   const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+  if (!spreadsheetId) {
+    console.error('[sheets] GOOGLE_SPREADSHEET_ID が設定されていません');
+    throw new Error('GOOGLE_SPREADSHEET_ID が設定されていません');
+  }
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId,
     range: sheetName,
@@ -41,6 +54,10 @@ export async function getSheetData(sheetName: string): Promise<string[][]> {
 export async function getShiftSheetData(sheetName: string): Promise<string[][]> {
   const sheets = await getSheetsClient();
   const spreadsheetId = process.env.SHIFT_SPREADSHEET_ID;
+  if (!spreadsheetId) {
+    console.error('[sheets] SHIFT_SPREADSHEET_ID が設定されていません');
+    throw new Error('SHIFT_SPREADSHEET_ID が設定されていません');
+  }
   const res = await sheets.spreadsheets.values.get({
     spreadsheetId,
     range: sheetName,
@@ -66,6 +83,10 @@ export async function getShiftSheetDataWithHolidays(
 ): Promise<{ values: string[][]; holidayDates: Set<string> }> {
   const sheets = await getSheetsClient();
   const spreadsheetId = process.env.SHIFT_SPREADSHEET_ID;
+  if (!spreadsheetId) {
+    console.error('[sheets] SHIFT_SPREADSHEET_ID が設定されていません');
+    throw new Error('SHIFT_SPREADSHEET_ID が設定されていません');
+  }
 
   // ① 値取得（従来と同じ方法。シートがなければ空配列）
   const valRes = await sheets.spreadsheets.values.get({

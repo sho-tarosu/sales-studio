@@ -64,6 +64,12 @@ export default function ShiftView({
 
   const selectedMonthNum = selectedMonth.split('-')[1];
 
+  // 「2026年2月」形式の月ラベル
+  const monthLabel = (() => {
+    const [y, m] = selectedMonth.split('-');
+    return `${y}年${parseInt(m)}月`;
+  })();
+
   // ─── スタッフ別ビュー用 ────────────────────────────────────────────
 
   // 日付一覧（ソート済み）
@@ -291,7 +297,10 @@ export default function ShiftView({
             <table className="shift-table">
               <thead>
                 <tr>
-                  <th className="shift-sticky-col shift-col-label">スタッフ</th>
+                  <th className="shift-sticky-col shift-col-label">
+                    <div className="shift-label-month">{monthLabel}</div>
+                    <div>Staff</div>
+                  </th>
                   {dates.map((date) => {
                     const [mm, dd] = date.split('/');
                     const label =
