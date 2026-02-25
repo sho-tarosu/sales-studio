@@ -86,7 +86,7 @@ export default function Home() {
       const json: DashboardData = await res.json();
       setData(json);
       const t = new Date();
-      setLastUpdate(`最終更新: ${t.getHours()}:${String(t.getMinutes()).padStart(2, '0')}`);
+      setLastUpdate(`最終更新: ${new Intl.DateTimeFormat('ja-JP', { hour: '2-digit', minute: '2-digit' }).format(t)}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'エラーが発生しました');
     } finally {
@@ -126,6 +126,7 @@ export default function Home() {
               type="month"
               value={selectedMonth}
               onChange={handleMonthChange}
+              aria-label="表示月を選択"
             />
           </div>
           <div style={{ fontSize: '12px', color: '#aaa' }}>{lastUpdate}</div>

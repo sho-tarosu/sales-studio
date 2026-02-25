@@ -44,10 +44,12 @@ export default function Sidebar({ activeTab, onTabChange, userName, userRole }: 
       {/* Navigation */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {menuItems.map((item) => (
-          <div
+          <button
             key={item.id}
             className={`menu-item${activeTab === item.id ? ' active' : ''}`}
             onClick={() => onTabChange(item.id)}
+            aria-current={activeTab === item.id ? 'page' : undefined}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', width: 'calc(100% - 16px)', textAlign: 'left' }}
           >
             <span style={{
               flexShrink: 0,
@@ -57,7 +59,7 @@ export default function Sidebar({ activeTab, onTabChange, userName, userRole }: 
               {item.icon}
             </span>
             <span>{item.label}</span>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -111,7 +113,7 @@ export default function Sidebar({ activeTab, onTabChange, userName, userRole }: 
               fontSize: '12px',
               cursor: 'pointer',
               width: '100%',
-              transition: 'all 0.15s',
+              transition: 'border-color 0.15s, color 0.15s',
             }}
             onMouseEnter={(e) => {
               (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--accent-color)';

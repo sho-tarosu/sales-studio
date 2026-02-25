@@ -23,22 +23,27 @@ export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
       {navItems.map((item) => {
         const isActive = activeTab === item.id;
         return (
-          <div
+          <button
             key={item.id}
             className={`menu-item${isActive ? ' active' : ''}`}
             onClick={() => onTabChange(item.id)}
+            aria-current={isActive ? 'page' : undefined}
             style={{
               flexDirection: 'column',
               gap: '3px',
               padding: '6px 4px',
               color: isActive ? 'var(--text-main)' : 'var(--text-sub)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              width: '100%',
             }}
           >
             <span style={{ display: 'flex', justifyContent: 'center' }}>
               {item.icon}
             </span>
             <span style={{ fontSize: '9px', letterSpacing: '0.01em' }}>{item.label}</span>
-          </div>
+          </button>
         );
       })}
     </nav>

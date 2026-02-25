@@ -91,10 +91,11 @@ export default function LoginPage() {
         )}
 
         <div style={{ marginBottom: '16px' }}>
-          <label style={{ display: 'block', fontSize: '13px', color: '#aaa', marginBottom: '6px' }}>
+          <label htmlFor="login-userid" style={{ display: 'block', fontSize: '13px', color: '#aaa', marginBottom: '6px' }}>
             ユーザーID
           </label>
           <input
+            id="login-userid"
             type="text"
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
@@ -108,16 +109,16 @@ export default function LoginPage() {
               border: '1px solid #444',
               borderRadius: '6px',
               fontSize: '14px',
-              outline: 'none',
             }}
           />
         </div>
 
         <div style={{ marginBottom: '24px' }}>
-          <label style={{ display: 'block', fontSize: '13px', color: '#aaa', marginBottom: '6px' }}>
+          <label htmlFor="login-password" style={{ display: 'block', fontSize: '13px', color: '#aaa', marginBottom: '6px' }}>
             パスワード
           </label>
           <input
+            id="login-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -131,7 +132,6 @@ export default function LoginPage() {
               border: '1px solid #444',
               borderRadius: '6px',
               fontSize: '14px',
-              outline: 'none',
             }}
           />
         </div>

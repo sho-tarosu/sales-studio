@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import type { ShiftRow } from '@/types';
 import ShiftAnalysis from '@/components/ShiftAnalysis';
 
@@ -41,6 +41,14 @@ function startsWithX(name: string): boolean {
   return /^[×✖✗✘]/.test(name);
 }
 
+// 現場名の「親現場名（Base Site Name）」を返す
+// 半角スペースまたは全角スペースが含まれる場合、最初のスペース前の部分のみを返す
+// 例: "アリオ北砂 平日店頭 追加" → "アリオ北砂"
+function getBaseSiteName(location: string): string {
+  const spaceIdx = location.search(/[ 　]/);
+  return spaceIdx === -1 ? location : location.slice(0, spaceIdx);
+}
+
 type ViewMode = 'staff' | 'location';
 
 export default function ShiftView({
@@ -54,6 +62,10 @@ export default function ShiftView({
   const [regionFilter, setRegionFilter] = useState<'東京' | '福岡'>('東京');
   const [viewMode, setViewMode] = useState<ViewMode>('staff');
   const [pageMode, setPageMode] = useState<'shift' | 'analysis'>('shift');
+  const [showAgency, setShowAgency] = useState(false);
+  const [selectedAgency, setSelectedAgency] = useState<string | null>(null);
+  const [showLocation, setShowLocation] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
 
   const staffNames = regionFilter === '東京' ? tokyoStaffNames : fukuokaStaffNames;
 
@@ -162,6 +174,34 @@ export default function ShiftView({
       .sort((a, b) => a.date.localeCompare(b.date));
   }, [filtered, staffNameSet]);
 
+  // 地域変更時にフィルター・パネルをすべてリセット
+  useEffect(() => {
+    setSelectedAgency(null);
+    setSelectedLocation(null);
+    setShowAgency(false);
+    setShowLocation(false);
+  }, [regionFilter]);
+
+  // 現場別ビューに実際に存在する代理店のSet（凡例フィルタリング用）
+  const locationAgencySet = useMemo(
+    () => new Set(locationRows.map((r) => r.agency).filter((ag) => ag && ag.trim() !== '' && !startsWithX(ag))),
+    [locationRows]
+  );
+
+  // 現場別ビューに存在する「親現場名」一覧（スペース前でグループ化・ソート済み・重複なし）
+  const locationNames = useMemo(
+    () => [...new Set(locationRows.map((r) => getBaseSiteName(r.location)))].sort((a, b) => a.localeCompare(b, 'ja')),
+    [locationRows]
+  );
+
+  // フィルタ適用済み現場リスト（代理店・現場は排他的）
+  // 現場フィルターは「親現場名の前方一致」で絞り込む
+  const filteredLocationRows = useMemo(() => {
+    if (selectedAgency) return locationRows.filter((r) => r.agency === selectedAgency);
+    if (selectedLocation) return locationRows.filter((r) => getBaseSiteName(r.location) === selectedLocation);
+    return locationRows;
+  }, [locationRows, selectedAgency, selectedLocation]);
+
   // 祝日の日付セット（スタッフ別ビューで参照）
   const holidaySet = useMemo(() => {
     const s = new Set<string>();
@@ -260,6 +300,52 @@ export default function ShiftView({
               </button>
             ))}
           </div>
+
+          {/* 代理店凡例トグル（現場別ビューのみ・現場データがある代理店のみ） */}
+          {pageMode === 'shift' && viewMode === 'location' && locationAgencySet.size > 0 && (
+            <button
+              className={`shift-agency-btn${showAgency ? ' active' : ''}${selectedAgency ? ' filtered' : ''}`}
+              onClick={() => { setShowAgency(v => !v); setShowLocation(false); }}
+              aria-expanded={showAgency}
+            >
+              {/* フィルターアイコン */}
+              <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <path d="M1 2.5h10M3 6h6M5 9.5h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+              代理店
+              {/* フィルター中インジケーター */}
+              {selectedAgency && <span className="shift-agency-filter-dot" />}
+              {/* Chevronアイコン */}
+              <svg
+                width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true"
+                className={`shift-agency-chevron${showAgency ? ' open' : ''}`}
+              >
+                <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          )}
+
+          {/* 現場フィルタートグル（現場別ビューのみ） */}
+          {pageMode === 'shift' && viewMode === 'location' && locationNames.length > 0 && (
+            <button
+              className={`shift-agency-btn${showLocation ? ' active' : ''}${selectedLocation ? ' filtered' : ''}`}
+              onClick={() => { setShowLocation(v => !v); setShowAgency(false); }}
+              aria-expanded={showLocation}
+            >
+              {/* 現場アイコン（建物） */}
+              <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <path d="M2 11V5l4-3 4 3v6M5 11V8h2v3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              現場
+              {selectedLocation && <span className="shift-agency-filter-dot" />}
+              <svg
+                width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true"
+                className={`shift-agency-chevron${showLocation ? ' open' : ''}`}
+              >
+                <path d="M2.5 4.5L6 8l3.5-3.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          )}
         </div>
 
         {/* メタ情報 */}
@@ -273,20 +359,65 @@ export default function ShiftView({
               <span>{dates.length} 日</span>
             </>
           ) : (
-            <span>{locationRows.length} 件</span>
+            <span>
+              {(selectedAgency || selectedLocation)
+                ? `${filteredLocationRows.length} / ${locationRows.length} 件`
+                : `${locationRows.length} 件`}
+            </span>
           )}
         </div>
       </div>
 
-      {/* 代理店凡例（シフト表のみ） */}
+      {/* 代理店凡例（シフト表のみ・トグルで開閉） */}
       {pageMode === 'shift' && agencyColors.size > 0 && (
-        <div className="shift-legend">
-          {[...agencyColors.entries()].map(([agency, color]) => (
-            <div key={agency} className="shift-legend-item">
-              <span className="shift-legend-dot" style={{ background: color.dot }} />
-              <span style={{ color: color.text }}>{agency}</span>
-            </div>
-          ))}
+        <div className={`shift-legend-wrapper${showAgency ? ' open' : ''}`}>
+          <div className="shift-legend">
+            {[...agencyColors.entries()].filter(([agency]) => locationAgencySet.has(agency)).map(([agency, color]) => {
+              const isSelected = selectedAgency === agency;
+              const isDimmed = selectedAgency !== null && !isSelected;
+              return (
+                <div
+                  key={agency}
+                  className={`shift-legend-item${isSelected ? ' selected' : ''}${isDimmed ? ' dimmed' : ''}`}
+                  onClick={() => {
+                    setSelectedAgency(prev => prev === agency ? null : agency);
+                    setSelectedLocation(null);
+                  }}
+                  role="button"
+                  aria-pressed={isSelected}
+                >
+                  <span className="shift-legend-dot" style={{ background: color.dot }} />
+                  <span style={{ color: isSelected ? color.text : undefined }}>{agency}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 現場フィルターパネル（現場別ビューのみ・トグルで開閉） */}
+      {pageMode === 'shift' && viewMode === 'location' && locationNames.length > 0 && (
+        <div className={`shift-legend-wrapper loc-filter-wrapper${showLocation ? ' open' : ''}`}>
+          <div className="shift-legend">
+            {locationNames.map((loc) => {
+              const isSelected = selectedLocation === loc;
+              const isDimmed = selectedLocation !== null && !isSelected;
+              return (
+                <div
+                  key={loc}
+                  className={`shift-legend-item${isSelected ? ' selected' : ''}${isDimmed ? ' dimmed' : ''}`}
+                  onClick={() => {
+                    setSelectedLocation(prev => prev === loc ? null : loc);
+                    setSelectedAgency(null);
+                  }}
+                  role="button"
+                  aria-pressed={isSelected}
+                >
+                  <span>{loc}</span>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -413,14 +544,16 @@ export default function ShiftView({
               </thead>
 
               <tbody>
-                {locationRows.length === 0 ? (
+                {filteredLocationRows.length === 0 ? (
                   <tr>
                     <td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-sub)', fontSize: 13 }}>
-                      表示できる現場データがありません
+                      {selectedAgency
+                        ? `「${selectedAgency}」の現場データがありません`
+                        : '表示できる現場データがありません'}
                     </td>
                   </tr>
                 ) : (
-                  locationRows.map((row, i) => {
+                  filteredLocationRows.map((row, i) => {
                     const [mm, dd] = row.date.split('/');
                     const dateLabel =
                       mm === selectedMonthNum
