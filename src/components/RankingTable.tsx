@@ -13,7 +13,6 @@ export default function RankingTable({ ranking }: RankingTableProps) {
         <table className="full-ranking-table">
           <thead>
             <tr>
-              <th>#</th>
               <th>名前</th>
               <th>合計</th>
               <th>MNP</th>
@@ -25,9 +24,8 @@ export default function RankingTable({ ranking }: RankingTableProps) {
             </tr>
           </thead>
           <tbody>
-            {ranking.map((staff, i) => (
+            {ranking.map((staff) => (
               <tr key={staff.name}>
-                <td>{i + 1}</td>
                 <td>{staff.name}</td>
                 <td style={{ color: '#3ea6ff', fontWeight: 'bold' }}>{staff.total}</td>
                 <td>{staff.mnp}</td>

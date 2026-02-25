@@ -85,7 +85,6 @@ export type TabName =
   | 'dashboard'
   | 'visual-ranking'
   | 'stacked-chart'
-  | 'ranking'
   | 'analysis'
   | 'attendance'
   | 'shift';

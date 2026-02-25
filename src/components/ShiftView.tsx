@@ -219,6 +219,21 @@ export default function ShiftView({
     return `${String(t.getMonth() + 1).padStart(2, '0')}/${String(t.getDate()).padStart(2, '0')}`;
   }, []);
 
+  // シフト表が表示されたとき・データ読み込み完了時に今日の列/行までスクロール
+  useEffect(() => {
+    if (!rows.length || pageMode !== 'shift') return;
+    const timer = setTimeout(() => {
+      const el = document.querySelector<HTMLElement>('.shift-table .today');
+      if (!el) return;
+      if (viewMode === 'staff') {
+        el.scrollIntoView({ block: 'nearest', inline: 'center' });
+      } else {
+        el.scrollIntoView({ block: 'start', inline: 'nearest' });
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [rows, viewMode, pageMode]);
+
   // ─── Loading / Error / Empty ───────────────────────────────────────
 
   if (loading) {
@@ -250,6 +265,8 @@ export default function ShiftView({
 
   return (
     <div className="shift-container">
+
+      <div className="shift-sticky-header">
 
       {/* Controls */}
       <div className="shift-controls">
@@ -420,6 +437,8 @@ export default function ShiftView({
           </div>
         </div>
       )}
+
+      </div>{/* /shift-sticky-header */}
 
       {/* ── スタッフ別テーブル ── */}
       {pageMode === 'shift' && viewMode === 'staff' && (

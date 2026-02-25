@@ -19,7 +19,6 @@ const TAB_TITLES: Record<TabName, string> = {
   'dashboard': '獲得状況',
   'visual-ranking': 'ランキング',
   'stacked-chart': 'MNP・新規・SU',
-  'ranking': 'ランキング (詳細)',
   'analysis': '分析・比較',
   'attendance': '出勤管理',
   'shift': 'シフト',
@@ -28,6 +27,7 @@ const TAB_TITLES: Record<TabName, string> = {
 export default function Home() {
   const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<TabName>('dashboard');
+  const [rankingView, setRankingView] = useState<'chart' | 'table'>('chart');
 
   const now = new Date();
   const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -167,22 +167,37 @@ export default function Home() {
             )}
 
             {activeTab === 'visual-ranking' && (
-              <div className="chart-card" style={{ height: 'calc(100vh - 150px)' }}>
-                <h3 style={{ fontSize: '14px', color: 'var(--text-sub)', marginBottom: '10px' }}>
-                  ランキング (全スタッフ)
-                </h3>
-                <BarChart ranking={data.ranking} />
-              </div>
+              <>
+                <div className="shift-controls" style={{ marginBottom: '16px' }}>
+                  <div className="shift-region-toggle">
+                    <button
+                      className={`shift-region-btn${rankingView === 'chart' ? ' active' : ''}`}
+                      onClick={() => setRankingView('chart')}
+                    >
+                      グラフ
+                    </button>
+                    <button
+                      className={`shift-region-btn${rankingView === 'table' ? ' active' : ''}`}
+                      onClick={() => setRankingView('table')}
+                    >
+                      詳細
+                    </button>
+                  </div>
+                </div>
+                {rankingView === 'chart' ? (
+                  <div className="chart-card" style={{ height: 'calc(100vh - 200px)' }}>
+                    <BarChart ranking={data.ranking} />
+                  </div>
+                ) : (
+                  <RankingTable ranking={data.ranking} />
+                )}
+              </>
             )}
 
             {activeTab === 'stacked-chart' && (
               <div className="chart-card" style={{ height: 'calc(100vh - 150px)' }}>
                 <StackedBarChart ranking={data.ranking} />
               </div>
-            )}
-
-            {activeTab === 'ranking' && (
-              <RankingTable ranking={data.ranking} />
             )}
 
             {activeTab === 'analysis' && (
