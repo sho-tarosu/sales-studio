@@ -11,6 +11,7 @@ interface DoughnutChartProps {
   cutout?: string;
   showLegend?: boolean;
   className?: string;
+  tooltipUnit?: string;
 }
 
 const colorMap: Record<string, string> = {
@@ -20,11 +21,15 @@ const colorMap: Record<string, string> = {
   '家族': '#4285F4',
   '2名': '#AB47BC',
   'シングル': '#FBBC04',
+  'A型': '#4285F4',
+  'B型': '#EA4335',
+  'O型': '#34A853',
+  'AB型': '#9c27b0',
 };
 
 const defaultColors = ['#888', '#666'];
 
-export default function DoughnutChart({ dataMap, cutout = '70%', showLegend = false, className }: DoughnutChartProps) {
+export default function DoughnutChart({ dataMap, cutout = '70%', showLegend = false, className, tooltipUnit = '件' }: DoughnutChartProps) {
   if (!dataMap || Object.keys(dataMap).length === 0) return null;
 
   const entries = Object.entries(dataMap).sort((a, b) => b[1] - a[1]);
@@ -50,7 +55,7 @@ export default function DoughnutChart({ dataMap, cutout = '70%', showLegend = fa
             labels: { color: '#aaaaaa', font: { size: 12 }, boxWidth: 12 },
           },
           tooltip: {
-            callbacks: { label: (c) => `${c.label}: ${c.raw}件` },
+            callbacks: { label: (c) => `${c.label}: ${c.raw}${tooltipUnit}` },
           },
           datalabels: {
             color: '#fff',

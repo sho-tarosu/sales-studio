@@ -14,6 +14,7 @@ import RankingTable from '@/components/RankingTable';
 import AnalysisView from '@/components/AnalysisView';
 import AttendanceTable from '@/components/AttendanceTable';
 import ShiftView from '@/components/ShiftView';
+import ProfileView from '@/components/ProfileView';
 
 const TAB_TITLES: Record<TabName, string> = {
   'dashboard': '獲得状況',
@@ -22,6 +23,7 @@ const TAB_TITLES: Record<TabName, string> = {
   'analysis': '分析・比較',
   'attendance': '出勤管理',
   'shift': 'シフト',
+  'profile': 'プロフィール',
 };
 
 export default function Home() {
@@ -122,12 +124,14 @@ export default function Home() {
         <header className="header-area">
           <div className="header-left">
             <h1 className="page-title">{TAB_TITLES[activeTab]}</h1>
-            <input
-              type="month"
-              value={selectedMonth}
-              onChange={handleMonthChange}
-              aria-label="表示月を選択"
-            />
+            {activeTab !== 'profile' && (
+              <input
+                type="month"
+                value={selectedMonth}
+                onChange={handleMonthChange}
+                aria-label="表示月を選択"
+              />
+            )}
           </div>
           <div style={{ fontSize: '12px', color: '#aaa' }}>{lastUpdate}</div>
         </header>
@@ -220,6 +224,8 @@ export default function Home() {
             selectedMonth={selectedMonth}
           />
         )}
+
+        {activeTab === 'profile' && <ProfileView />}
       </main>
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />

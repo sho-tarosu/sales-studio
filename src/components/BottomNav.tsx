@@ -1,6 +1,6 @@
 'use client';
 
-import { LayoutDashboard, BarChart2, TrendingUp, Clock, Calendar } from 'lucide-react';
+import { LayoutDashboard, BarChart2, TrendingUp, Clock, Calendar, Users } from 'lucide-react';
 import { TabName } from '@/types';
 
 interface BottomNavProps {
@@ -14,6 +14,7 @@ const navItems: { id: TabName; icon: React.ReactNode; label: string }[] = [
   { id: 'analysis',       icon: <TrendingUp       size={20} strokeWidth={1.75} />, label: '分析' },
   { id: 'attendance',     icon: <Clock            size={20} strokeWidth={1.75} />, label: '出勤' },
   { id: 'shift',          icon: <Calendar         size={20} strokeWidth={1.75} />, label: 'シフト' },
+  { id: 'profile',        icon: <Users            size={20} strokeWidth={1.75} />, label: 'プロフィール' },
 ];
 
 export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {

@@ -87,6 +87,7 @@ export type TabName =
   | 'stacked-chart'
   | 'analysis'
   | 'attendance'
-  | 'shift';
+  | 'shift'
+  | 'profile';
 
 export type AnalysisMode = 'overall' | 'individual' | 'site' | 'compare';

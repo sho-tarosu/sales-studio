@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { LayoutDashboard, BarChart2, Layers, TrendingUp, Clock, Calendar } from 'lucide-react';
+import { LayoutDashboard, BarChart2, Layers, TrendingUp, Clock, Calendar, Users } from 'lucide-react';
 import { TabName } from '@/types';
 import { signOut } from 'next-auth/react';
 
@@ -23,6 +23,7 @@ const menuItems: { id: TabName; label: string; icon: React.ReactNode }[] = [
   { id: 'analysis',       label: '分析・比較',          icon: <TrendingUp       {...ICON_PROPS} /> },
   { id: 'attendance',     label: '出勤管理',            icon: <Clock            {...ICON_PROPS} /> },
   { id: 'shift',          label: 'シフト',              icon: <Calendar         {...ICON_PROPS} /> },
+  { id: 'profile',        label: 'プロフィール',         icon: <Users            {...ICON_PROPS} /> },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────
