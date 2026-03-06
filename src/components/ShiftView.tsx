@@ -29,6 +29,16 @@ const PILL_COLORS = [
   { bg: 'rgba(244,114,182,0.20)', text: '#f472b6', dot: '#ec4899' },  // ピンク   330°
 ];
 
+// 社員シフトの勤務区分スタイル
+const EMP_STATUS_STYLE: Record<string, { bg: string; color: string }> = {
+  '現場':  { bg: 'rgba(100,116,139,0.12)', color: '#94a3b8' },
+  '事務所': { bg: 'rgba(59,130,246,0.18)',  color: '#60a5fa' },
+  '有給':  { bg: 'rgba(168,85,247,0.18)',  color: '#c084fc' },
+  '在宅':  { bg: 'rgba(100,116,139,0.06)', color: '#64748b' },
+  'OFF':   { bg: 'rgba(34,197,94,0.18)',   color: '#4ade80' },
+  '希OFF': { bg: 'rgba(20,184,166,0.18)',  color: '#2dd4bf' },
+};
+
 // 代理店名を固定インデックスにマップ（月・地域をまたいでも色が変わらない）
 function agencyColorIndex(name: string): number {
   let h = 0;
@@ -42,14 +52,18 @@ function startsWithX(name: string): boolean {
 }
 
 // 現場名の「親現場名（Base Site Name）」を返す
-// 半角スペースまたは全角スペースが含まれる場合、最初のスペース前の部分のみを返す
-// 例: "アリオ北砂 平日店頭 追加" → "アリオ北砂"
 function getBaseSiteName(location: string): string {
   const spaceIdx = location.search(/[ 　]/);
   return spaceIdx === -1 ? location : location.slice(0, spaceIdx);
 }
 
-type ViewMode = 'staff' | 'location';
+type ViewMode = 'staff' | 'location' | 'employee';
+
+interface EmpShiftData {
+  staff: string[];
+  dates: { date: string; dayOfWeek: string }[];
+  cells: Record<string, Record<string, string>>;
+}
 
 export default function ShiftView({
   rows,
@@ -60,12 +74,18 @@ export default function ShiftView({
   selectedMonth,
 }: ShiftViewProps) {
   const [regionFilter, setRegionFilter] = useState<'東京' | '福岡'>('東京');
-  const [viewMode, setViewMode] = useState<ViewMode>('staff');
+  const [viewMode, setViewMode] = useState<ViewMode>('location');
   const [pageMode, setPageMode] = useState<'shift' | 'analysis'>('shift');
   const [showAgency, setShowAgency] = useState(false);
   const [selectedAgency, setSelectedAgency] = useState<string | null>(null);
   const [showLocation, setShowLocation] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
+
+  // 社員シフトデータ
+  const [empData, setEmpData] = useState<EmpShiftData | null>(null);
+  const [empLoading, setEmpLoading] = useState(false);
+  const [empError, setEmpError] = useState<string | null>(null);
+  const [empFetchedMonth, setEmpFetchedMonth] = useState<string | null>(null);
 
   const staffNames = regionFilter === '東京' ? tokyoStaffNames : fukuokaStaffNames;
 
@@ -84,20 +104,17 @@ export default function ShiftView({
 
   // ─── スタッフ別ビュー用 ────────────────────────────────────────────
 
-  // 日付一覧（ソート済み）
   const dates = useMemo(
     () => [...new Set(filtered.map((r) => r.date))].sort((a, b) => a.localeCompare(b)),
     [filtered]
   );
 
-  // 日付 → 曜日マップ
   const dayOfWeekMap = useMemo(() => {
     const m: Record<string, string> = {};
     for (const row of filtered) m[row.date] = row.dayOfWeek;
     return m;
   }, [filtered]);
 
-  // (スタッフ名, 日付) → 勤務場所リスト
   const shiftMap = useMemo(() => {
     const m: Record<string, Record<string, string[]>> = {};
     for (const row of filtered) {
@@ -110,7 +127,6 @@ export default function ShiftView({
     return m;
   }, [filtered]);
 
-  // (スタッフ名, 日付) → 代理店名
   const agencyShiftMap = useMemo(() => {
     const m: Record<string, Record<string, string>> = {};
     for (const row of filtered) {
@@ -122,7 +138,6 @@ export default function ShiftView({
     return m;
   }, [filtered]);
 
-  // 代理店 → カラーマップ
   const agencyColors = useMemo(() => {
     const agencies = [...new Set(filtered.map((r) => r.agency))]
       .filter((ag) => ag && ag.trim() !== '' && !startsWithX(ag));
@@ -145,7 +160,6 @@ export default function ShiftView({
     return map;
   }, [filtered]);
 
-  // 表示するスタッフ名（空名・×付き・当月シフトなしを除外）
   const visibleStaffNames = useMemo(
     () => staffNames.filter(
       (name) => name && name.trim() !== '' && !startsWithX(name) && shiftMap[name]
@@ -155,13 +169,8 @@ export default function ShiftView({
 
   // ─── 現場別ビュー用 ────────────────────────────────────────────────
 
-  // Y3/Q3 以降のヘッダー名を Set 化（現場別ビューで使用）
   const staffNameSet = useMemo(() => new Set(staffNames), [staffNames]);
 
-  // 現場別ビュー用
-  // ・×代理店・空現場を除外
-  // ・staffNameSet に含まれるスタッフが1人もいない行は非表示
-  // ・日付のみでソート（同一日付内はスプレッドシートの行順＝元の順序を維持）
   const locationRows = useMemo(() => {
     return filtered
       .filter((r) => {
@@ -174,7 +183,6 @@ export default function ShiftView({
       .sort((a, b) => a.date.localeCompare(b.date));
   }, [filtered, staffNameSet]);
 
-  // 地域変更時にフィルター・パネルをすべてリセット
   useEffect(() => {
     setSelectedAgency(null);
     setSelectedLocation(null);
@@ -182,27 +190,22 @@ export default function ShiftView({
     setShowLocation(false);
   }, [regionFilter]);
 
-  // 現場別ビューに実際に存在する代理店のSet（凡例フィルタリング用）
   const locationAgencySet = useMemo(
     () => new Set(locationRows.map((r) => r.agency).filter((ag) => ag && ag.trim() !== '' && !startsWithX(ag))),
     [locationRows]
   );
 
-  // 現場別ビューに存在する「親現場名」一覧（スペース前でグループ化・ソート済み・重複なし）
   const locationNames = useMemo(
     () => [...new Set(locationRows.map((r) => getBaseSiteName(r.location)))].sort((a, b) => a.localeCompare(b, 'ja')),
     [locationRows]
   );
 
-  // フィルタ適用済み現場リスト（代理店・現場は排他的）
-  // 現場フィルターは「親現場名の前方一致」で絞り込む
   const filteredLocationRows = useMemo(() => {
     if (selectedAgency) return locationRows.filter((r) => r.agency === selectedAgency);
     if (selectedLocation) return locationRows.filter((r) => getBaseSiteName(r.location) === selectedLocation);
     return locationRows;
   }, [locationRows, selectedAgency, selectedLocation]);
 
-  // 祝日の日付セット（スタッフ別ビューで参照）
   const holidaySet = useMemo(() => {
     const s = new Set<string>();
     for (const row of filtered) {
@@ -213,7 +216,6 @@ export default function ShiftView({
 
   // ─── 共通 ──────────────────────────────────────────────────────────
 
-  // 今日の日付（MM/DD形式）
   const todayStr = useMemo(() => {
     const t = new Date();
     return `${String(t.getMonth() + 1).padStart(2, '0')}/${String(t.getDate()).padStart(2, '0')}`;
@@ -234,6 +236,26 @@ export default function ShiftView({
     return () => clearTimeout(timer);
   }, [rows, viewMode, pageMode]);
 
+  // ─── 社員シフトデータ取得 ──────────────────────────────────────────
+
+  useEffect(() => {
+    if (viewMode !== 'employee') return;
+    if (empFetchedMonth === selectedMonth) return;
+    setEmpLoading(true);
+    setEmpError(null);
+    fetch(`/api/employee-shift?month=${selectedMonth}`)
+      .then((r) => r.json())
+      .then((data: EmpShiftData & { error?: string }) => {
+        if (data.error) throw new Error(data.error);
+        setEmpData(data);
+      })
+      .catch((e: Error) => setEmpError(e.message))
+      .finally(() => {
+        setEmpFetchedMonth(selectedMonth);
+        setEmpLoading(false);
+      });
+  }, [viewMode, selectedMonth, empFetchedMonth]);
+
   // ─── Loading / Error / Empty ───────────────────────────────────────
 
   if (loading) {
@@ -253,13 +275,6 @@ export default function ShiftView({
     );
   }
 
-  if (rows.length === 0) {
-    return (
-      <div className="shift-loading" style={{ color: 'var(--text-sub)' }}>
-        この月のシフトデータはありません
-      </div>
-    );
-  }
 
   // ─── Render ────────────────────────────────────────────────────────
 
@@ -271,25 +286,33 @@ export default function ShiftView({
       {/* Controls */}
       <div className="shift-controls">
         <div className="shift-controls-left">
-          {/* ページモードトグル */}
-          <div className="shift-region-toggle">
-            <button
-              className={`shift-region-btn${pageMode === 'shift' ? ' active' : ''}`}
-              onClick={() => setPageMode('shift')}
-            >
-              シフト表
-            </button>
-            <button
-              className={`shift-region-btn${pageMode === 'analysis' ? ' active' : ''}`}
-              onClick={() => setPageMode('analysis')}
-            >
-              分析
-            </button>
-          </div>
+          {/* ページモードトグル（社員モード以外） */}
+          {viewMode !== 'employee' && (
+            <div className="shift-region-toggle">
+              <button
+                className={`shift-region-btn${pageMode === 'shift' ? ' active' : ''}`}
+                onClick={() => setPageMode('shift')}
+              >
+                シフト表
+              </button>
+              <button
+                className={`shift-region-btn${pageMode === 'analysis' ? ' active' : ''}`}
+                onClick={() => setPageMode('analysis')}
+              >
+                分析
+              </button>
+            </div>
+          )}
 
           {/* 表示モードトグル（シフト表のみ） */}
-          {pageMode === 'shift' && (
+          {(viewMode === 'employee' || pageMode === 'shift') && (
             <div className="shift-region-toggle">
+              <button
+                className={`shift-region-btn${viewMode === 'location' ? ' active' : ''}`}
+                onClick={() => setViewMode('location')}
+              >
+                現場別
+              </button>
               <button
                 className={`shift-region-btn${viewMode === 'staff' ? ' active' : ''}`}
                 onClick={() => setViewMode('staff')}
@@ -297,26 +320,28 @@ export default function ShiftView({
                 スタッフ別
               </button>
               <button
-                className={`shift-region-btn${viewMode === 'location' ? ' active' : ''}`}
-                onClick={() => setViewMode('location')}
+                className={`shift-region-btn${viewMode === 'employee' ? ' active' : ''}`}
+                onClick={() => { setViewMode('employee'); setPageMode('shift'); }}
               >
-                現場別
+                社員
               </button>
             </div>
           )}
 
-          {/* 地域トグル */}
-          <div className="shift-region-toggle">
-            {(['東京', '福岡'] as const).map((region) => (
-              <button
-                key={region}
-                className={`shift-region-btn${regionFilter === region ? ' active' : ''}`}
-                onClick={() => setRegionFilter(region)}
-              >
-                {region}
-              </button>
-            ))}
-          </div>
+          {/* 地域トグル（社員モード以外） */}
+          {viewMode !== 'employee' && (
+            <div className="shift-region-toggle">
+              {(['東京', '福岡'] as const).map((region) => (
+                <button
+                  key={region}
+                  className={`shift-region-btn${regionFilter === region ? ' active' : ''}`}
+                  onClick={() => setRegionFilter(region)}
+                >
+                  {region}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* 代理店凡例トグル（現場別ビューのみ・現場データがある代理店のみ） */}
           {pageMode === 'shift' && viewMode === 'location' && locationAgencySet.size > 0 && (
@@ -325,14 +350,11 @@ export default function ShiftView({
               onClick={() => { setShowAgency(v => !v); setShowLocation(false); }}
               aria-expanded={showAgency}
             >
-              {/* フィルターアイコン */}
               <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                 <path d="M1 2.5h10M3 6h6M5 9.5h2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
               代理店
-              {/* フィルター中インジケーター */}
               {selectedAgency && <span className="shift-agency-filter-dot" />}
-              {/* Chevronアイコン */}
               <svg
                 width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true"
                 className={`shift-agency-chevron${showAgency ? ' open' : ''}`}
@@ -349,7 +371,6 @@ export default function ShiftView({
               onClick={() => { setShowLocation(v => !v); setShowAgency(false); }}
               aria-expanded={showLocation}
             >
-              {/* 現場アイコン（建物） */}
               <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                 <path d="M2 11V5l4-3 4 3v6M5 11V8h2v3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
@@ -367,7 +388,9 @@ export default function ShiftView({
 
         {/* メタ情報 */}
         <div className="shift-meta">
-          {pageMode === 'analysis' ? (
+          {viewMode === 'employee' ? (
+            empData ? <span>{empData.staff.length} 名</span> : null
+          ) : pageMode === 'analysis' ? (
             <span>{visibleStaffNames.length} 名</span>
           ) : viewMode === 'staff' ? (
             <>
@@ -441,7 +464,12 @@ export default function ShiftView({
       </div>{/* /shift-sticky-header */}
 
       {/* ── スタッフ別テーブル ── */}
-      {pageMode === 'shift' && viewMode === 'staff' && (
+      {pageMode === 'shift' && viewMode === 'staff' && rows.length === 0 && (
+        <div className="shift-loading" style={{ color: 'var(--text-sub)' }}>
+          この月のシフトデータはありません
+        </div>
+      )}
+      {pageMode === 'shift' && viewMode === 'staff' && rows.length > 0 && (
         <div className="shift-table-card">
           <div className="shift-scroll">
             <table className="shift-table">
@@ -547,7 +575,12 @@ export default function ShiftView({
       )}
 
       {/* ── 現場別テーブル ── */}
-      {pageMode === 'shift' && viewMode === 'location' && (
+      {pageMode === 'shift' && viewMode === 'location' && rows.length === 0 && (
+        <div className="shift-loading" style={{ color: 'var(--text-sub)' }}>
+          この月のシフトデータはありません
+        </div>
+      )}
+      {pageMode === 'shift' && viewMode === 'location' && rows.length > 0 && (
         <div className="shift-table-card">
           <div className="shift-scroll">
             <table className="shift-table location-table">
@@ -573,6 +606,7 @@ export default function ShiftView({
                   </tr>
                 ) : (
                   filteredLocationRows.map((row, i) => {
+                    const isDateBoundary = i > 0 && filteredLocationRows[i - 1].date !== row.date;
                     const [mm, dd] = row.date.split('/');
                     const dateLabel =
                       mm === selectedMonthNum
@@ -582,14 +616,12 @@ export default function ShiftView({
                     const isSat = row.dayOfWeek === '土' && !row.isHoliday;
                     const isSun = row.dayOfWeek === '日' || row.dayOfWeek === '祝' || row.isHoliday;
                     const agencyColor = agencyColors.get(row.agency) ?? null;
-                    // Y3/Q3 由来の staffNameSet に含まれる名前のみ表示
                     const visibleStaff = row.staff.filter(
                       (s) => s && s.trim() !== '' && !startsWithX(s) && staffNameSet.has(s)
                     );
 
                     return (
-                      <tr key={`${row.date}-${row.location}-${i}`} className="shift-row">
-                        {/* 日付 */}
+                      <tr key={`${row.date}-${row.location}-${i}`} className={`shift-row${isDateBoundary ? ' date-boundary' : ''}`}>
                         <td
                           className={[
                             'shift-sticky-col',
@@ -604,18 +636,14 @@ export default function ShiftView({
                           <span className="loc-date-num">{dateLabel}</span>
                         </td>
 
-                        {/* 曜日 */}
                         <td className={['loc-dow-cell', isSat ? 'sat' : isSun ? 'sun' : ''].filter(Boolean).join(' ')}>
                           {row.dayOfWeek}
                         </td>
 
-                        {/* 店舗名 */}
                         <td className="loc-place-cell">{row.location}</td>
 
-                        {/* 時間 */}
                         <td className="loc-time-cell">{row.startTime}</td>
 
-                        {/* スタッフ */}
                         <td className="loc-staff-cell">
                           <div className="loc-staff-list">
                             {visibleStaff.length > 0 ? (
@@ -628,7 +656,6 @@ export default function ShiftView({
                           </div>
                         </td>
 
-                        {/* 代理店 */}
                         <td className="loc-agency-cell">
                           {agencyColor ? (
                             <span
@@ -652,8 +679,104 @@ export default function ShiftView({
           </div>
         </div>
       )}
+
+      {/* ── 社員テーブル ── */}
+      {viewMode === 'employee' && (
+        <div className="shift-table-card">
+          {empLoading ? (
+            <div className="shift-loading">
+              <div className="shift-loading-spinner" />
+              <div>社員シフトを読み込んでいます...</div>
+            </div>
+          ) : empError ? (
+            <div className="shift-loading" style={{ color: '#f87171' }}>{empError}</div>
+          ) : !empData || empData.staff.length === 0 ? (
+            empFetchedMonth === selectedMonth ? (
+              <div className="shift-loading" style={{ color: 'var(--text-sub)' }}>
+                この月の社員シフトデータはありません
+              </div>
+            ) : null
+          ) : (
+            <div className="shift-scroll">
+              <table className="shift-table">
+                <thead>
+                  <tr>
+                    <th className="shift-sticky-col shift-col-label" style={{ minWidth: 64 }}>
+                      <div className="shift-label-month">{monthLabel}</div>
+                    </th>
+                    {empData.staff.map((name) => (
+                      <th key={name} className="shift-col-date" style={{ minWidth: 52, fontSize: 11 }}>
+                        {name}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {empData.dates.map(({ date, dayOfWeek }) => {
+                    const [, dd] = date.split('/');
+                    const isToday = date === todayStr;
+                    const isSat = dayOfWeek === '土';
+                    const isSun = dayOfWeek === '日';
+                    return (
+                      <tr key={date} className="shift-row">
+                        <td
+                          className={[
+                            'shift-sticky-col',
+                            'loc-date-cell',
+                            isToday ? 'today' : '',
+                            isSat ? 'weekend-sat' : '',
+                            isSun ? 'weekend-sun' : '',
+                          ].filter(Boolean).join(' ')}
+                        >
+                          <span className="loc-date-num">{parseInt(dd)}</span>
+                          {dayOfWeek && (
+                            <span
+                              className={`shift-date-dow${isSat ? ' sat' : isSun ? ' sun' : ''}`}
+                              style={{ marginLeft: 4, fontSize: 10 }}
+                            >
+                              {dayOfWeek}
+                            </span>
+                          )}
+                        </td>
+                        {empData.staff.map((name) => {
+                          const val = empData.cells[date]?.[name] ?? '';
+                          const style = EMP_STATUS_STYLE[val];
+                          return (
+                            <td
+                              key={name}
+                              className={[
+                                'shift-data-cell',
+                                isToday ? 'today' : '',
+                                isSat ? 'weekend-sat' : '',
+                                isSun ? 'weekend-sun' : '',
+                              ].filter(Boolean).join(' ')}
+                            >
+                              {val && (
+                                <div
+                                  className="shift-pill"
+                                  style={style
+                                    ? { background: style.bg, color: style.color }
+                                    : { background: 'rgba(255,255,255,0.06)', color: 'var(--text-sub)' }
+                                  }
+                                >
+                                  {val}
+                                </div>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* ── 分析 ── */}
-      {pageMode === 'analysis' && (
+      {pageMode === 'analysis' && viewMode !== 'employee' && (
         <ShiftAnalysis
           filtered={filtered}
           visibleStaffNames={visibleStaffNames}
