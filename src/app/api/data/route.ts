@@ -1,27 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSheetData } from '@/lib/sheets';
+import { sql, or } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { salesRecords, ageRecords, typeRecords } from '@/lib/schema';
 import { aggregateMainSheet, aggregateAgeSheet, aggregateTypeSheet } from '@/lib/aggregator';
 import { auth } from '@/lib/auth';
 
-// Vercelのキャッシュを無効化し、常に最新データを取得する
 export const dynamic = 'force-dynamic';
 
-const SHEET_NAME_MAIN = '合算データ';
-const SHEET_NAME_AGE = 'グラフ用データ_年代';
-const SHEET_NAME_TYPE = 'グラフ用データ_家族構成';
-
 export async function GET(request: NextRequest) {
-  // 認証チェック
   const session = await auth();
   if (!session) {
     return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
   }
-  // TODO: ロールベースのアクセス制限（将来拡張用）
-  // if (session.user.role !== '幹部') { ... }
 
   try {
     const { searchParams } = new URL(request.url);
-    const monthParam = searchParams.get('month'); // 'YYYY-MM'
+    const monthParam = searchParams.get('month');
 
     let targetYear: number;
     let targetMonthIdx: number;
@@ -36,29 +30,60 @@ export async function GET(request: NextRequest) {
       targetMonthIdx = now.getMonth();
     }
 
-    // Fetch all 3 sheets in parallel
-    const [mainRows, ageRows, typeRows] = await Promise.all([
-      getSheetData(SHEET_NAME_MAIN),
-      getSheetData(SHEET_NAME_AGE).catch(() => []),
-      getSheetData(SHEET_NAME_TYPE).catch(() => []),
+    const currentMonthStr = `${targetYear}-${String(targetMonthIdx + 1).padStart(2, '0')}`;
+    const prevDate = new Date(targetYear, targetMonthIdx - 1, 1);
+    const prevMonthStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
+
+    // DB から並列取得
+    const [salesRows, ageRows, typeRows] = await Promise.all([
+      db.select().from(salesRecords).where(
+        or(
+          sql`LEFT(${salesRecords.date}, 7) = ${currentMonthStr}`,
+          sql`LEFT(${salesRecords.date}, 7) = ${prevMonthStr}`
+        )
+      ),
+      db.select().from(ageRecords).where(
+        sql`LEFT(${ageRecords.recordedAt}, 7) = ${currentMonthStr}`
+      ),
+      db.select().from(typeRecords).where(
+        sql`LEFT(${typeRecords.recordedAt}, 7) = ${currentMonthStr}`
+      ),
     ]);
 
-    // Aggregate main data
-    const data = aggregateMainSheet(mainRows, targetYear, targetMonthIdx);
+    // 既存の aggregator が期待する string[][] 形式に変換
+    const mainSheetRows: string[][] = [
+      ['', 'date', 'name', '', '', 'site', 'mnp_h', 'mnp_s', 'new', 'change', 'cellup', 'hikari_n', 'hikari_t', 'hikari_c', 'tablet', 'life', 'credit', 'self_close'],
+      ...salesRows.map((r) => [
+        '', r.date, r.staffName, '', '', r.site ?? '',
+        r.mnpH ?? '0', r.mnpS ?? '0', r.newCount ?? '0', r.changeCount ?? '0', r.cellup ?? '0',
+        r.hikariN ?? '0', r.hikariT ?? '0', r.hikariC ?? '0',
+        r.tablet ?? '0', r.life ?? '0', r.credit ?? '0', r.selfClose ?? '0',
+      ]),
+    ];
 
-    // Build staffMap for age/type aggregation
+    const ageSheetRows: string[][] = [
+      ['timestamp', 'name', 'age_group', 'count'],
+      ...ageRows.map((r) => [r.recordedAt, r.staffName, r.ageGroup, r.count ?? '1']),
+    ];
+
+    const typeSheetRows: string[][] = [
+      ['timestamp', 'name', 'type_group', 'count'],
+      ...typeRows.map((r) => [r.recordedAt, r.staffName, r.typeGroup, r.count ?? '1']),
+    ];
+
+    // 既存の集計ロジックをそのまま使用
+    const data = aggregateMainSheet(mainSheetRows, targetYear, targetMonthIdx);
+
     const staffMap: Record<string, typeof data.ranking[0]> = {};
     data.ranking.forEach((s) => { staffMap[s.name] = s; });
 
-    // Aggregate age & type data if sheets exist
-    if (ageRows.length > 0) {
-      aggregateAgeSheet(ageRows, staffMap, targetYear, targetMonthIdx);
+    if (ageSheetRows.length > 1) {
+      aggregateAgeSheet(ageSheetRows, staffMap, targetYear, targetMonthIdx);
     }
-    if (typeRows.length > 0) {
-      aggregateTypeSheet(typeRows, staffMap, targetYear, targetMonthIdx);
+    if (typeSheetRows.length > 1) {
+      aggregateTypeSheet(typeSheetRows, staffMap, targetYear, targetMonthIdx);
     }
 
-    // Rebuild globalStats ages/types after aggregation
     data.ranking.forEach((p) => {
       Object.entries(p.ages).forEach(([k, v]) => {
         data.globalStats.ages[k] = (data.globalStats.ages[k] || 0) + v;
