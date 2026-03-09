@@ -1,5 +1,5 @@
-import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import postgres from 'postgres';
+import { drizzle } from 'drizzle-orm/postgres-js';
 import * as schema from './schema';
 
 type DrizzleDb = ReturnType<typeof drizzle<typeof schema>>;
@@ -11,8 +11,8 @@ export function getDbSupabase(): DrizzleDb {
     if (!process.env.SUPABASE_DATABASE_URL) {
       throw new Error('SUPABASE_DATABASE_URL が設定されていません');
     }
-    const sql = neon(process.env.SUPABASE_DATABASE_URL);
-    _dbSupabase = drizzle(sql, { schema });
+    const client = postgres(process.env.SUPABASE_DATABASE_URL, { ssl: 'require' });
+    _dbSupabase = drizzle(client, { schema });
   }
   return _dbSupabase;
 }
