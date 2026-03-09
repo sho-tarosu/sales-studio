@@ -36,6 +36,9 @@ yarn-error.log*
 # service account credentials
 service-account.json
 
+# local credentials
+.supabase-credentials
+
 # vercel
 .vercel
 

@@ -14,6 +14,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql, eq } from 'drizzle-orm';
 import { db } from '@/lib/db';
+import { dbSupabase } from '@/lib/db-supabase';
 import {
   salesRecords,
   ageRecords,
@@ -105,9 +106,10 @@ async function syncSales(payload: SalesPayload) {
   const [y, m] = month.split('-').map(Number);
 
   // 対象月の行を全削除（date列は 'YYYY-MM-DD' 形式）
-  await db.delete(salesRecords).where(
-    sql`LEFT(${salesRecords.date}, 7) = ${month}`
-  );
+  await Promise.all([
+    db.delete(salesRecords).where(sql`LEFT(${salesRecords.date}, 7) = ${month}`),
+    dbSupabase.delete(salesRecords).where(sql`LEFT(${salesRecords.date}, 7) = ${month}`),
+  ]);
 
   const dataRows = rows.slice(1).filter((row) => {
     const d = new Date(row[1]);
@@ -138,7 +140,10 @@ async function syncSales(payload: SalesPayload) {
     };
   });
 
-  await db.insert(salesRecords).values(toInsert);
+  await Promise.all([
+    db.insert(salesRecords).values(toInsert),
+    dbSupabase.insert(salesRecords).values(toInsert),
+  ]);
   return { inserted: toInsert.length };
 }
 
@@ -146,9 +151,10 @@ async function syncAge(payload: AgePayload) {
   const { month, rows } = payload;
   const [y, m] = month.split('-').map(Number);
 
-  await db.delete(ageRecords).where(
-    sql`LEFT(${ageRecords.recordedAt}, 7) = ${month}`
-  );
+  await Promise.all([
+    db.delete(ageRecords).where(sql`LEFT(${ageRecords.recordedAt}, 7) = ${month}`),
+    dbSupabase.delete(ageRecords).where(sql`LEFT(${ageRecords.recordedAt}, 7) = ${month}`),
+  ]);
 
   const dataRows = rows.slice(1).filter((row) => {
     const d = new Date(row[0]);
@@ -166,7 +172,12 @@ async function syncAge(payload: AgePayload) {
       count: num(row[3] || '1'),
     }));
 
-  if (toInsert.length > 0) await db.insert(ageRecords).values(toInsert);
+  if (toInsert.length > 0) {
+    await Promise.all([
+      db.insert(ageRecords).values(toInsert),
+      dbSupabase.insert(ageRecords).values(toInsert),
+    ]);
+  }
   return { inserted: toInsert.length };
 }
 
@@ -174,9 +185,10 @@ async function syncType(payload: TypePayload) {
   const { month, rows } = payload;
   const [y, m] = month.split('-').map(Number);
 
-  await db.delete(typeRecords).where(
-    sql`LEFT(${typeRecords.recordedAt}, 7) = ${month}`
-  );
+  await Promise.all([
+    db.delete(typeRecords).where(sql`LEFT(${typeRecords.recordedAt}, 7) = ${month}`),
+    dbSupabase.delete(typeRecords).where(sql`LEFT(${typeRecords.recordedAt}, 7) = ${month}`),
+  ]);
 
   const dataRows = rows.slice(1).filter((row) => {
     const d = new Date(row[0]);
@@ -194,15 +206,24 @@ async function syncType(payload: TypePayload) {
       count: num(row[3] || '1'),
     }));
 
-  if (toInsert.length > 0) await db.insert(typeRecords).values(toInsert);
+  if (toInsert.length > 0) {
+    await Promise.all([
+      db.insert(typeRecords).values(toInsert),
+      dbSupabase.insert(typeRecords).values(toInsert),
+    ]);
+  }
   return { inserted: toInsert.length };
 }
 
 async function syncShift(payload: ShiftPayload) {
   const { month, tokyoRows, fukuokaRows, tokyoStaffNames, fukuokaStaffNames } = payload;
 
-  await db.delete(shiftRows).where(eq(shiftRows.month, month));
-  await db.delete(shiftStaffNames).where(eq(shiftStaffNames.month, month));
+  await Promise.all([
+    db.delete(shiftRows).where(eq(shiftRows.month, month)),
+    db.delete(shiftStaffNames).where(eq(shiftStaffNames.month, month)),
+    dbSupabase.delete(shiftRows).where(eq(shiftRows.month, month)),
+    dbSupabase.delete(shiftStaffNames).where(eq(shiftStaffNames.month, month)),
+  ]);
 
   const makeRows = (rows: ShiftRowData[], region: string) =>
     rows.map((r) => ({
@@ -220,14 +241,24 @@ async function syncShift(payload: ShiftPayload) {
     }));
 
   const allRows = [...makeRows(tokyoRows, '東京'), ...makeRows(fukuokaRows, '福岡')];
-  if (allRows.length > 0) await db.insert(shiftRows).values(allRows);
+  if (allRows.length > 0) {
+    await Promise.all([
+      db.insert(shiftRows).values(allRows),
+      dbSupabase.insert(shiftRows).values(allRows),
+    ]);
+  }
 
   const staffNameRows = [
     { month, sheetRegion: '東京', names: tokyoStaffNames },
     { month, sheetRegion: '福岡', names: fukuokaStaffNames },
   ].filter((r) => r.names.length > 0);
 
-  if (staffNameRows.length > 0) await db.insert(shiftStaffNames).values(staffNameRows);
+  if (staffNameRows.length > 0) {
+    await Promise.all([
+      db.insert(shiftStaffNames).values(staffNameRows),
+      dbSupabase.insert(shiftStaffNames).values(staffNameRows),
+    ]);
+  }
 
   return { inserted: allRows.length };
 }
@@ -235,7 +266,10 @@ async function syncShift(payload: ShiftPayload) {
 async function syncEmployeeShift(payload: EmployeeShiftPayload) {
   const { month, staff, dates, cells } = payload;
 
-  await db.delete(employeeShifts).where(eq(employeeShifts.month, month));
+  await Promise.all([
+    db.delete(employeeShifts).where(eq(employeeShifts.month, month)),
+    dbSupabase.delete(employeeShifts).where(eq(employeeShifts.month, month)),
+  ]);
 
   const toInsert: (typeof employeeShifts.$inferInsert)[] = [];
   for (const { date, dayOfWeek } of dates) {
@@ -250,7 +284,12 @@ async function syncEmployeeShift(payload: EmployeeShiftPayload) {
     }
   }
 
-  if (toInsert.length > 0) await db.insert(employeeShifts).values(toInsert);
+  if (toInsert.length > 0) {
+    await Promise.all([
+      db.insert(employeeShifts).values(toInsert),
+      dbSupabase.insert(employeeShifts).values(toInsert),
+    ]);
+  }
   return { inserted: toInsert.length };
 }
 
