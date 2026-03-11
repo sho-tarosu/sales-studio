@@ -60,7 +60,7 @@ export default function Sidebar({ activeTab, onTabChange, userName, userRole }: 
           >
             <span style={{
               flexShrink: 0,
-              opacity: activeTab === item.id ? 1 : 0.55,
+              opacity: activeTab === item.id ? 1 : 0.75,
               transition: 'opacity 0.15s',
             }}>
               {item.icon}
