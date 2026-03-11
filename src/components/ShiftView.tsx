@@ -105,7 +105,11 @@ export default function ShiftView({
   // ─── スタッフ別ビュー用 ────────────────────────────────────────────
 
   const dates = useMemo(
-    () => [...new Set(filtered.map((r) => r.date))].sort((a, b) => a.localeCompare(b)),
+    () => [...new Set(filtered.map((r) => r.date))].sort((a, b) => {
+      const [am, ad] = a.split('/').map(Number);
+      const [bm, bd] = b.split('/').map(Number);
+      return am !== bm ? am - bm : ad - bd;
+    }),
     [filtered]
   );
 
@@ -180,7 +184,11 @@ export default function ShiftView({
           (s) => s && s.trim() !== '' && !startsWithX(s) && staffNameSet.has(s)
         );
       })
-      .sort((a, b) => a.date.localeCompare(b.date));
+      .sort((a, b) => {
+        const [am, ad] = a.date.split('/').map(Number);
+        const [bm, bd] = b.date.split('/').map(Number);
+        return am !== bm ? am - bm : ad - bd;
+      });
   }, [filtered, staffNameSet]);
 
   useEffect(() => {
