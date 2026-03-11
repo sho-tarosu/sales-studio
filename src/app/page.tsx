@@ -15,6 +15,7 @@ import AnalysisView from '@/components/AnalysisView';
 import AttendanceTable from '@/components/AttendanceTable';
 import ShiftView from '@/components/ShiftView';
 import ProfileView from '@/components/ProfileView';
+import NippoAlert from '@/components/NippoAlert';
 
 const TAB_TITLES: Record<TabName, string> = {
   'dashboard': '獲得状況',
@@ -135,6 +136,8 @@ export default function Home() {
           </div>
           <div style={{ fontSize: '12px', color: '#aaa' }}>{lastUpdate}</div>
         </header>
+
+        <NippoAlert />
 
         {loading && (
           <div style={{ textAlign: 'center', padding: 40, color: '#aaa' }}>
