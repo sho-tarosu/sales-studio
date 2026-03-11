@@ -30,7 +30,7 @@ export async function GET() {
     const shiftDates = new Set<string>();
     for (const row of shifts) {
       const staffArray = (row.staff as string[]) ?? [];
-      if (!staffArray.some((s) => s && s.trim() === userName.trim())) continue;
+      if (!staffArray.some((s) => s && userName.startsWith(s.trim()))) continue;
 
       // date は "M/D" 形式
       const parts = row.date.split('/');
