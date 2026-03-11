@@ -134,7 +134,26 @@ export default function Home() {
               />
             )}
           </div>
-          <div style={{ fontSize: '12px', color: '#aaa' }}>{lastUpdate}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ fontSize: '12px', color: '#aaa' }}>{lastUpdate}</div>
+            <button
+              onClick={() => {
+                fetchData(selectedMonth);
+                if (activeTab === 'shift') fetchShift(selectedMonth);
+              }}
+              style={{
+                background: 'none',
+                border: '1px solid #444',
+                borderRadius: 6,
+                color: '#aaa',
+                fontSize: 12,
+                padding: '4px 10px',
+                cursor: 'pointer',
+              }}
+            >
+              更新
+            </button>
+          </div>
         </header>
 
         <NippoAlert />
@@ -212,7 +231,7 @@ export default function Home() {
             )}
 
             {activeTab === 'attendance' && (
-              <AttendanceTable data={data} selectedMonth={selectedMonth} />
+              <AttendanceTable data={data} selectedMonth={selectedMonth} loginName={session?.user?.name} />
             )}
           </>
         )}

@@ -6,6 +6,7 @@ import { DashboardData, Staff } from '@/types';
 interface AttendanceTableProps {
   data: DashboardData;
   selectedMonth: string; // 'YYYY-MM'
+  loginName?: string;
 }
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
@@ -23,8 +24,11 @@ const rows: { label: string; key: CalendarKey; isTotal?: boolean }[] = [
   { label: 'クレカ', key: 'credit' },
 ];
 
-export default function AttendanceTable({ data, selectedMonth }: AttendanceTableProps) {
-  const [staffName, setStaffName] = useState(data.ranking[0]?.name || '');
+export default function AttendanceTable({ data, selectedMonth, loginName }: AttendanceTableProps) {
+  const initialName = (loginName && data.ranking.find((s) => s.name === loginName))
+    ? loginName
+    : data.ranking[0]?.name || '';
+  const [staffName, setStaffName] = useState(initialName);
   const staff = data.ranking.find((s) => s.name === staffName);
 
   const yearMonth = useMemo(() => {
