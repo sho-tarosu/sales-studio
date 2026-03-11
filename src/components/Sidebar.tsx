@@ -81,7 +81,7 @@ export default function Sidebar({ activeTab, onTabChange, userName, userRole }: 
             <div style={{
               width: 34,
               height: 34,
-              background: 'linear-gradient(135deg, #e53e3e, #991b1b)',
+              background: 'linear-gradient(135deg, #4a4a4a, #2a2a2a)',
               borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
@@ -90,7 +90,7 @@ export default function Sidebar({ activeTab, onTabChange, userName, userRole }: 
               fontWeight: 'bold',
               color: '#fff',
               margin: '0 auto',
-              boxShadow: '0 2px 6px rgba(220,38,38,0.35)',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
             }}>
               {initials}
             </div>
@@ -99,11 +99,11 @@ export default function Sidebar({ activeTab, onTabChange, userName, userRole }: 
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
                 <div style={{
                   width: 34, height: 34,
-                  background: 'linear-gradient(135deg, #e53e3e, #991b1b)',
+                  background: 'linear-gradient(135deg, #4a4a4a, #2a2a2a)',
                   borderRadius: '50%',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: '12px', fontWeight: 'bold', color: '#fff', flexShrink: 0,
-                  boxShadow: '0 2px 6px rgba(220,38,38,0.35)',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
                 }}>
                   {initials}
                 </div>
