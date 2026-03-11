@@ -235,11 +235,7 @@ export default function ShiftView({
     const timer = setTimeout(() => {
       const el = document.querySelector<HTMLElement>('.shift-table .today');
       if (!el) return;
-      if (viewMode === 'staff') {
-        el.scrollIntoView({ block: 'nearest', inline: 'center' });
-      } else {
-        el.scrollIntoView({ block: 'start', inline: 'nearest' });
-      }
+      el.scrollIntoView({ block: 'start', inline: 'nearest' });
     }, 50);
     return () => clearTimeout(timer);
   }, [rows, viewMode, pageMode]);
