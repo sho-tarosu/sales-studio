@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
+import { RefreshCw } from 'lucide-react';
 import { TabName, DashboardData, ShiftRow } from '@/types';
 import AuthGuard from '@/components/AuthGuard';
 import Sidebar from '@/components/Sidebar';
@@ -141,17 +142,21 @@ export default function Home() {
                 fetchData(selectedMonth);
                 if (activeTab === 'shift') fetchShift(selectedMonth);
               }}
+              title="更新"
               style={{
                 background: 'none',
-                border: '1px solid #444',
-                borderRadius: 6,
-                color: '#aaa',
-                fontSize: 12,
-                padding: '4px 10px',
+                border: 'none',
+                padding: 4,
                 cursor: 'pointer',
+                color: '#aaa',
+                display: 'flex',
+                alignItems: 'center',
+                opacity: 0.55,
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.55')}
             >
-              更新
+              <RefreshCw size={16} strokeWidth={1.75} />
             </button>
           </div>
         </header>
