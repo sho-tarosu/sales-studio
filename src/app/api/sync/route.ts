@@ -105,18 +105,19 @@ async function syncSales(payload: SalesPayload) {
   const { month, rows } = payload;
   const [y, m] = month.split('-').map(Number);
 
-  // 対象月の行を全削除（date列は 'YYYY-MM-DD' 形式）
-  await Promise.all([
-    db.delete(salesRecords).where(sql`LEFT(${salesRecords.date}, 7) = ${month}`),
-    dbSupabase.delete(salesRecords).where(sql`LEFT(${salesRecords.date}, 7) = ${month}`),
-  ]);
-
   const dataRows = rows.slice(1).filter((row) => {
     const d = new Date(row[1]);
     return !isNaN(d.getTime()) && d.getFullYear() === y && d.getMonth() === m - 1;
   });
 
+  // データが0件のときは既存データを削除しない（空送信による消滅防止）
   if (dataRows.length === 0) return { inserted: 0 };
+
+  // 対象月の行を全削除（date列は 'YYYY-MM-DD' 形式）
+  await Promise.all([
+    db.delete(salesRecords).where(sql`LEFT(${salesRecords.date}, 7) = ${month}`),
+    dbSupabase.delete(salesRecords).where(sql`LEFT(${salesRecords.date}, 7) = ${month}`),
+  ]);
 
   const toInsert = dataRows.map((row) => {
     const d = new Date(row[1]);
@@ -151,17 +152,17 @@ async function syncAge(payload: AgePayload) {
   const { month, rows } = payload;
   const [y, m] = month.split('-').map(Number);
 
-  await Promise.all([
-    db.delete(ageRecords).where(sql`LEFT(${ageRecords.recordedAt}, 7) = ${month}`),
-    dbSupabase.delete(ageRecords).where(sql`LEFT(${ageRecords.recordedAt}, 7) = ${month}`),
-  ]);
-
   const dataRows = rows.slice(1).filter((row) => {
     const d = new Date(row[0]);
     return !isNaN(d.getTime()) && d.getFullYear() === y && d.getMonth() === m - 1;
   });
 
   if (dataRows.length === 0) return { inserted: 0 };
+
+  await Promise.all([
+    db.delete(ageRecords).where(sql`LEFT(${ageRecords.recordedAt}, 7) = ${month}`),
+    dbSupabase.delete(ageRecords).where(sql`LEFT(${ageRecords.recordedAt}, 7) = ${month}`),
+  ]);
 
   const toInsert = dataRows
     .filter((row) => row[1] && row[2])
@@ -185,17 +186,17 @@ async function syncType(payload: TypePayload) {
   const { month, rows } = payload;
   const [y, m] = month.split('-').map(Number);
 
-  await Promise.all([
-    db.delete(typeRecords).where(sql`LEFT(${typeRecords.recordedAt}, 7) = ${month}`),
-    dbSupabase.delete(typeRecords).where(sql`LEFT(${typeRecords.recordedAt}, 7) = ${month}`),
-  ]);
-
   const dataRows = rows.slice(1).filter((row) => {
     const d = new Date(row[0]);
     return !isNaN(d.getTime()) && d.getFullYear() === y && d.getMonth() === m - 1;
   });
 
   if (dataRows.length === 0) return { inserted: 0 };
+
+  await Promise.all([
+    db.delete(typeRecords).where(sql`LEFT(${typeRecords.recordedAt}, 7) = ${month}`),
+    dbSupabase.delete(typeRecords).where(sql`LEFT(${typeRecords.recordedAt}, 7) = ${month}`),
+  ]);
 
   const toInsert = dataRows
     .filter((row) => row[1] && row[2])

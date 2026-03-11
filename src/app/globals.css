@@ -127,6 +127,51 @@ body {
   box-shadow: none;
 }
 
+/* ─── Header Avatar Button ──────────────────────── */
+
+.header-avatar-btn {
+  width: 34px;
+  height: 34px;
+  background: linear-gradient(135deg, #e53e3e, #991b1b);
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35);
+  transition: opacity 0.15s;
+}
+.header-avatar-btn:hover { opacity: 0.85; }
+
+/* ─── User Drawer ───────────────────────────────── */
+
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 200;
+}
+
+.user-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 260px;
+  background: var(--card-bg);
+  border-left: 1px solid var(--border-color);
+  z-index: 201;
+  padding: 32px 20px 20px;
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+}
+.user-drawer.open { transform: translateX(0); }
+
 /* ─── Main Content ─────────────────────────────── */
 
 .main-content {
@@ -664,7 +709,6 @@ thead .shift-sticky-col {
 }
 
 .shift-col-date.today {
-  background: rgba(229, 62, 62, 0.18);
   border-bottom: 2px solid var(--accent-color) !important;
 }
 
@@ -719,12 +763,10 @@ thead .shift-sticky-col {
   vertical-align: middle;
 }
 
-.shift-data-cell.today { background: rgba(229, 62, 62, 0.07); }
 /* 土日祝の背景色なし（文字色のみ列ヘッダーで区別） */
 
 /* Row hover — applied via JS className or tr:hover */
 .shift-row:hover .shift-data-cell { background: rgba(255, 255, 255, 0.04); }
-.shift-row:hover .shift-data-cell.today { background: rgba(229, 62, 62, 0.12); }
 /* sticky列のホバーは透け防止のため不透明色を維持 */
 .shift-row:hover .shift-staff-name { background: var(--bg-color); }
 
@@ -832,7 +874,6 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
 }
 
 .loc-date-cell.today {
-  background: rgba(229, 62, 62, 0.12);
   border-left: 3px solid var(--accent-color) !important;
 }
 
@@ -871,9 +912,6 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
 }
 .shift-table tbody tr:nth-child(odd) .loc-dow-cell {
   background: var(--card-bg);
-}
-tr:has(.loc-date-cell.today) .loc-dow-cell {
-  background: rgba(229, 62, 62, 0.12);
 }
 
 /* 店舗名セル */

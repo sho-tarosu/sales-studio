@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import { RefreshCw } from 'lucide-react';
 import { TabName, DashboardData, ShiftRow } from '@/types';
 import AuthGuard from '@/components/AuthGuard';
@@ -32,6 +32,7 @@ export default function Home() {
   const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<TabName>('dashboard');
   const [rankingView, setRankingView] = useState<'chart' | 'table'>('chart');
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const now = new Date();
   const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -158,6 +159,15 @@ export default function Home() {
             >
               <RefreshCw size={16} strokeWidth={1.75} />
             </button>
+            {session?.user?.name && (
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className="header-avatar-btn"
+                title={session.user.name}
+              >
+                {session.user.name.slice(0, 2)}
+              </button>
+            )}
           </div>
         </header>
 
@@ -256,6 +266,41 @@ export default function Home() {
       </main>
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+
+      {/* ユーザードロワー */}
+      {drawerOpen && (
+        <div className="drawer-overlay" onClick={() => setDrawerOpen(false)} />
+      )}
+      <div className={`user-drawer${drawerOpen ? ' open' : ''}`}>
+        {session?.user?.name && (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+              <div className="header-avatar-btn" style={{ cursor: 'default', fontSize: 16, width: 48, height: 48 }}>
+                {session.user.name.slice(0, 2)}
+              </div>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-main)' }}>{session.user.name}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-sub)', marginTop: 2 }}>{session.user.role}</div>
+              </div>
+            </div>
+            <button
+              onClick={() => signOut({ callbackUrl: '/login' })}
+              style={{
+                width: '100%',
+                padding: '10px',
+                background: 'transparent',
+                color: 'var(--text-sub)',
+                border: '1px solid var(--border-color)',
+                borderRadius: 8,
+                fontSize: 14,
+                cursor: 'pointer',
+              }}
+            >
+              ログアウト
+            </button>
+          </>
+        )}
+      </div>
     </AuthGuard>
   );
 }

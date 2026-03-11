@@ -29,6 +29,17 @@ export default function AttendanceTable({ data, selectedMonth, loginName }: Atte
     ? loginName
     : data.ranking[0]?.name || '';
   const [staffName, setStaffName] = useState(initialName);
+
+  // loginName が後から届いた場合（セッション取得遅延）やデータ更新時に追従
+  useEffect(() => {
+    if (loginName && data.ranking.find((s) => s.name === loginName)) {
+      setStaffName(loginName);
+    } else if (data.ranking.length > 0 && !data.ranking.find((s) => s.name === staffName)) {
+      setStaffName(data.ranking[0].name);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loginName, data.ranking]);
+
   const staff = data.ranking.find((s) => s.name === staffName);
 
   // ログインユーザーの未提出日（日番号のSet）
