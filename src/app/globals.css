@@ -896,7 +896,7 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
 
 /* 日付セル（sticky 1列目） */
 .loc-date-cell {
-  background: var(--bg-color);
+  background: var(--card-bg);
   text-align: center;
   vertical-align: middle;
   padding: 0 2px;
@@ -924,7 +924,7 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
   position: sticky;
   left: 32px; /* 日付列幅に合わせたオフセット */
   z-index: 10;
-  background: var(--bg-color);
+  background: var(--card-bg);
   text-align: center;
   vertical-align: middle;
   font-size: 10px;
@@ -939,12 +939,14 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
 .loc-dow-cell.sat { color: #7dd3fc; }
 .loc-dow-cell.sun { color: #f87171; }
 
-/* 曜日セルの背景を日付セルと同期 */
-.shift-table tbody tr:nth-child(even) .loc-dow-cell {
-  background: color-mix(in srgb, var(--card-bg) 90%, white 10%);
-}
+/* 日付・曜日セルの背景を行の交互色と同期 */
+.shift-table tbody tr:nth-child(odd) .loc-date-cell,
 .shift-table tbody tr:nth-child(odd) .loc-dow-cell {
   background: var(--card-bg);
+}
+.shift-table tbody tr:nth-child(even) .loc-date-cell,
+.shift-table tbody tr:nth-child(even) .loc-dow-cell {
+  background: color-mix(in srgb, var(--card-bg) 90%, white 10%);
 }
 
 /* 店舗名セル */
@@ -1015,7 +1017,7 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
 /* 現場別テーブル ホバー */
 .location-table .shift-row:hover td                    { background: rgba(255, 255, 255, 0.03); }
 /* sticky固定列はホバー時も不透明背景を維持 */
-.location-table .shift-row:hover .loc-date-cell        { background: var(--bg-color); }
+.location-table .shift-row:hover .loc-date-cell        { background: rgba(255, 255, 255, 0.04); }
 .location-table .shift-row:hover .loc-date-cell.today  { background: rgba(229, 62, 62, 0.12); }
 .location-table .shift-row:hover .loc-dow-cell         { background: rgba(255, 255, 255, 0.04); }
 
