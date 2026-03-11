@@ -682,7 +682,7 @@ input[type="password"]:focus {
 
 /* 1行ごとに交互色 */
 .shift-table tbody tr:nth-child(even) {
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in srgb, var(--card-bg) 90%, white 10%);
 }
 
 /* 固定列も同じ交互色を引き継ぐ（stickyはbackgroundが必要） */
