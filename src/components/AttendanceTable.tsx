@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { DashboardData, Staff } from '@/types';
 
 interface AttendanceTableProps {
@@ -30,6 +30,20 @@ export default function AttendanceTable({ data, selectedMonth, loginName }: Atte
     : data.ranking[0]?.name || '';
   const [staffName, setStaffName] = useState(initialName);
   const staff = data.ranking.find((s) => s.name === staffName);
+
+  // ログインユーザーの未提出日（日番号のSet）
+  const [missingDays, setMissingDays] = useState<Set<number>>(new Set());
+  useEffect(() => {
+    if (staffName !== loginName) { setMissingDays(new Set()); return; }
+    fetch('/api/nippo-check')
+      .then((r) => r.json())
+      .then((data) => {
+        if (!Array.isArray(data.missingDates)) return;
+        const days = new Set<number>(data.missingDates.map((d: string) => parseInt(d.split('-')[2])));
+        setMissingDays(days);
+      })
+      .catch(() => {});
+  }, [staffName, loginName]);
 
   const yearMonth = useMemo(() => {
     const parts = selectedMonth.split('-');
@@ -77,7 +91,7 @@ export default function AttendanceTable({ data, selectedMonth, loginName }: Atte
               <tr>
                 <th className="cal-label-col">日付</th>
                 {Array.from({ length: days }, (_, i) => (
-                  <th key={i}>{i + 1}</th>
+                  <th key={i} style={missingDays.has(i + 1) ? { background: 'rgba(180,30,30,0.35)' } : undefined}>{i + 1}</th>
                 ))}
               </tr>
               <tr>
@@ -87,7 +101,10 @@ export default function AttendanceTable({ data, selectedMonth, loginName }: Atte
                   const dayOfWeek = WEEKDAYS[dateObj.getDay()];
                   const colorStyle = dayOfWeek === '土' ? '#3ea6ff' : dayOfWeek === '日' ? '#ff4e45' : undefined;
                   return (
-                    <th key={i} style={colorStyle ? { color: colorStyle } : undefined}>
+                    <th key={i} style={{
+                      ...(colorStyle ? { color: colorStyle } : {}),
+                      ...(missingDays.has(i + 1) ? { background: 'rgba(180,30,30,0.35)' } : {}),
+                    }}>
                       {dayOfWeek}
                     </th>
                   );
@@ -103,7 +120,8 @@ export default function AttendanceTable({ data, selectedMonth, loginName }: Atte
                     const displayVal = val === 0 || val === undefined ? '-' : val;
                     const cls = val === 0 || val === undefined ? 'cal-data-cell zero' : 'cal-data-cell';
                     return (
-                      <td key={i} className={`${cls} ${row.isTotal ? 'row-total' : ''}`}>
+                      <td key={i} className={`${cls} ${row.isTotal ? 'row-total' : ''}`}
+                        style={missingDays.has(i + 1) ? { background: 'rgba(180,30,30,0.25)' } : undefined}>
                         {displayVal}
                       </td>
                     );
@@ -113,7 +131,8 @@ export default function AttendanceTable({ data, selectedMonth, loginName }: Atte
               <tr>
                 <td className="cal-label-col">現場</td>
                 {Array.from({ length: days }, (_, i) => (
-                  <td key={i} className="cal-data-cell cal-site-cell">
+                  <td key={i} className="cal-data-cell cal-site-cell"
+                    style={missingDays.has(i + 1) ? { background: 'rgba(180,30,30,0.25)' } : undefined}>
                     {staff.calendar[i].site || ''}
                   </td>
                 ))}
