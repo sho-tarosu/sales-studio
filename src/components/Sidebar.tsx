@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { LayoutDashboard, BarChart2, Layers, TrendingUp, Clock, Calendar, Users } from 'lucide-react';
 import { TabName } from '@/types';
 import { signOut } from 'next-auth/react';
@@ -35,9 +34,6 @@ export default function Sidebar({ activeTab, onTabChange, userName, userRole }: 
     <nav className="sidebar">
       {/* Brand */}
       <div className="brand">
-        <div className="brand-icon">
-          <Image src="/logo-r.png" alt="logo" width={22} height={22} />
-        </div>
         <div>Sales Studio</div>
       </div>
 

@@ -187,9 +187,15 @@ body {
 
 .header-area {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 28px;
+}
+
+.header-top-row {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 28px;
 }
 
 .header-left {
@@ -1138,7 +1144,7 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
   }
   .dashboard-split, .compare-grid { grid-template-columns: 1fr; }
   .kpi-grid { grid-template-columns: 1fr 1fr; }
-  .header-area { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .header-top-row { gap: 8px; }
   /* full-ranking-table は table-layout: fixed で横スクロール不要 */
   /* シフトコントロールをスマホ向けに調整 */
   .shift-sticky-header { top: -16px; padding-top: 16px; margin-top: -16px; }

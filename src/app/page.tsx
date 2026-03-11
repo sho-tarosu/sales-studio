@@ -125,15 +125,26 @@ export default function Home() {
 
       <main className="main-content">
         <header className="header-area">
-          <div className="header-left">
-            <h1 className="page-title">{TAB_TITLES[activeTab]}</h1>
-            {activeTab !== 'profile' && (
-              <input
-                type="month"
-                value={selectedMonth}
-                onChange={handleMonthChange}
-                aria-label="表示月を選択"
-              />
+          <div className="header-top-row">
+            <div className="header-left">
+              <h1 className="page-title">{TAB_TITLES[activeTab]}</h1>
+              {activeTab !== 'profile' && (
+                <input
+                  type="month"
+                  value={selectedMonth}
+                  onChange={handleMonthChange}
+                  aria-label="表示月を選択"
+                />
+              )}
+            </div>
+            {session?.user?.name && (
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className="header-avatar-btn"
+                title={session.user.name}
+              >
+                {session.user.name.slice(0, 2)}
+              </button>
             )}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -159,15 +170,6 @@ export default function Home() {
             >
               <RefreshCw size={16} strokeWidth={1.75} />
             </button>
-            {session?.user?.name && (
-              <button
-                onClick={() => setDrawerOpen(true)}
-                className="header-avatar-btn"
-                title={session.user.name}
-              >
-                {session.user.name.slice(0, 2)}
-              </button>
-            )}
           </div>
         </header>
 
