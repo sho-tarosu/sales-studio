@@ -485,72 +485,53 @@ export default function ShiftView({
                 <tr>
                   <th className="shift-sticky-col shift-col-label">
                     <div className="shift-label-month">{monthLabel}</div>
-                    <div>Staff</div>
                   </th>
-                  {dates.map((date) => {
-                    const [mm, dd] = date.split('/');
-                    const label =
-                      mm === selectedMonthNum
-                        ? parseInt(dd)
-                        : `${parseInt(mm)}/${parseInt(dd)}`;
-                    const day = dayOfWeekMap[date] ?? '';
-                    const isToday = date === todayStr;
-                    const isHoliday = holidaySet.has(date);
-                    const isSat = day === '土' && !isHoliday;
-                    const isSun = day === '日' || day === '祝' || isHoliday;
-                    return (
-                      <th
-                        key={date}
-                        className={[
-                          'shift-col-date',
-                          isToday ? 'today' : '',
-                          isSat ? 'weekend-sat' : '',
-                          isSun ? 'weekend-sun' : '',
-                        ]
-                          .filter(Boolean)
-                          .join(' ')}
-                      >
-                        <div className="shift-date-num">{label}</div>
-                        <div className={`shift-date-dow${isSat ? ' sat' : isSun ? ' sun' : ''}`}>
-                          {day}
-                        </div>
-                      </th>
-                    );
-                  })}
+                  {visibleStaffNames.map((staffName) => (
+                    <th key={staffName} className="shift-col-date">
+                      <div className="shift-date-num" style={{ fontSize: 11 }}>{staffName}</div>
+                    </th>
+                  ))}
                   <th className="shift-col-total">計</th>
                 </tr>
               </thead>
 
               <tbody>
-                {visibleStaffNames.map((staffName) => {
-                  const rowShifts = shiftMap[staffName] ?? {};
-                  const totalDays = Object.keys(rowShifts).length;
+                {dates.map((date) => {
+                  const [mm, dd] = date.split('/');
+                  const label =
+                    mm === selectedMonthNum
+                      ? parseInt(dd)
+                      : `${parseInt(mm)}/${parseInt(dd)}`;
+                  const day = dayOfWeekMap[date] ?? '';
+                  const isToday = date === todayStr;
+                  const isHoliday = holidaySet.has(date);
+                  const isSat = day === '土' && !isHoliday;
+                  const isSun = day === '日' || day === '祝' || isHoliday;
+                  const totalStaff = visibleStaffNames.filter(
+                    (s) => (shiftMap[s]?.[date] ?? []).length > 0
+                  ).length;
 
                   return (
-                    <tr key={staffName} className="shift-row">
-                      <td className="shift-sticky-col shift-staff-name">{staffName}</td>
+                    <tr key={date} className={[
+                      'shift-row',
+                      isToday ? 'today' : '',
+                      isSat ? 'weekend-sat' : '',
+                      isSun ? 'weekend-sun' : '',
+                    ].filter(Boolean).join(' ')}>
+                      <td className="shift-sticky-col shift-staff-name">
+                        <span className="shift-date-num">{label}</span>
+                        <span className={`shift-date-dow${isSat ? ' sat' : isSun ? ' sun' : ''}`} style={{ marginLeft: 4 }}>{day}</span>
+                      </td>
 
-                      {dates.map((date) => {
-                        const locations = rowShifts[date] ?? [];
-                        const day = dayOfWeekMap[date] ?? '';
-                        const isToday = date === todayStr;
-                        const isHoliday = holidaySet.has(date);
-                        const isSat = day === '土' && !isHoliday;
-                        const isSun = day === '日' || day === '祝' || isHoliday;
+                      {visibleStaffNames.map((staffName) => {
+                        const locations = shiftMap[staffName]?.[date] ?? [];
                         const agency = agencyShiftMap[staffName]?.[date];
                         const color = agency ? agencyColors.get(agency) : null;
 
                         return (
                           <td
-                            key={date}
-                            className={[
-                              'shift-data-cell',
-                              isToday ? 'today' : '',
-                              isSat ? 'weekend-sat' : '',
-                              isSun ? 'weekend-sun' : '',
-                            ]
-                              .filter(Boolean)
-                              .join(' ')}
+                            key={staffName}
+                            className="shift-data-cell"
                             title={locations.join('\n')}
                           >
                             {color && locations.length > 0 && (
@@ -571,7 +552,7 @@ export default function ShiftView({
                       })}
 
                       <td className="shift-total-cell">
-                        {totalDays > 0 ? totalDays : ''}
+                        {totalStaff > 0 ? totalStaff : ''}
                       </td>
                     </tr>
                   );
