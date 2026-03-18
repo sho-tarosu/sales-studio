@@ -715,7 +715,7 @@ export default function ShiftView({
                 <tbody>
                   {empData.dates.map(({ date, dayOfWeek }) => {
                     const [, dd] = date.split('/');
-                    const isToday = date === todayStr;
+                    const isToday = date.replace(/^0(\d)\//, '$1/').replace(/\/0(\d)$/, '/$1') === todayStr;
                     const isSat = dayOfWeek === '土';
                     const isSun = dayOfWeek === '日';
                     return (
