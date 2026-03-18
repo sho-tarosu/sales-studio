@@ -244,10 +244,12 @@ async function syncShift(payload: ShiftPayload) {
     }));
 
   const allRows = [...makeRows(tokyoRows, '東京'), ...makeRows(fukuokaRows, '福岡')];
-  if (allRows.length > 0) {
+  const CHUNK = 50;
+  for (let i = 0; i < allRows.length; i += CHUNK) {
+    const chunk = allRows.slice(i, i + CHUNK);
     await Promise.all([
-      db.insert(shiftRows).values(allRows),
-      dbSupabase.insert(shiftRows).values(allRows),
+      db.insert(shiftRows).values(chunk),
+      dbSupabase.insert(shiftRows).values(chunk),
     ]);
   }
 
