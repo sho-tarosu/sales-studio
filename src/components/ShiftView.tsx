@@ -175,6 +175,10 @@ export default function ShiftView({
 
   const staffNameSet = useMemo(() => new Set(staffNames), [staffNames]);
 
+  // staffNameSetになくてもスタッフとして扱うキーワード
+  const isAlwaysStaff = (name: string) =>
+    name.includes('アスクラ') || name.includes('salud') || name.includes('HE');
+
   const ADMIN_ROW_KEYWORDS = ['管理費', '備品'];
 
   const locationRows = useMemo(() => {
@@ -184,7 +188,7 @@ export default function ShiftView({
         if (ADMIN_ROW_KEYWORDS.includes(r.startTime)) return false;
         if (startsWithX(r.agency)) return false;
         return r.staff.some(
-          (s) => s && s.trim() !== '' && !startsWithX(s) && (staffNameSet.size === 0 || staffNameSet.has(s))
+          (s) => s && s.trim() !== '' && !startsWithX(s) && (staffNameSet.size === 0 || staffNameSet.has(s) || isAlwaysStaff(s))
         );
       })
       .sort((a, b) => {
@@ -606,7 +610,7 @@ export default function ShiftView({
                     const isSun = row.dayOfWeek === '日' || row.dayOfWeek === '祝' || row.isHoliday;
                     const agencyColor = agencyColors.get(row.agency) ?? null;
                     const visibleStaff = row.staff.filter(
-                      (s) => s && s.trim() !== '' && !startsWithX(s) && (staffNameSet.size === 0 || staffNameSet.has(s))
+                      (s) => s && s.trim() !== '' && !startsWithX(s) && (staffNameSet.size === 0 || staffNameSet.has(s) || isAlwaysStaff(s))
                     );
 
                     return (
