@@ -800,7 +800,17 @@ thead .shift-sticky-col {
 
 /* 当日行 — スタッフ別 */
 .shift-row.today .shift-data-cell  { background: rgba(229, 62, 62, 0.10); }
-.shift-row.today .shift-staff-name { background: color-mix(in srgb, var(--bg-color) 88%, #e53e3e 12%); }
+.shift-row.today .shift-staff-name {
+  background: color-mix(in srgb, var(--bg-color) 88%, #e53e3e 12%);
+  border-left: 3px solid var(--accent-color) !important;
+}
+
+/* 当日行 — 社員シフト（.shift-table で .location-table でないもの） */
+.shift-table:not(.location-table) tr:has(.loc-date-cell.today) .shift-data-cell { background: rgba(229, 62, 62, 0.10); }
+.shift-table:not(.location-table) tr:has(.loc-date-cell.today) .loc-date-cell {
+  background: color-mix(in srgb, var(--bg-color) 88%, #e53e3e 12%);
+  border-left: 3px solid var(--accent-color) !important;
+}
 
 /* Location pill */
 .shift-pill {
