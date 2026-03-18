@@ -768,7 +768,7 @@ thead .shift-sticky-col {
 }
 
 /* Body rows */
-.shift-row { transition: background 0.1s; }
+.shift-row { transition: none; }
 
 /* Staff name cell */
 .shift-staff-name {
@@ -798,10 +798,9 @@ thead .shift-sticky-col {
 
 /* 土日祝の背景色なし（文字色のみ列ヘッダーで区別） */
 
-/* Row hover — applied via JS className or tr:hover */
-.shift-row:hover .shift-data-cell { background: rgba(255, 255, 255, 0.04); }
-/* sticky列のホバーは透け防止のため不透明色を維持 */
-.shift-row:hover .shift-staff-name { background: var(--bg-color); }
+/* 当日行 — スタッフ別 */
+.shift-row.today .shift-data-cell  { background: rgba(229, 62, 62, 0.10); }
+.shift-row.today .shift-staff-name { background: color-mix(in srgb, var(--bg-color) 88%, #e53e3e 12%); }
 
 /* Location pill */
 .shift-pill {
@@ -1024,12 +1023,10 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
   white-space: nowrap;
 }
 
-/* 現場別テーブル ホバー */
-.location-table .shift-row:hover td                    { background: rgba(255, 255, 255, 0.03); }
-/* sticky固定列はホバー時も不透明背景を維持 */
-.location-table .shift-row:hover .loc-date-cell        { background: rgba(255, 255, 255, 0.04); }
-.location-table .shift-row:hover .loc-date-cell.today  { background: rgba(229, 62, 62, 0.12); }
-.location-table .shift-row:hover .loc-dow-cell         { background: rgba(255, 255, 255, 0.04); }
+/* 当日行 — 現場別 */
+.location-table tr:has(.loc-date-cell.today) td        { background: rgba(229, 62, 62, 0.10); }
+.location-table tr:has(.loc-date-cell.today) .loc-date-cell { background: color-mix(in srgb, var(--bg-color) 88%, #e53e3e 12%); }
+.location-table tr:has(.loc-date-cell.today) .loc-dow-cell  { background: rgba(229, 62, 62, 0.10); }
 
 /* ─── 分析ダッシュボード ────────────────────────────────────────────── */
 
