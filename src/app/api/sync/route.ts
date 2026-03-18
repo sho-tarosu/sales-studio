@@ -74,6 +74,7 @@ interface ShiftRowData {
   order1: string;
   order2: string;
   staff: string[];
+  finalStaff: string;
   agency: string;
   isHoliday: boolean;
 }
@@ -236,6 +237,7 @@ async function syncShift(payload: ShiftPayload) {
       order1: r.order1,
       order2: r.order2,
       staff: r.staff,
+      finalStaff: r.finalStaff ?? '',
       agency: r.agency,
       sheetRegion: region,
       isHoliday: r.isHoliday,

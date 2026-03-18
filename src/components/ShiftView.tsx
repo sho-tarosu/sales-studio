@@ -576,6 +576,7 @@ export default function ShiftView({
                   <th className="loc-th loc-th-place">店舗名</th>
                   <th className="loc-th loc-th-time">時間</th>
                   <th className="loc-th loc-th-staff">スタッフ</th>
+                  <th className="loc-th loc-th-final">終担</th>
                   <th className="loc-th loc-th-agency">代理店</th>
                 </tr>
               </thead>
@@ -583,7 +584,7 @@ export default function ShiftView({
               <tbody>
                 {filteredLocationRows.length === 0 ? (
                   <tr>
-                    <td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-sub)', fontSize: 13 }}>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: 'var(--text-sub)', fontSize: 13 }}>
                       {selectedAgency
                         ? `「${selectedAgency}」の現場データがありません`
                         : '表示できる現場データがありません'}
@@ -639,6 +640,10 @@ export default function ShiftView({
                               <span style={{ color: 'var(--text-sub)', fontSize: 12 }}>—</span>
                             )}
                           </div>
+                        </td>
+
+                        <td className="loc-final-cell">
+                          {row.finalStaff || ''}
                         </td>
 
                         <td className="loc-agency-cell">

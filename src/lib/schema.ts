@@ -66,6 +66,7 @@ export const shiftRows = pgTable('shift_rows', {
   order1: text('order1').default(''),
   order2: text('order2').default(''),
   staff: jsonb('staff').$type<string[]>().default([]),
+  finalStaff: text('final_staff').default(''),
   agency: text('agency').default(''),
   sheetRegion: text('sheet_region').notNull(), // '東京' | '福岡'
   isHoliday: boolean('is_holiday').default(false),

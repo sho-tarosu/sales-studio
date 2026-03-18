@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
       order1: r.order1 ?? '',
       order2: r.order2 ?? '',
       staff: (r.staff as string[]) ?? [],
+      finalStaff: r.finalStaff ?? '',
       agency: r.agency ?? '',
       sheetRegion: r.sheetRegion as '東京' | '福岡',
       isHoliday: r.isHoliday ?? false,

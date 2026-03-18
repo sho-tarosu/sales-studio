@@ -76,6 +76,7 @@ export interface ShiftRow {
   order1: string;
   order2: string;
   staff: string[];
+  finalStaff: string;
   agency: string;
   sheetRegion: '東京' | '福岡';
   isHoliday: boolean;

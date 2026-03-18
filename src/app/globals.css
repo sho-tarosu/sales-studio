@@ -892,6 +892,7 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
 .loc-th-place  { min-width: 110px; }
 .loc-th-time   { min-width: 52px; text-align: center; }
 .loc-th-staff  { min-width: 160px; }
+.loc-th-final  { min-width: 60px; }
 .loc-th-agency { min-width: 90px; }
 
 /* 日付セル（sticky 1列目） */
@@ -995,6 +996,15 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
   background: rgba(255, 255, 255, 0.07);
   color: var(--text-main);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+}
+
+/* 終担セル */
+.loc-final-cell {
+  font-size: 12px;
+  color: var(--text-sub);
+  vertical-align: middle;
+  padding: 2px 6px;
   white-space: nowrap;
 }
 
