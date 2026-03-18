@@ -175,10 +175,13 @@ export default function ShiftView({
 
   const staffNameSet = useMemo(() => new Set(staffNames), [staffNames]);
 
+  const ADMIN_ROW_KEYWORDS = ['管理費', '備品'];
+
   const locationRows = useMemo(() => {
     return filtered
       .filter((r) => {
         if (!r.location || !r.location.trim()) return false;
+        if (ADMIN_ROW_KEYWORDS.includes(r.startTime)) return false;
         if (startsWithX(r.agency)) return false;
         return r.staff.some(
           (s) => s && s.trim() !== '' && !startsWithX(s) && (staffNameSet.size === 0 || staffNameSet.has(s))
