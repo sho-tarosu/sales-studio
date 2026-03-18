@@ -88,7 +88,7 @@ export default function AttendanceTable({ data, selectedMonth, loginName }: Atte
 
   return (
     <>
-      <div className="analysis-controls">
+      <div className="analysis-controls" style={{ flexWrap: 'nowrap', alignItems: 'center' }}>
         <div className="control-group">
           <span className="control-label">スタッフ選択</span>
           <select className="control-select" value={staffName} onChange={(e) => setStaffName(e.target.value)}>
