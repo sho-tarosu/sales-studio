@@ -649,8 +649,12 @@ export default function ShiftView({
                           </div>
                         </td>
 
-                        <td className="loc-final-cell">
-                          {row.finalStaff || ''}
+                        <td className="loc-staff-cell">
+                          <div className="loc-staff-list">
+                            {row.finalStaff ? (
+                              <span className="loc-staff-chip">{row.finalStaff}</span>
+                            ) : ''}
+                          </div>
                         </td>
 
                         <td className="loc-agency-cell">
