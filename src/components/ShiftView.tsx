@@ -226,7 +226,7 @@ export default function ShiftView({
 
   const todayStr = useMemo(() => {
     const t = new Date();
-    return `${String(t.getMonth() + 1).padStart(2, '0')}/${String(t.getDate()).padStart(2, '0')}`;
+    return `${t.getMonth() + 1}/${t.getDate()}`;
   }, []);
 
   // シフト表が表示されたとき・データ読み込み完了時に今日の列/行までスクロール
