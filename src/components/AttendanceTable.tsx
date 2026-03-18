@@ -83,6 +83,9 @@ export default function AttendanceTable({ data, selectedMonth, loginName }: Atte
 
   const days = data.daysInMonth;
 
+  const totalPt = staff.total;
+  const totalSelfClose = staff.calendar.reduce((sum, d) => sum + (d.selfClose || 0), 0);
+
   return (
     <>
       <div className="analysis-controls">
@@ -93,6 +96,16 @@ export default function AttendanceTable({ data, selectedMonth, loginName }: Atte
               <option key={s.name} value={s.name}>{s.name}</option>
             ))}
           </select>
+        </div>
+        <div style={{ display: 'flex', gap: 16, marginLeft: 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.3 }}>
+            <span style={{ fontSize: 10, color: 'var(--text-sub)' }}>獲得</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-main)' }}>{totalPt}<span style={{ fontSize: 10, marginLeft: 1 }}>opt</span></span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.3 }}>
+            <span style={{ fontSize: 10, color: 'var(--text-sub)' }}>自己クロ</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-main)' }}>{totalSelfClose}<span style={{ fontSize: 10, marginLeft: 1 }}>opt</span></span>
+          </div>
         </div>
       </div>
       <div className="chart-card" style={{ padding: 0, overflow: 'hidden' }}>
