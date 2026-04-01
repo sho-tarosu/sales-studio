@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from 'react';
 
+interface ShiftSite {
+  location: string;
+  staff: string[];
+  agency: string;
+}
+
 interface SiteMap {
   [site: string]: {
     [staffName: string]: { postedAt: string; message: string }[];
@@ -10,10 +16,10 @@ interface SiteMap {
 
 interface TalknoteData {
   date: string;
+  siteOrder: ShiftSite[];
   siteMap: SiteMap;
 }
 
-// 業務関連キーワードを含む投稿かどうか判定
 const WORK_KEYWORDS = [
   'MNP', '新規', 'NEW', 'new',
   'セルアップ', 'アップセル', 'cellup',
@@ -37,6 +43,66 @@ function todayString() {
   return `${y}-${m}-${d}`;
 }
 
+function SiteSection({ site, staffList, agency, siteMap }: {
+  site: string;
+  staffList: string[];
+  agency: string;
+  siteMap: SiteMap;
+}) {
+  const postsByStaff = siteMap[site] ?? {};
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      {/* 現場ヘッダー */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'baseline',
+        gap: 8,
+        borderBottom: '1px solid var(--border-color)',
+        paddingBottom: 4,
+        marginBottom: 8,
+      }}>
+        <span style={{ fontSize: 13, fontWeight: 'bold', color: 'var(--accent-color)' }}>
+          {site}
+        </span>
+        {agency && (
+          <span style={{ fontSize: 11, color: 'var(--text-sub)' }}>{agency}</span>
+        )}
+        {staffList.length > 0 && (
+          <span style={{ fontSize: 11, color: 'var(--text-sub)', marginLeft: 4 }}>
+            {staffList.join('・')}
+          </span>
+        )}
+      </div>
+
+      {/* 投稿 */}
+      {Object.entries(postsByStaff).map(([staffName, posts]) => {
+        const workPosts = posts.filter((p) => isWorkRelated(p.message));
+        if (workPosts.length === 0) return null;
+        return (
+          <div key={staffName} style={{ marginBottom: 10 }}>
+            <div style={{ fontSize: 12, fontWeight: 'bold', color: 'var(--text-main)', marginBottom: 4 }}>
+              {staffName}
+            </div>
+            {workPosts.map((post, idx) => (
+              <div key={idx} style={{
+                fontSize: 12,
+                color: 'var(--text-sub)',
+                whiteSpace: 'pre-wrap',
+                paddingLeft: 8,
+                borderLeft: '2px solid var(--border-color)',
+                marginBottom: 4,
+              }}>
+                {post.message}
+              </div>
+            ))}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function TalknoteCard() {
   const [date, setDate] = useState(todayString());
   const [data, setData] = useState<TalknoteData | null>(null);
@@ -51,7 +117,20 @@ export default function TalknoteCard() {
       .finally(() => setLoading(false));
   }, [date]);
 
-  const sites = data ? Object.keys(data.siteMap) : [];
+  // シフト順の現場 + 店舗未確定（シフトにない投稿）
+  const orderedSites: { location: string; staff: string[]; agency: string }[] = [];
+  if (data) {
+    // シフト表の順
+    for (const s of data.siteOrder) {
+      orderedSites.push(s);
+    }
+    // siteMap にあってシフト順に含まれていない現場を末尾に追加
+    for (const site of Object.keys(data.siteMap)) {
+      if (!orderedSites.some((s) => s.location === site)) {
+        orderedSites.push({ location: site, staff: [], agency: '' });
+      }
+    }
+  }
 
   return (
     <div className="chart-card" style={{ marginTop: 16 }}>
@@ -81,48 +160,20 @@ export default function TalknoteCard() {
         </div>
       )}
 
-      {!loading && sites.length === 0 && (
+      {!loading && orderedSites.length === 0 && (
         <div style={{ color: 'var(--text-sub)', fontSize: 13, textAlign: 'center', padding: '16px 0' }}>
           この日のレポートはありません
         </div>
       )}
 
-      {!loading && sites.map((site) => (
-        <div key={site} style={{ marginBottom: 16 }}>
-          <div style={{
-            fontSize: 12,
-            fontWeight: 'bold',
-            color: 'var(--accent-color)',
-            borderBottom: '1px solid var(--border-color)',
-            paddingBottom: 4,
-            marginBottom: 8,
-          }}>
-            {site}
-          </div>
-          {Object.entries(data!.siteMap[site]).map(([staffName, posts]) => {
-            const workPosts = posts.filter((p) => isWorkRelated(p.message));
-            if (workPosts.length === 0) return null;
-            return (
-              <div key={staffName} style={{ marginBottom: 10 }}>
-                <div style={{ fontSize: 12, fontWeight: 'bold', color: 'var(--text-main)', marginBottom: 4 }}>
-                  {staffName}
-                </div>
-                {workPosts.map((post, idx) => (
-                  <div key={idx} style={{
-                    fontSize: 12,
-                    color: 'var(--text-sub)',
-                    whiteSpace: 'pre-wrap',
-                    paddingLeft: 8,
-                    borderLeft: '2px solid var(--border-color)',
-                    marginBottom: 4,
-                  }}>
-                    {post.message}
-                  </div>
-                ))}
-              </div>
-            );
-          })}
-        </div>
+      {!loading && data && orderedSites.map((s) => (
+        <SiteSection
+          key={s.location}
+          site={s.location}
+          staffList={s.staff}
+          agency={s.agency}
+          siteMap={data.siteMap}
+        />
       ))}
     </div>
   );

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
-import { talknotePosts } from '@/lib/schema';
+import { talknotePosts, shiftRows } from '@/lib/schema';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,16 +16,43 @@ export async function GET(request: NextRequest) {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
-  }).replace(/\//g, '-'); // 'YYYY-MM-DD'
+  }).replace(/\//g, '-');
   const date = searchParams.get('date') || today;
 
-  const posts = await db
-    .select()
-    .from(talknotePosts)
-    .where(eq(talknotePosts.date, date))
-    .orderBy(talknotePosts.postedAt);
+  // 'YYYY-MM-DD' → month='YYYY-MM', shiftDate='M/D'
+  const [y, m, d] = date.split('-');
+  const month = `${y}-${m}`;
+  const shiftDate = `${parseInt(m)}/${parseInt(d)}`;
 
-  // site → staffName → messages[] の形にグループ化
+  const [posts, shifts] = await Promise.all([
+    db.select()
+      .from(talknotePosts)
+      .where(eq(talknotePosts.date, date))
+      .orderBy(talknotePosts.postedAt),
+    db.select({
+      location: shiftRows.location,
+      staff: shiftRows.staff,
+      agency: shiftRows.agency,
+    })
+      .from(shiftRows)
+      .where(and(eq(shiftRows.month, month), eq(shiftRows.date, shiftDate)))
+      .orderBy(shiftRows.id), // 挿入順 = シフト表の並び順
+  ]);
+
+  // シフト表の順で現場リストを構築（重複除去）
+  const siteOrder: { location: string; staff: string[]; agency: string }[] = [];
+  const seen = new Set<string>();
+  for (const row of shifts) {
+    if (!row.location || seen.has(row.location)) continue;
+    seen.add(row.location);
+    siteOrder.push({
+      location: row.location,
+      staff: (row.staff as string[]) ?? [],
+      agency: row.agency ?? '',
+    });
+  }
+
+  // site → staffName → posts[] のマップ
   const siteMap: Record<string, Record<string, { postedAt: string; message: string }[]>> = {};
   for (const post of posts) {
     const site = post.site || '店舗未確定';
@@ -34,5 +61,5 @@ export async function GET(request: NextRequest) {
     siteMap[site][post.staffName].push({ postedAt: post.postedAt, message: post.message });
   }
 
-  return NextResponse.json({ date, siteMap });
+  return NextResponse.json({ date, siteOrder, siteMap });
 }
