@@ -3,7 +3,7 @@ import path from 'path';
 import type { User, Role } from '@/types';
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
-const USER_SHEET_NAME = 'スタッフ';
+const USER_SHEET_NAME = 'プロフィール';
 
 export async function getSheetsClient() {
   let auth;
@@ -132,8 +132,14 @@ export async function getShiftSheetDataWithHolidays(
 export async function getUserById(userId: string): Promise<(User & { passwordHash: string; rowIndex: number }) | null> {
   const rows = await getSheetData(USER_SHEET_NAME);
   // Skip header row
+  // プロフィールシート: T列(19)=名前, U列(20)=ユーザーID, V列(21)=パスワード, W列(22)=ロール, X列(23)=有効
   for (let i = 1; i < rows.length; i++) {
-    const [id, name, passwordHash, role, active] = rows[i];
+    const row = rows[i];
+    const id = row[20];
+    const name = row[19];
+    const passwordHash = row[21];
+    const role = row[22];
+    const active = row[23];
     if (id === userId) {
       if (active?.toUpperCase() !== 'TRUE') return null;
       return {
@@ -155,7 +161,7 @@ export async function updateLastLogin(rowIndex: number): Promise<void> {
   const now = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
   await sheets.spreadsheets.values.update({
     spreadsheetId: spreadsheetId!,
-    range: `${USER_SHEET_NAME}!F${rowIndex}`,
+    range: `${USER_SHEET_NAME}!Y${rowIndex}`,
     valueInputOption: 'RAW',
     requestBody: { values: [[now]] },
   });

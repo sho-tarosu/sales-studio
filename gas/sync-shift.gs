@@ -91,9 +91,17 @@ function parseShiftRows_(sheet, region) {
   const lastCol = sheet.getLastColumn();
 
   // 値と背景色を取得
-  const values = sheet.getRange(1, 1, lastRow, lastCol).getValues();
+  const rawValues = sheet.getRange(1, 1, lastRow, lastCol).getValues();
   // B列（インデックス1）の背景色を取得
   const bColBgs = sheet.getRange(1, 2, lastRow, 1).getBackgrounds();
+
+  // 各セルを文字列に変換（日付セルは "M/D" 形式に）
+  const values = rawValues.map(function(row) {
+    return row.map(function(cell) {
+      if (cell instanceof Date) return (cell.getMonth() + 1) + '/' + cell.getDate();
+      return cell;
+    });
+  });
 
   // 祝日の日付セットを作成
   const holidayDates = new Set();
@@ -117,10 +125,14 @@ function parseShiftRows_(sheet, region) {
     if (!date || !/\d/.test(date)) continue; // 日付なし行をスキップ
     if (row[4] === '場所') continue;          // 副行をスキップ
 
+    const staffNameSet = staffNames.length > 0 ? new Set(staffNames) : null;
     const staff = [];
     for (let c = cfg.staffStart; c < cfg.staffEnd; c++) {
       const v = (row[c] || '').trim();
-      if (v) staff.push(v);
+      if (!v) continue;
+      // アスクラ・saludを含む名前は常にスタッフとして認識
+      const isAlwaysStaff = v.indexOf('アスクラ') !== -1 || v.indexOf('salud') !== -1;
+      if (isAlwaysStaff || !staffNameSet || staffNameSet.has(v)) staff.push(v);
     }
 
     shiftRows.push({
@@ -131,6 +143,7 @@ function parseShiftRows_(sheet, region) {
       order1: row[5] || '',
       order2: row[6] || '',
       staff: staff,
+      finalStaff: row[21] || '',
       agency: row[cfg.agencyIdx] || '',
       isHoliday: holidayDates.has(date),
     });
@@ -153,7 +166,11 @@ function parseEmployeeShift_(month) {
   const lastRow = sheet.getLastRow();
   const lastCol = sheet.getLastColumn();
   const values = sheet.getRange(1, 1, lastRow, lastCol).getValues().map(function(r) {
-    return r.map(String);
+    return r.map(function(cell) {
+      // 日付セルは "M/D" 形式（例: "3/1"）に変換
+      if (cell instanceof Date) return (cell.getMonth() + 1) + '/' + cell.getDate();
+      return String(cell);
+    });
   });
 
   // スタッフ名行（インデックス2 = 3行目）
@@ -262,20 +279,31 @@ function syncEmployeeShift(month) {
   });
 }
 
-// 全シートを一括同期
+// 全シートを一括同期（当月・翌月・翌々月）
 function syncAll() {
-  const month = getCurrentMonth_();
-  Logger.log('シフト同期開始: ' + month);
-  syncShift(month);
-  syncEmployeeShift(month);
-  Logger.log('シフト同期完了');
+  const now = new Date();
+  for (let i = 0; i <= 2; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const month = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    Logger.log('シフト同期開始: ' + month);
+    syncShift(month);
+    syncEmployeeShift(month);
+    Logger.log('シフト同期完了: ' + month);
+  }
 }
 
-// 任意の月を指定して同期する場合はここを編集して実行
-function syncSpecificMonth() {
-  const month = '2026-03'; // ← 変更してください
-  syncShift(month);
-  syncEmployeeShift(month);
+// 過去N月分を自動同期（月をまたいでも変更不要）
+function syncPastMonths() {
+  const MONTHS_BACK = 6; // 何ヶ月前まで同期するか
+  const now = new Date();
+  for (let i = 1; i <= MONTHS_BACK; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const month = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    Logger.log('同期中: ' + month);
+    syncShift(month);
+    syncEmployeeShift(month);
+  }
+  Logger.log('過去月の同期完了');
 }
 
 // ──────────────────────────────────────────────
@@ -283,16 +311,17 @@ function syncSpecificMonth() {
 // ──────────────────────────────────────────────
 function onEditTrigger(e) {
   const sheetName = e.source.getActiveSheet().getName();
-  const month = getCurrentMonth_();
 
-  // 今月のシフトシートが編集された場合
-  const tokyoSheet   = buildSheetName_(month, '東京');
-  const fukuokaSheet = buildSheetName_(month, '福岡');
-
-  if (sheetName === tokyoSheet || sheetName === fukuokaSheet) {
+  // "26年5月【東京】" のようなシート名から月を逆算
+  const match = sheetName.match(/^(\d{2})年(\d{1,2})月【(東京|福岡)】$/);
+  if (match) {
+    const month = '20' + match[1] + '-' + String(parseInt(match[2])).padStart(2, '0');
     syncShift(month);
-  } else if (sheetName === '【社員】') {
-    syncEmployeeShift(month);
+    return;
+  }
+
+  if (sheetName === '【社員】') {
+    syncEmployeeShift(getCurrentMonth_());
   }
 }
 

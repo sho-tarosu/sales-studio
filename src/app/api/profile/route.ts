@@ -4,7 +4,7 @@ import { auth } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-const SHEET_NAME = '出身地';
+const SHEET_NAME = 'プロフィール';
 
 const PREFECTURE_TO_REGION: Record<string, string> = {
   '北海道': '北海道',
@@ -35,16 +35,16 @@ export async function GET() {
     // 1行目はヘッダーとしてスキップ
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
-      const name = row[4]?.trim(); // E列: 名前
+      const name = row[4]?.trim(); // E列: 氏名
       if (!name) continue;
 
       total++;
 
       // 都/道/府/県 を除いた名前でマッピング
-      const rawPref = row[10]?.trim(); // K列: 出身地
+      const rawPref = row[7]?.trim(); // H列: 出身地
       const prefecture = rawPref ? rawPref.replace(/[都道府県]$/, '') : '';
       // 「型」をつけて統一（A→A型、A型→A型）
-      const rawBlood = row[11]?.trim(); // L列: 血液型
+      const rawBlood = row[8]?.trim(); // I列: 血液型
       const bloodType = rawBlood ? (rawBlood.endsWith('型') ? rawBlood : rawBlood + '型') : '';
 
       if (prefecture) {
