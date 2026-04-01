@@ -123,7 +123,14 @@ function syncTalknote(month) {
     var ts = raw[0]; // A列: 日時
     if (!ts) continue;
 
-    var date = (ts instanceof Date) ? ts : new Date(ts);
+    var date;
+    if (ts instanceof Date) {
+      date = ts;
+    } else {
+      // 'yyyy/MM/dd HH:mm:ss' → 'yyyy-MM-ddTHH:mm:ss' に変換してパース
+      var str = String(ts).replace(/\//g, '-').replace(' ', 'T');
+      date = new Date(str);
+    }
     if (isNaN(date.getTime())) continue;
     if (date.getFullYear() !== y || date.getMonth() + 1 !== m) continue;
 
