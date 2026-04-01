@@ -13,6 +13,22 @@ interface TalknoteData {
   siteMap: SiteMap;
 }
 
+// 業務関連キーワードを含む投稿かどうか判定
+const WORK_KEYWORDS = [
+  'MNP', '新規', 'NEW', 'new',
+  'セルアップ', 'アップセル', 'cellup',
+  'クレカ', 'ゴールド', '自銀', '金クレカ', '銀クレカ',
+  '光', 'ひかり', '事変', '事業者変更', 'biglobe',
+  'でんき', 'ガス',
+  'スタート',
+  'SIM', 'sim', '端末',
+  'docomo', 'ドコモ', 'UQ', '楽天', 'ワイモバイル', 'ahamo',
+];
+
+function isWorkRelated(message: string): boolean {
+  return WORK_KEYWORDS.some((kw) => message.toLowerCase().includes(kw.toLowerCase()));
+}
+
 function todayString() {
   const now = new Date();
   const y = now.getFullYear();
@@ -83,25 +99,29 @@ export default function TalknoteCard() {
           }}>
             {site}
           </div>
-          {Object.entries(data!.siteMap[site]).map(([staffName, posts]) => (
-            <div key={staffName} style={{ marginBottom: 10 }}>
-              <div style={{ fontSize: 12, fontWeight: 'bold', color: 'var(--text-main)', marginBottom: 4 }}>
-                {staffName}
-              </div>
-              {posts.map((post, idx) => (
-                <div key={idx} style={{
-                  fontSize: 12,
-                  color: 'var(--text-sub)',
-                  whiteSpace: 'pre-wrap',
-                  paddingLeft: 8,
-                  borderLeft: '2px solid var(--border-color)',
-                  marginBottom: 4,
-                }}>
-                  {post.message}
+          {Object.entries(data!.siteMap[site]).map(([staffName, posts]) => {
+            const workPosts = posts.filter((p) => isWorkRelated(p.message));
+            if (workPosts.length === 0) return null;
+            return (
+              <div key={staffName} style={{ marginBottom: 10 }}>
+                <div style={{ fontSize: 12, fontWeight: 'bold', color: 'var(--text-main)', marginBottom: 4 }}>
+                  {staffName}
                 </div>
-              ))}
-            </div>
-          ))}
+                {workPosts.map((post, idx) => (
+                  <div key={idx} style={{
+                    fontSize: 12,
+                    color: 'var(--text-sub)',
+                    whiteSpace: 'pre-wrap',
+                    paddingLeft: 8,
+                    borderLeft: '2px solid var(--border-color)',
+                    marginBottom: 4,
+                  }}>
+                    {post.message}
+                  </div>
+                ))}
+              </div>
+            );
+          })}
         </div>
       ))}
     </div>
