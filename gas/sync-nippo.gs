@@ -19,9 +19,10 @@ const CONFIG = {
 // ======================================================
 
 // シート名
-const SHEET_NIPPO = '合算データ';
-const SHEET_AGE   = 'グラフ用データ_年代';
-const SHEET_TYPE  = 'グラフ用データ_家族構成';
+const SHEET_NIPPO     = '合算データ';
+const SHEET_AGE       = 'グラフ用データ_年代';
+const SHEET_TYPE      = 'グラフ用データ_家族構成';
+const SHEET_TALKNOTE  = 'トークノート受信録';
 
 // 現在の月を 'YYYY-MM' 形式で返す
 function getCurrentMonth_() {
@@ -106,6 +107,41 @@ function syncTypeSheet(month) {
   callSyncApi_({ type: 'type', month: month || getCurrentMonth_(), rows: rows });
 }
 
+// トークノートシートを同期
+function syncTalknote(month) {
+  month = month || getCurrentMonth_();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_TALKNOTE);
+  if (!sheet) { Logger.log(SHEET_TALKNOTE + ' が見つかりません'); return; }
+
+  const data = sheet.getDataRange().getValues();
+  const [y, m] = month.split('-').map(Number);
+  const rows = [];
+
+  for (var i = 1; i < data.length; i++) {
+    var raw = data[i];
+    var ts = raw[0]; // A列: 日時
+    if (!ts) continue;
+
+    var date = (ts instanceof Date) ? ts : new Date(ts);
+    if (isNaN(date.getTime())) continue;
+    if (date.getFullYear() !== y || date.getMonth() + 1 !== m) continue;
+
+    var staffName = String(raw[1] || '').trim(); // B列: 投稿者名
+    var message   = String(raw[2] || '').trim(); // C列: 本文
+    if (!staffName || !message) continue;
+
+    var pad = function(n) { return String(n).padStart(2, '0'); };
+    var dateStr   = date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
+    var postedAt  = dateStr + ' ' + pad(date.getHours()) + ':' + pad(date.getMinutes()) + ':' + pad(date.getSeconds());
+
+    rows.push({ postedAt: postedAt, staffName: staffName, message: message });
+  }
+
+  if (rows.length === 0) { Logger.log('対象月のトークノートデータがありません: ' + month); return; }
+  callSyncApi_({ type: 'talknote', month: month, rows: rows });
+}
+
 // 全シートを現在月で一括同期（手動実行・定期実行用）
 function syncAll() {
   const month = getCurrentMonth_();
@@ -113,6 +149,7 @@ function syncAll() {
   syncNippoSheet(month);
   syncAgeSheet(month);
   syncTypeSheet(month);
+  syncTalknote(month);
   Logger.log('日報同期完了');
 }
 
@@ -138,6 +175,8 @@ function onEditTrigger(e) {
     syncAgeSheet(month);
   } else if (sheetName === SHEET_TYPE) {
     syncTypeSheet(month);
+  } else if (sheetName === SHEET_TALKNOTE) {
+    syncTalknote(month);
   }
 }
 

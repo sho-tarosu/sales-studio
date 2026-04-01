@@ -17,6 +17,7 @@ import AttendanceTable from '@/components/AttendanceTable';
 import ShiftView from '@/components/ShiftView';
 import ProfileView from '@/components/ProfileView';
 import NippoAlert from '@/components/NippoAlert';
+import TalknoteCard from '@/components/TalknoteCard';
 
 const TAB_TITLES: Record<TabName, string> = {
   'dashboard': '獲得状況',
@@ -215,6 +216,7 @@ export default function Home() {
                     <RankingList ranking={data.ranking} limit={5} />
                   </div>
                 </div>
+                <TalknoteCard />
               </>
             )}
 

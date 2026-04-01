@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Studio フローチャート</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0f0f0f;
+    color: #f2f2f2;
+    padding: 40px 24px;
+  }
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #fff;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 48px;
+  }
+  .section {
+    margin-bottom: 64px;
+  }
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #f2f2f2;
+    margin-bottom: 6px;
+    padding-left: 12px;
+    border-left: 3px solid #e53e3e;
+  }
+  .section-desc {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 24px;
+    padding-left: 15px;
+  }
+  .flow {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    padding-left: 24px;
+  }
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* ノードの種類 */
+  .node {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+    padding: 10px 18px;
+    min-width: 180px;
+  }
+  .node-start, .node-end {
+    background: #e53e3e;
+    color: #fff;
+    border-radius: 999px;
+    min-width: 140px;
+  }
+  .node-end {
+    background: #555;
+  }
+  .node-process {
+    background: #1c2a3a;
+    color: #7dd3fc;
+    border: 1.5px solid #2a4a6a;
+    border-radius: 6px;
+  }
+  .node-decision {
+    background: #2a1f00;
+    color: #facc15;
+    border: 1.5px solid #5a4200;
+    border-radius: 6px;
+    transform: none;
+    min-width: 200px;
+  }
+  .node-db {
+    background: #0d2a1a;
+    color: #4ade80;
+    border: 1.5px solid #1a5a30;
+    border-radius: 6px;
+  }
+  .node-external {
+    background: #1a1a2e;
+    color: #c084fc;
+    border: 1.5px solid #3a2a5a;
+    border-radius: 6px;
+  }
+  .node-alert {
+    background: #2a1010;
+    color: #f87171;
+    border: 1.5px solid #5a1a1a;
+    border-radius: 6px;
+  }
+  .node-ui {
+    background: #1c1c1c;
+    color: #f2f2f2;
+    border: 1.5px solid #333;
+    border-radius: 6px;
+  }
+
+  /* 矢印（縦） */
+  .arrow-down {
+    width: 2px;
+    height: 28px;
+    background: #444;
+    margin-left: calc(90px - 1px);
+    position: relative;
+  }
+  .arrow-down::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: -4px;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 7px solid #444;
+  }
+
+  /* 矢印（横） */
+  .arrow-right {
+    width: 40px;
+    height: 2px;
+    background: #444;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .arrow-right::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: -4px;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 7px solid #444;
+  }
+
+  /* 分岐ラベル */
+  .label {
+    font-size: 11px;
+    color: #888;
+    margin-left: 6px;
+  }
+  .label-yes { color: #4ade80; }
+  .label-no  { color: #f87171; }
+
+  /* 分岐レイアウト */
+  .branch {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+  }
+  .branch-left, .branch-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* インデント付きブロック */
+  .indent {
+    margin-left: 40px;
+    padding-left: 16px;
+    border-left: 2px dashed #333;
+  }
+
+  /* 凡例 */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 32px;
+    padding: 16px;
+    background: #1c1c1c;
+    border-radius: 8px;
+    border: 1px solid #2e2e2e;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #aaa;
+  }
+  .legend-box {
+    width: 24px;
+    height: 16px;
+    border-radius: 3px;
+  }
+
+  /* カード */
+  .card {
+    background: #1c1c1c;
+    border: 1px solid #2e2e2e;
+    border-radius: 12px;
+    padding: 28px 32px;
+  }
+
+  /* 横並びフロー */
+  .flow-horizontal {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0;
+  }
+  .flow-horizontal .arrow-right {
+    width: 32px;
+  }
+
+  /* セクション番号 */
+  .badge {
+    display: inline-block;
+    background: #e53e3e;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-right: 8px;
+  }
+
+  hr.divider {
+    border: none;
+    border-top: 1px solid #2e2e2e;
+    margin: 48px 0;
+  }
+
+  .note {
+    font-size: 12px;
+    color: #666;
+    margin-top: 12px;
+    padding: 10px 14px;
+    background: #161616;
+    border-radius: 6px;
+    border-left: 3px solid #333;
+  }
+
+  /* 並列処理 */
+  .parallel {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    margin-left: 40px;
+  }
+  .parallel-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .parallel-label {
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 6px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Sales Studio フローチャート</h1>
+<p class="subtitle">詳細設計 — 主要処理の流れを図で表したもの</p>
+
+<!-- 凡例 -->
+<div class="legend">
+  <div class="legend-item">
+    <div class="legend-box" style="background:#e53e3e; border-radius:999px;"></div>
+    開始 / 終了
+  </div>
+  <div class="legend-item">
+    <div class="legend-box" style="background:#1c2a3a; border:1.5px solid #2a4a6a;"></div>
+    処理
+  </div>
+  <div class="legend-item">
+    <div class="legend-box" style="background:#2a1f00; border:1.5px solid #5a4200;"></div>
+    判断（条件分岐）
+  </div>
+  <div class="legend-item">
+    <div class="legend-box" style="background:#0d2a1a; border:1.5px solid #1a5a30;"></div>
+    DB操作
+  </div>
+  <div class="legend-item">
+    <div class="legend-box" style="background:#1a1a2e; border:1.5px solid #3a2a5a;"></div>
+    外部サービス
+  </div>
+  <div class="legend-item">
+    <div class="legend-box" style="background:#1c1c1c; border:1.5px solid #333;"></div>
+    UI表示
+  </div>
+</div>
+
+
+<!-- ===== A: データ同期 ===== -->
+<div class="section">
+  <div class="section-title"><span class="badge">A</span>データ同期の流れ（GAS → API → DB）</div>
+  <div class="section-desc">スプレッドシートの日報データがDBに保存されるまでの流れ</div>
+
+  <div class="card">
+    <div class="flow">
+
+      <div class="node node-start">スプレッドシート編集 or 時間トリガー発火</div>
+      <div class="arrow-down"></div>
+
+      <div class="node node-external">GAS: シートの全データを読み取る</div>
+      <div class="arrow-down"></div>
+
+      <div class="node node-process">POST /api/sync<br><span style="font-size:11px;font-weight:400;color:#60a5fa">{ type, month, rows[] }</span></div>
+      <div class="arrow-down"></div>
+
+      <div class="node node-decision">Bearer Token 認証OK？</div>
+      <div class="arrow-down"></div>
+
+      <!-- 分岐: 認証失敗 -->
+      <div style="display:flex; align-items:flex-start; gap:32px;">
+        <div style="display:flex; flex-direction:column; align-items:center;">
+          <span class="label label-yes">✓ OK</span>
+          <div class="arrow-down" style="height:16px;"></div>
+          <div class="node node-decision" style="min-width:180px;">受信データが<br>0件？</div>
+          <div class="arrow-down"></div>
+
+          <!-- 分岐: 0件 -->
+          <div style="display:flex; align-items:flex-start; gap:32px;">
+            <div style="display:flex; flex-direction:column; align-items:center;">
+              <span class="label label-no">✗ データあり</span>
+              <div class="arrow-down" style="height:16px;"></div>
+              <div class="node node-db">DELETE: 対象月のデータを全削除</div>
+              <div class="arrow-down"></div>
+              <div class="node node-db">INSERT: 新データを挿入</div>
+              <div class="arrow-down"></div>
+              <!-- 並列 -->
+              <div style="font-size:11px;color:#888;margin-bottom:6px;">↓ NeonとSupabaseに並列書き込み</div>
+              <div style="display:flex;gap:16px;">
+                <div style="display:flex;flex-direction:column;align-items:center;">
+                  <span style="font-size:11px;color:#888;margin-bottom:4px;">Neon</span>
+                  <div class="node node-db" style="min-width:100px;padding:8px 12px;">保存完了</div>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:center;">
+                  <span style="font-size:11px;color:#888;margin-bottom:4px;">Supabase</span>
+                  <div class="node node-db" style="min-width:100px;padding:8px 12px;">保存完了</div>
+                </div>
+              </div>
+              <div class="arrow-down"></div>
+              <div class="node node-process">{ ok: true, inserted: N } を返す</div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:center; margin-top:0;">
+              <span class="label label-yes">✓ 0件</span>
+              <div class="arrow-down" style="height:16px;"></div>
+              <div class="node node-alert">削除しない<br>（フェイルセーフ）</div>
+              <div class="arrow-down"></div>
+              <div class="node node-process">{ inserted: 0 } を返す</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; align-items:center; margin-top:24px;">
+          <span class="label label-no">✗ NG</span>
+          <div class="arrow-down" style="height:16px;"></div>
+          <div class="node node-alert">401 Unauthorized</div>
+        </div>
+      </div>
+
+      <div class="arrow-down"></div>
+      <div class="node node-end">終了</div>
+    </div>
+
+    <div class="note">💡 フェイルセーフ：GASが空データを送ってきてもDBのデータを消さないための安全策</div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== B: ページ表示 ===== -->
+<div class="section">
+  <div class="section-title"><span class="badge">B</span>ページ表示の流れ（ログイン → 画面描画）</div>
+  <div class="section-desc">ユーザーがURLにアクセスしてから画面が表示されるまでの流れ</div>
+
+  <div class="card">
+    <div class="flow">
+
+      <div class="node node-start">ブラウザでURLにアクセス</div>
+      <div class="arrow-down"></div>
+
+      <div class="node node-process">AuthGuard: セッションチェック</div>
+      <div class="arrow-down"></div>
+
+      <div class="node node-decision">ログイン済み？</div>
+      <div class="arrow-down"></div>
+
+      <div style="display:flex; align-items:flex-start; gap:32px;">
+        <div style="display:flex; flex-direction:column; align-items:center;">
+          <span class="label label-yes">✓ 済み</span>
+          <div class="arrow-down" style="height:16px;"></div>
+          <div class="node node-ui">メイン画面表示<br><span style="font-size:11px;font-weight:400;">ダッシュボード（デフォルト）</span></div>
+          <div class="arrow-down"></div>
+          <div class="node node-process">GET /api/data?month=YYYY-MM</div>
+          <div class="arrow-down"></div>
+          <div class="node node-db">sales / age / type を並列取得</div>
+          <div class="arrow-down"></div>
+          <div class="node node-process">aggregator.ts で集計<br><span style="font-size:11px;font-weight:400;">ランキング・KPI・カレンダー計算</span></div>
+          <div class="arrow-down"></div>
+          <div class="node node-ui">グラフ・KPI・ランキング描画</div>
+          <div class="arrow-down"></div>
+          <div class="node node-process">GET /api/nippo-check</div>
+          <div class="arrow-down"></div>
+          <div class="node node-decision">未提出日あり？</div>
+          <div class="arrow-down"></div>
+          <div style="display:flex; align-items:flex-start; gap:32px;">
+            <div style="display:flex; flex-direction:column; align-items:center;">
+              <span class="label label-yes">✓ あり</span>
+              <div class="arrow-down" style="height:16px;"></div>
+              <div class="node node-alert">⚠️ 日報未提出バナー表示</div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:center;">
+              <span class="label label-no">✗ なし</span>
+              <div class="arrow-down" style="height:16px;"></div>
+              <div class="node node-ui">バナー非表示</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; align-items:center; margin-top:0;">
+          <span class="label label-no">✗ 未ログイン</span>
+          <div class="arrow-down" style="height:16px;"></div>
+          <div class="node node-ui">/login にリダイレクト</div>
+          <div class="arrow-down"></div>
+          <div class="node node-process">ID・パスワード入力</div>
+          <div class="arrow-down"></div>
+          <div class="node node-decision">認証成功？</div>
+          <div class="arrow-down"></div>
+          <div style="display:flex; align-items:flex-start; gap:24px;">
+            <div style="display:flex; flex-direction:column; align-items:center;">
+              <span class="label label-yes">✓ 成功</span>
+              <div class="arrow-down" style="height:16px;"></div>
+              <div class="node node-process">セッション作成<br>/ にリダイレクト</div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:center;">
+              <span class="label label-no">✗ 失敗</span>
+              <div class="arrow-down" style="height:16px;"></div>
+              <div class="node node-alert">エラー表示</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arrow-down"></div>
+      <div class="node node-end">終了</div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== C: 日報未提出チェック ===== -->
+<div class="section">
+  <div class="section-title"><span class="badge">C</span>日報未提出チェックの流れ</div>
+  <div class="section-desc">ログインユーザーの未提出日を特定してバナーに表示するまでの流れ</div>
+
+  <div class="card">
+    <div class="flow">
+
+      <div class="node node-start">GET /api/nippo-check</div>
+      <div class="arrow-down"></div>
+
+      <div class="node node-process">セッションからログインユーザー名取得</div>
+      <div class="arrow-down"></div>
+
+      <div class="node node-decision">セッションあり？</div>
+      <div class="arrow-down"></div>
+
+      <div style="display:flex; align-items:flex-start; gap:32px;">
+        <div style="display:flex; flex-direction:column; align-items:center;">
+          <span class="label label-yes">✓ あり</span>
+          <div class="arrow-down" style="height:16px;"></div>
+
+          <div class="node node-db">shift_rows から当月の全シフト取得</div>
+          <div class="arrow-down"></div>
+
+          <div class="node node-process">スタッフ配列を走査<br><span style="font-size:11px;font-weight:400">userName.startsWith(苗字) で自分のシフトを抽出</span></div>
+          <div class="arrow-down"></div>
+
+          <div class="node node-decision">今日以前の<br>シフト日あり？</div>
+          <div class="arrow-down"></div>
+
+          <div style="display:flex; align-items:flex-start; gap:32px;">
+            <div style="display:flex; flex-direction:column; align-items:center;">
+              <span class="label label-yes">✓ あり</span>
+              <div class="arrow-down" style="height:16px;"></div>
+              <div class="node node-db">sales_records から<br>当月の自分の提出済み日付取得</div>
+              <div class="arrow-down"></div>
+              <div class="node node-process">シフト日 と 提出済み日 を突合<br><span style="font-size:11px;font-weight:400">シフトあり & 提出なし = 未提出</span></div>
+              <div class="arrow-down"></div>
+              <div class="node node-decision">未提出日あり？</div>
+              <div class="arrow-down"></div>
+              <div style="display:flex; align-items:flex-start; gap:24px;">
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                  <span class="label label-yes">✓ あり</span>
+                  <div class="arrow-down" style="height:16px;"></div>
+                  <div class="node node-process">{ missingDates: ["2026-03-01", ...] }</div>
+                  <div class="arrow-down"></div>
+                  <div class="node node-alert">⚠️ バナー表示<br><span style="font-size:11px">「3/1、3/5 未提出」</span></div>
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                  <span class="label label-no">✗ なし</span>
+                  <div class="arrow-down" style="height:16px;"></div>
+                  <div class="node node-process">{ missingDates: [] }</div>
+                  <div class="arrow-down"></div>
+                  <div class="node node-ui">バナー非表示</div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:center;">
+              <span class="label label-no">✗ なし</span>
+              <div class="arrow-down" style="height:16px;"></div>
+              <div class="node node-process">{ missingDates: [] }</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; align-items:center; margin-top:0;">
+          <span class="label label-no">✗ なし</span>
+          <div class="arrow-down" style="height:16px;"></div>
+          <div class="node node-alert">401 Unauthorized</div>
+        </div>
+      </div>
+
+      <div class="arrow-down"></div>
+      <div class="node node-end">終了</div>
+    </div>
+
+    <div class="note">💡 苗字マッチング：シフトは「中村」、ログインは「中村翔」→ startsWith で照合。同じ苗字の社員は存在しない前提。</div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== D: タブ切り替え ===== -->
+<div class="section">
+  <div class="section-title"><span class="badge">D</span>タブ切り替え・データ再取得の流れ</div>
+  <div class="section-desc">ユーザーがタブや月を切り替えたときの処理の流れ</div>
+
+  <div class="card">
+    <div class="flow">
+
+      <div class="node node-start">タブ切り替え or 月変更</div>
+      <div class="arrow-down"></div>
+
+      <div class="node node-decision">何が変わった？</div>
+      <div class="arrow-down"></div>
+
+      <div style="display:flex; align-items:flex-start; gap:24px; flex-wrap:wrap;">
+
+        <!-- 月変更 -->
+        <div style="display:flex; flex-direction:column; align-items:center;">
+          <span class="label" style="color:#38bdf8;">月変更</span>
+          <div class="arrow-down" style="height:16px;"></div>
+          <div class="node node-process" style="min-width:150px;">selectedMonth 更新</div>
+          <div class="arrow-down"></div>
+          <div class="node node-process" style="min-width:150px;">useEffect 発火</div>
+          <div class="arrow-down"></div>
+          <div class="node node-process" style="min-width:150px;">fetchData(新しい月)</div>
+          <div class="arrow-down"></div>
+          <div class="node node-db" style="min-width:150px;">GET /api/data?month=...</div>
+          <div class="arrow-down"></div>
+          <div class="node node-ui" style="min-width:150px;">画面全体を再描画</div>
+        </div>
+
+        <!-- シフトタブ -->
+        <div style="display:flex; flex-direction:column; align-items:center;">
+          <span class="label" style="color:#38bdf8;">シフトタブへ切替</span>
+          <div class="arrow-down" style="height:16px;"></div>
+          <div class="node node-decision" style="min-width:160px;">当月シフト<br>取得済み？</div>
+          <div class="arrow-down"></div>
+          <div style="display:flex; align-items:flex-start; gap:16px;">
+            <div style="display:flex; flex-direction:column; align-items:center;">
+              <span class="label label-no">✗ 未取得</span>
+              <div class="arrow-down" style="height:16px;"></div>
+              <div class="node node-process" style="min-width:130px;">fetchShift(月)</div>
+              <div class="arrow-down"></div>
+              <div class="node node-db" style="min-width:130px;">GET /api/shift</div>
+              <div class="arrow-down"></div>
+              <div class="node node-ui" style="min-width:130px;">シフト表描画</div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:center;">
+              <span class="label label-yes">✓ 取得済</span>
+              <div class="arrow-down" style="height:16px;"></div>
+              <div class="node node-ui" style="min-width:130px;">キャッシュを<br>そのまま表示</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 更新ボタン -->
+        <div style="display:flex; flex-direction:column; align-items:center;">
+          <span class="label" style="color:#38bdf8;">更新ボタン押下</span>
+          <div class="arrow-down" style="height:16px;"></div>
+          <div class="node node-process" style="min-width:150px;">fetchData(現在の月)</div>
+          <div class="arrow-down"></div>
+          <div class="node node-decision" style="min-width:150px;">シフトタブ<br>表示中？</div>
+          <div class="arrow-down"></div>
+          <div style="display:flex; align-items:flex-start; gap:16px;">
+            <div style="display:flex; flex-direction:column; align-items:center;">
+              <span class="label label-yes">✓ Yes</span>
+              <div class="arrow-down" style="height:16px;"></div>
+              <div class="node node-process" style="min-width:120px;">fetchShift(月)も実行</div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:center;">
+              <span class="label label-no">✗ No</span>
+              <div class="arrow-down" style="height:16px;"></div>
+              <div class="node node-ui" style="min-width:120px;">データ更新のみ</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="arrow-down"></div>
+      <div class="node node-end">終了</div>
+    </div>
+
+    <div class="note">💡 シフトデータは取得済みならAPIを叩かない（無駄なリクエストを避けるキャッシュ戦略）</div>
+  </div>
+</div>
+
+</body>
+</html>

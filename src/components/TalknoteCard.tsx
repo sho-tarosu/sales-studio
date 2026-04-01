@@ -1,0 +1,109 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+
+interface SiteMap {
+  [site: string]: {
+    [staffName: string]: { postedAt: string; message: string }[];
+  };
+}
+
+interface TalknoteData {
+  date: string;
+  siteMap: SiteMap;
+}
+
+function todayString() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+export default function TalknoteCard() {
+  const [date, setDate] = useState(todayString());
+  const [data, setData] = useState<TalknoteData | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(`/api/talknote?date=${date}`)
+      .then((r) => r.json())
+      .then((d) => setData(d))
+      .catch(() => setData(null))
+      .finally(() => setLoading(false));
+  }, [date]);
+
+  const sites = data ? Object.keys(data.siteMap) : [];
+
+  return (
+    <div className="chart-card" style={{ marginTop: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 'bold', color: 'var(--text-main)' }}>
+          現場レポート
+        </h3>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          style={{
+            background: 'var(--card-bg)',
+            border: '1px solid var(--border-color)',
+            borderRadius: 6,
+            color: 'var(--text-main)',
+            fontSize: 12,
+            padding: '3px 8px',
+            cursor: 'pointer',
+          }}
+        />
+      </div>
+
+      {loading && (
+        <div style={{ color: 'var(--text-sub)', fontSize: 13, textAlign: 'center', padding: '16px 0' }}>
+          読み込み中...
+        </div>
+      )}
+
+      {!loading && sites.length === 0 && (
+        <div style={{ color: 'var(--text-sub)', fontSize: 13, textAlign: 'center', padding: '16px 0' }}>
+          この日のレポートはありません
+        </div>
+      )}
+
+      {!loading && sites.map((site) => (
+        <div key={site} style={{ marginBottom: 16 }}>
+          <div style={{
+            fontSize: 12,
+            fontWeight: 'bold',
+            color: 'var(--accent-color)',
+            borderBottom: '1px solid var(--border-color)',
+            paddingBottom: 4,
+            marginBottom: 8,
+          }}>
+            {site}
+          </div>
+          {Object.entries(data!.siteMap[site]).map(([staffName, posts]) => (
+            <div key={staffName} style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 12, fontWeight: 'bold', color: 'var(--text-main)', marginBottom: 4 }}>
+                {staffName}
+              </div>
+              {posts.map((post, idx) => (
+                <div key={idx} style={{
+                  fontSize: 12,
+                  color: 'var(--text-sub)',
+                  whiteSpace: 'pre-wrap',
+                  paddingLeft: 8,
+                  borderLeft: '2px solid var(--border-color)',
+                  marginBottom: 4,
+                }}>
+                  {post.message}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}

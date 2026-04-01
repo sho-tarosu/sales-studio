@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Studio アーキテクチャ図解</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Hiragino Sans', 'Yu Gothic', sans-serif;
+    background: #0a0a0f;
+    color: #e0e0e0;
+    line-height: 1.6;
+  }
+
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: #888;
+    font-size: 0.95rem;
+    margin-bottom: 60px;
+  }
+
+  /* ─── セクションタイトル ─── */
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #aaa;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    padding-left: 12px;
+    border-left: 3px solid #444;
+  }
+
+  /* ─── 全体フロー図 ─── */
+  .flow-section {
+    margin-bottom: 64px;
+  }
+
+  .flow-grid {
+    display: grid;
+    grid-template-columns: 1fr 48px 1fr 48px 1fr 48px 1fr 48px 1fr;
+    align-items: center;
+    gap: 0;
+  }
+
+  .flow-node {
+    border-radius: 16px;
+    padding: 20px 16px;
+    text-align: center;
+    position: relative;
+  }
+
+  .flow-node .icon { font-size: 2.4rem; margin-bottom: 8px; }
+  .flow-node .label { font-size: 0.85rem; font-weight: 700; color: #fff; }
+  .flow-node .desc { font-size: 0.72rem; color: #aaa; margin-top: 4px; }
+
+  .node-sheet { background: linear-gradient(135deg, #1a3a2a, #0d2018); border: 1.5px solid #2a6644; }
+  .node-gas   { background: linear-gradient(135deg, #3a2a10, #1e1508); border: 1.5px solid #8a6020; }
+  .node-api   { background: linear-gradient(135deg, #1a1a3a, #0d0d20); border: 1.5px solid #4040aa; }
+  .node-db    { background: linear-gradient(135deg, #3a1a2a, #200d18); border: 1.5px solid #aa4066; }
+  .node-app   { background: linear-gradient(135deg, #1a2a3a, #0d1820); border: 1.5px solid #2060aa; }
+
+  .arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+  }
+
+  .arrow-line {
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, #444, #666);
+    position: relative;
+  }
+
+  .arrow-head {
+    color: #666;
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+
+  .arrow-label {
+    font-size: 0.65rem;
+    color: #666;
+    white-space: nowrap;
+  }
+
+  /* ─── Before / After ─── */
+  .compare-section {
+    margin-bottom: 64px;
+  }
+
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .compare-card {
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .compare-card.before {
+    background: #1a1018;
+    border: 1.5px solid #5a2030;
+  }
+
+  .compare-card.after {
+    background: #0d1a10;
+    border: 1.5px solid #206640;
+  }
+
+  .compare-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+  }
+
+  .badge-before { background: #5a2030; color: #ff8098; }
+  .badge-after  { background: #206640; color: #60ff98; }
+
+  .speed-bar-wrap { margin: 16px 0 8px; }
+  .speed-label { font-size: 0.78rem; color: #aaa; margin-bottom: 6px; }
+
+  .speed-bar {
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    transition: width 1s ease;
+  }
+
+  .bar-slow { background: linear-gradient(90deg, #8a2020, #c04040); width: 90%; color: #ffd0d0; }
+  .bar-fast { background: linear-gradient(90deg, #1a6630, #30aa60); width: 20%; color: #d0ffd8; min-width: 100px; }
+
+  .flow-steps { margin-top: 16px; }
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 0.82rem;
+  }
+  .step-num {
+    min-width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .num-before { background: #5a2030; color: #ff8098; }
+  .num-after  { background: #206640; color: #60ff98; }
+  .step-text { color: #ccc; }
+
+  /* ─── DB比較 ─── */
+  .db-section {
+    margin-bottom: 64px;
+  }
+
+  .db-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .db-card {
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .db-neon {
+    background: #0d1020;
+    border: 1.5px solid #3050cc;
+  }
+
+  .db-supabase {
+    background: #0d1a12;
+    border: 1.5px solid #20aa60;
+  }
+
+  .db-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .db-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+  }
+
+  .logo-neon { background: #1a2060; }
+  .logo-supa { background: #0d3320; }
+
+  .db-name { font-size: 1.1rem; font-weight: 700; color: #fff; }
+  .db-tagline { font-size: 0.75rem; color: #888; }
+
+  .db-features { list-style: none; }
+  .db-features li {
+    font-size: 0.82rem;
+    color: #ccc;
+    padding: 7px 0;
+    border-bottom: 1px solid #222;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .db-features li:last-child { border-bottom: none; }
+  .feat-icon { font-size: 1rem; }
+
+  .use-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-top: 16px;
+    font-weight: 700;
+  }
+
+  .use-neon { background: #1a2060; color: #8090ff; }
+  .use-supa { background: #0d3320; color: #60dd90; }
+
+  /* ─── レイヤー図 ─── */
+  .layer-section {
+    margin-bottom: 64px;
+  }
+
+  .layer-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .layer {
+    border-radius: 10px;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .layer-icon { font-size: 1.4rem; min-width: 32px; text-align: center; }
+  .layer-name { font-weight: 700; font-size: 0.9rem; color: #fff; min-width: 160px; }
+  .layer-desc { font-size: 0.78rem; color: #aaa; }
+
+  .layer-1 { background: #1a1030; border: 1px solid #5040aa; }
+  .layer-2 { background: #102030; border: 1px solid #204880; margin: 0 20px; }
+  .layer-3 { background: #102818; border: 1px solid #206040; margin: 0 40px; }
+  .layer-4 { background: #201010; border: 1px solid #802020; margin: 0 60px; }
+  .layer-5 { background: #181820; border: 1px solid #404080; margin: 0 80px; }
+
+  .layer-connector {
+    text-align: center;
+    color: #444;
+    font-size: 1.2rem;
+    line-height: 1.2;
+  }
+
+  /* ─── Drizzle説明 ─── */
+  .drizzle-section {
+    margin-bottom: 64px;
+  }
+
+  .code-compare {
+    display: grid;
+    grid-template-columns: 1fr 48px 1fr;
+    gap: 0;
+    align-items: center;
+  }
+
+  .code-block {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .code-header {
+    padding: 8px 16px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .sql-header { background: #2a1818; color: #ff8080; }
+  .ts-header  { background: #102030; color: #80c0ff; }
+
+  .code-body {
+    padding: 16px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.78rem;
+    line-height: 1.8;
+  }
+
+  .sql-body { background: #1a1010; }
+  .ts-body  { background: #080e18; }
+
+  .kw  { color: #ff79c6; }
+  .fn  { color: #50fa7b; }
+  .str { color: #f1fa8c; }
+  .var { color: #8be9fd; }
+  .op  { color: #ff79c6; }
+
+  .vs-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: #555;
+    font-size: 0.75rem;
+  }
+
+  /* ─── データウェアハウス ─── */
+  .dw-section {
+    margin-bottom: 64px;
+  }
+
+  .dw-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .dw-card {
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .dw-our  { background: #0d1520; border: 1.5px solid #204888; }
+  .dw-big  { background: #150d20; border: 1.5px solid #6030aa; }
+
+  .dw-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dw-rows { display: flex; flex-direction: column; gap: 8px; }
+
+  .dw-row {
+    display: flex;
+    gap: 10px;
+    font-size: 0.82rem;
+  }
+
+  .dw-key {
+    min-width: 90px;
+    color: #888;
+    font-size: 0.75rem;
+  }
+
+  .dw-val { color: #ddd; }
+
+  .scale-vis {
+    margin-top: 20px;
+    padding: 14px;
+    background: #ffffff08;
+    border-radius: 10px;
+  }
+
+  .scale-label { font-size: 0.72rem; color: #888; margin-bottom: 8px; }
+
+  .scale-dots {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .dot-our  { background: #4080cc; }
+  .dot-big  { background: #8040cc; opacity: 0.7; }
+
+  /* ─── キャリア ─── */
+  .career-section {
+    margin-bottom: 40px;
+  }
+
+  .career-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  .career-card {
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .career-web  { background: #0d1520; border: 1.5px solid #2060aa; }
+  .career-data { background: #150d20; border: 1.5px solid #6030aa; }
+
+  .career-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 16px;
+  }
+
+  .skill-pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    margin: 3px;
+    font-weight: 600;
+  }
+
+  .pill-web  { background: #1a3060; color: #80b0ff; }
+  .pill-data { background: #301a60; color: #c090ff; }
+  .pill-now  { background: #1a4030; color: #60dd90; border: 1px solid #30aa60; }
+
+  .career-note {
+    margin-top: 14px;
+    font-size: 0.78rem;
+    color: #888;
+    padding: 10px;
+    background: #ffffff06;
+    border-radius: 8px;
+  }
+
+  /* ─── 全体サマリー ─── */
+  .summary-section {
+    background: linear-gradient(135deg, #0d1520, #100d1a);
+    border: 1px solid #333;
+    border-radius: 20px;
+    padding: 32px;
+    text-align: center;
+  }
+
+  .summary-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 24px;
+  }
+
+  .summary-flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 0.85rem;
+  }
+
+  .sf-node {
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+
+  .sf-arrow { color: #555; font-size: 1.2rem; }
+
+  .n1 { background: #1a3a1a; color: #60ff80; border: 1px solid #306030; }
+  .n2 { background: #3a2a10; color: #ffcc60; border: 1px solid #806020; }
+  .n3 { background: #102030; color: #60c0ff; border: 1px solid #204880; }
+  .n4 { background: #2a1030; color: #cc80ff; border: 1px solid #602090; }
+  .n5 { background: #101830; color: #8090ff; border: 1px solid #304080; }
+
+  .summary-note {
+    margin-top: 20px;
+    font-size: 0.82rem;
+    color: #888;
+  }
+
+  hr.section-divider {
+    border: none;
+    border-top: 1px solid #1e1e2a;
+    margin: 56px 0;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>🏗️ Sales Studio アーキテクチャ図解</h1>
+  <p class="subtitle">今回学んだことの全体像</p>
+
+  <!-- ① 全体フロー -->
+  <div class="flow-section">
+    <div class="section-title">① 全体のデータフロー</div>
+    <div class="flow-grid">
+
+      <div class="flow-node node-sheet">
+        <div class="icon">📊</div>
+        <div class="label">スプレッドシート</div>
+        <div class="desc">スタッフが入力<br>日報・シフト</div>
+      </div>
+
+      <div class="arrow">
+        <div class="arrow-head">→</div>
+        <div class="arrow-label">10分ごと</div>
+        <div class="arrow-label">自動実行</div>
+      </div>
+
+      <div class="flow-node node-gas">
+        <div class="icon">⚙️</div>
+        <div class="label">GAS</div>
+        <div class="desc">Google Apps Script<br>データを読んでPOST</div>
+      </div>
+
+      <div class="arrow">
+        <div class="arrow-head">→</div>
+        <div class="arrow-label">Bearer</div>
+        <div class="arrow-label">認証</div>
+      </div>
+
+      <div class="flow-node node-api">
+        <div class="icon">🔌</div>
+        <div class="label">/api/sync</div>
+        <div class="desc">Vercel上のAPI<br>データを受け取る</div>
+      </div>
+
+      <div class="arrow">
+        <div class="arrow-head">→</div>
+        <div class="arrow-label">DELETE</div>
+        <div class="arrow-label">→ INSERT</div>
+      </div>
+
+      <div class="flow-node node-db">
+        <div class="icon">🗄️</div>
+        <div class="label">DB</div>
+        <div class="desc">Neon + Supabase<br>データを保存</div>
+      </div>
+
+      <div class="arrow">
+        <div class="arrow-head">→</div>
+        <div class="arrow-label">SELECT</div>
+        <div class="arrow-label">高速</div>
+      </div>
+
+      <div class="flow-node node-app">
+        <div class="icon">📱</div>
+        <div class="label">アプリ画面</div>
+        <div class="desc">ユーザーが見る<br>爆速で表示</div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ② Before / After -->
+  <div class="compare-section">
+    <div class="section-title">② 移行前後の比較</div>
+    <div class="compare-grid">
+
+      <div class="compare-card before">
+        <span class="compare-badge badge-before">BEFORE — シート直接読み込み</span>
+        <div class="speed-bar-wrap">
+          <div class="speed-label">読み込み時間</div>
+          <div class="speed-bar bar-slow">3〜10 秒</div>
+        </div>
+        <div class="flow-steps">
+          <div class="step">
+            <div class="step-num num-before">1</div>
+            <div class="step-text">ユーザーがページを開く</div>
+          </div>
+          <div class="step">
+            <div class="step-num num-before">2</div>
+            <div class="step-text">Google Sheets API に接続（認証が重い）</div>
+          </div>
+          <div class="step">
+            <div class="step-num num-before">3</div>
+            <div class="step-text">スプレッドシートの全セルを読み込む</div>
+          </div>
+          <div class="step">
+            <div class="step-num num-before">4</div>
+            <div class="step-text">アプリ側で集計・整形</div>
+          </div>
+          <div class="step">
+            <div class="step-num num-before">5</div>
+            <div class="step-text">やっと表示される</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="compare-card after">
+        <span class="compare-badge badge-after">AFTER — DB読み込み</span>
+        <div class="speed-bar-wrap">
+          <div class="speed-label">読み込み時間</div>
+          <div class="speed-bar bar-fast">200ms</div>
+        </div>
+        <div class="flow-steps">
+          <div class="step">
+            <div class="step-num num-after">1</div>
+            <div class="step-text">ユーザーがページを開く</div>
+          </div>
+          <div class="step">
+            <div class="step-num num-after">2</div>
+            <div class="step-text">DBに SELECT クエリを送る</div>
+          </div>
+          <div class="step">
+            <div class="step-num num-after">3</div>
+            <div class="step-text">即座にデータが返ってくる</div>
+          </div>
+          <div class="step">
+            <div class="step-num num-after" style="background:#444;color:#888">—</div>
+            <div class="step-text" style="color:#555">（GASが裏で同期済み）</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ③ 技術スタックのレイヤー -->
+  <div class="layer-section">
+    <div class="section-title">③ 技術スタックのレイヤー</div>
+    <div class="layer-stack">
+
+      <div class="layer layer-1">
+        <div class="layer-icon">☁️</div>
+        <div class="layer-name">AWS</div>
+        <div class="layer-desc">インフラの土台。Vercel も Neon も中身は AWS のサーバーで動いている</div>
+      </div>
+
+      <div class="layer-connector">↑ の上に</div>
+
+      <div class="layer layer-2">
+        <div class="layer-icon">▲</div>
+        <div class="layer-name">Vercel</div>
+        <div class="layer-desc">Next.js アプリをホスティング。アクセスが来た時だけ起動するサーバーレス</div>
+      </div>
+
+      <div class="layer-connector">↑ の上に</div>
+
+      <div class="layer layer-3">
+        <div class="layer-icon">🗄️</div>
+        <div class="layer-name">Neon / Supabase</div>
+        <div class="layer-desc">PostgreSQL データベース。データを永続保存する専用サービス</div>
+      </div>
+
+      <div class="layer-connector">↑ を操作する</div>
+
+      <div class="layer layer-4">
+        <div class="layer-icon">🔧</div>
+        <div class="layer-name">Drizzle ORM</div>
+        <div class="layer-desc">TypeScript からDBを操作するライブラリ。SQL を直接書かなくて済む</div>
+      </div>
+
+      <div class="layer-connector">↑ を使って</div>
+
+      <div class="layer layer-5">
+        <div class="layer-icon">⚡</div>
+        <div class="layer-name">Next.js (API Routes)</div>
+        <div class="layer-desc">/api/sync, /api/data など。GAS からデータを受け取りDBに保存する</div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ④ Drizzle説明 -->
+  <div class="drizzle-section">
+    <div class="section-title">④ Drizzle ORM とは何か</div>
+    <div class="code-compare">
+
+      <div class="code-block">
+        <div class="code-header sql-header">🗒️ SQL（直接書く場合）</div>
+        <div class="code-body sql-body">
+          <span class="kw">SELECT</span> * <span class="kw">FROM</span> sales_records<br>
+          <span class="kw">WHERE</span> <span class="fn">LEFT</span>(date, 7) = <span class="str">'2026-03'</span>;<br>
+          <br>
+          <span class="kw">DELETE FROM</span> shift_rows<br>
+          <span class="kw">WHERE</span> month = <span class="str">'2026-03'</span>;<br>
+          <br>
+          <span class="kw">INSERT INTO</span> sales_records<br>
+          (date, staff_name, mnp_h, ...)<br>
+          <span class="kw">VALUES</span> (<span class="str">'2026-03-01'</span>, <span class="str">'山田'</span>, <span class="str">'2'</span>, ...);
+        </div>
+      </div>
+
+      <div class="vs-arrow">
+        <span style="font-size:1.5rem">→</span>
+        <span>Drizzle</span>
+        <span>に変換</span>
+      </div>
+
+      <div class="code-block">
+        <div class="code-header ts-header">💙 TypeScript（Drizzle を使う場合）</div>
+        <div class="code-body ts-body">
+          <span class="var">db</span>.<span class="fn">select</span>().<span class="fn">from</span>(<span class="var">salesRecords</span>)<br>
+          &nbsp;&nbsp;.<span class="fn">where</span>(<span class="fn">eq</span>(<span class="var">salesRecords</span>.<span class="var">month</span>, <span class="str">'2026-03'</span>));<br>
+          <br>
+          <span class="var">db</span>.<span class="fn">delete</span>(<span class="var">shiftRows</span>)<br>
+          &nbsp;&nbsp;.<span class="fn">where</span>(<span class="fn">eq</span>(<span class="var">shiftRows</span>.<span class="var">month</span>, <span class="str">'2026-03'</span>));<br>
+          <br>
+          <span class="var">db</span>.<span class="fn">insert</span>(<span class="var">salesRecords</span>)<br>
+          &nbsp;&nbsp;.<span class="fn">values</span>({ <span class="var">date</span>: <span class="str">'2026-03-01'</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="var">staffName</span>: <span class="str">'山田'</span>, ... });
+        </div>
+      </div>
+
+    </div>
+    <p style="text-align:center; margin-top:14px; font-size:0.8rem; color:#666;">
+      やっていることは同じ。Drizzle はタイプミスや型エラーをコード実行前に検出できる。
+    </p>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ⑤ Neon vs Supabase -->
+  <div class="db-section">
+    <div class="section-title">⑤ Neon vs Supabase</div>
+    <div class="db-grid">
+
+      <div class="db-card db-neon">
+        <div class="db-header">
+          <div class="db-logo logo-neon">⚡</div>
+          <div>
+            <div class="db-name">Neon</div>
+            <div class="db-tagline">Serverless PostgreSQL</div>
+          </div>
+        </div>
+        <ul class="db-features">
+          <li><span class="feat-icon">🎯</span> DBに特化したシンプルなサービス</li>
+          <li><span class="feat-icon">▲</span> Vercel との統合が最も簡単</li>
+          <li><span class="feat-icon">🔌</span> 独自HTTPプロトコルで高速接続</li>
+          <li><span class="feat-icon">💤</span> 使わないと自動でスリープ（無料）</li>
+          <li><span class="feat-icon">🔐</span> 認証機能はない（自前で実装）</li>
+        </ul>
+        <div class="use-badge use-neon">✅ 本番運用中（メインDB）</div>
+      </div>
+
+      <div class="db-card db-supabase">
+        <div class="db-header">
+          <div class="db-logo logo-supa">🟢</div>
+          <div>
+            <div class="db-name">Supabase</div>
+            <div class="db-tagline">Open Source Firebase Alternative</div>
+          </div>
+        </div>
+        <ul class="db-features">
+          <li><span class="feat-icon">🔐</span> 認証（Auth）が内蔵 ← 強み</li>
+          <li><span class="feat-icon">⚡</span> リアルタイム更新が内蔵</li>
+          <li><span class="feat-icon">🗂️</span> ファイルストレージが内蔵</li>
+          <li><span class="feat-icon">🌐</span> サーバーが東京（ap-northeast-1）</li>
+          <li><span class="feat-icon">🔌</span> 標準TCPで接続（postgres.js）</li>
+        </ul>
+        <div class="use-badge use-supa">📚 学習用・並行運用中</div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ⑥ データウェアハウス -->
+  <div class="dw-section">
+    <div class="section-title">⑥ 今回の構成 vs データウェアハウス（BigQuery等）</div>
+    <div class="dw-grid">
+
+      <div class="dw-card dw-our">
+        <div class="dw-title">🏪 今回の構成（業務アプリDB）</div>
+        <div class="dw-rows">
+          <div class="dw-row">
+            <div class="dw-key">目的</div>
+            <div class="dw-val">アプリの画面にデータを表示する</div>
+          </div>
+          <div class="dw-row">
+            <div class="dw-key">データ量</div>
+            <div class="dw-val">数百〜数千件</div>
+          </div>
+          <div class="dw-row">
+            <div class="dw-key">クエリ</div>
+            <div class="dw-val">特定の行を素早く取得</div>
+          </div>
+          <div class="dw-row">
+            <div class="dw-key">DB種別</div>
+            <div class="dw-val">行指向 (Row-Oriented)</div>
+          </div>
+          <div class="dw-row">
+            <div class="dw-key">コスト</div>
+            <div class="dw-val">無料〜数千円/月</div>
+          </div>
+          <div class="dw-row">
+            <div class="dw-key">使用者</div>
+            <div class="dw-val">中小企業・スタートアップ</div>
+          </div>
+        </div>
+        <div class="scale-vis">
+          <div class="scale-label">データ量のイメージ</div>
+          <div class="scale-dots">
+            <div class="dot dot-our"></div>
+            <div class="dot dot-our"></div>
+            <div class="dot dot-our"></div>
+            <div class="dot dot-our"></div>
+            <div class="dot dot-our"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dw-card dw-big">
+        <div class="dw-title">🏢 BigQuery / Snowflake / Databricks</div>
+        <div class="dw-rows">
+          <div class="dw-row">
+            <div class="dw-key">目的</div>
+            <div class="dw-val">経営分析・機械学習・BI</div>
+          </div>
+          <div class="dw-row">
+            <div class="dw-key">データ量</div>
+            <div class="dw-val">数億〜数兆件</div>
+          </div>
+          <div class="dw-row">
+            <div class="dw-key">クエリ</div>
+            <div class="dw-val">全データを横断して集計</div>
+          </div>
+          <div class="dw-row">
+            <div class="dw-key">DB種別</div>
+            <div class="dw-val">列指向 (Column-Oriented)</div>
+          </div>
+          <div class="dw-row">
+            <div class="dw-key">コスト</div>
+            <div class="dw-val">数万〜数百万円/月</div>
+          </div>
+          <div class="dw-row">
+            <div class="dw-key">使用者</div>
+            <div class="dw-val">大企業・データチーム</div>
+          </div>
+        </div>
+        <div class="scale-vis">
+          <div class="scale-label">データ量のイメージ（●1個 = 今回の全データ）</div>
+          <div class="scale-dots">
+            <div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div>
+            <div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div>
+            <div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div>
+            <div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div>
+            <div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div>
+            <div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div>
+            <div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div>
+            <div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div><div class="dot dot-big"></div>
+            <span style="font-size:0.7rem;color:#666">... × 数億</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- ⑦ IT転職との関連 -->
+  <div class="career-section">
+    <div class="section-title">⑦ IT転職との関連</div>
+    <div class="career-grid">
+
+      <div class="career-card career-web">
+        <div class="career-title">💻 Webエンジニア</div>
+        <div>
+          <span class="skill-pill pill-now">✅ Next.js</span>
+          <span class="skill-pill pill-now">✅ PostgreSQL</span>
+          <span class="skill-pill pill-now">✅ Drizzle ORM</span>
+          <span class="skill-pill pill-now">✅ REST API</span>
+          <span class="skill-pill pill-now">✅ Vercel</span>
+          <span class="skill-pill pill-web">TypeScript</span>
+          <span class="skill-pill pill-web">React</span>
+          <span class="skill-pill pill-web">Git/GitHub</span>
+        </div>
+        <div class="career-note">
+          今回の作業はすべてこの領域。<br>
+          緑のスキルはすでに実践済み ✅
+        </div>
+      </div>
+
+      <div class="career-card career-data">
+        <div class="career-title">📊 データエンジニア / アナリスト</div>
+        <div>
+          <span class="skill-pill pill-data">BigQuery</span>
+          <span class="skill-pill pill-data">Snowflake</span>
+          <span class="skill-pill pill-data">Databricks</span>
+          <span class="skill-pill pill-data">dbt</span>
+          <span class="skill-pill pill-data">Airflow</span>
+          <span class="skill-pill pill-data">Python</span>
+          <span class="skill-pill pill-data">SQL（上級）</span>
+          <span class="skill-pill pill-data">BI ツール</span>
+        </div>
+        <div class="career-note">
+          データ分析・機械学習基盤の構築。<br>
+          大企業・コンサル向けの専門職。
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="section-divider">
+
+  <!-- サマリー -->
+  <div class="summary-section">
+    <div class="summary-title">🎯 今回作ったものの全体像</div>
+    <div class="summary-flow">
+      <div class="sf-node n1">📊 スプレッドシート<br><small>入力インターフェース</small></div>
+      <div class="sf-arrow">→</div>
+      <div class="sf-node n2">⚙️ GAS<br><small>自動同期スクリプト</small></div>
+      <div class="sf-arrow">→</div>
+      <div class="sf-node n3">🔌 /api/sync<br><small>Webhook エンドポイント</small></div>
+      <div class="sf-arrow">→</div>
+      <div class="sf-node n4">🗄️ Neon + Supabase<br><small>PostgreSQL データベース</small></div>
+      <div class="sf-arrow">→</div>
+      <div class="sf-node n5">📱 アプリ画面<br><small>200ms で表示</small></div>
+    </div>
+    <div class="summary-note">
+      スプレッドシートはデータ入力のまま維持しつつ、表示速度を 3〜10秒 → 200ms に短縮した。<br>
+      これが「スプレッドシートをバックエンドに使う業務アプリのDB移行」というアーキテクチャパターン。
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

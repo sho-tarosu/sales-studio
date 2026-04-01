@@ -97,3 +97,17 @@ export const shiftStaffNames = pgTable('shift_staff_names', {
   names: jsonb('names').$type<string[]>().notNull(),
   syncedAt: timestamp('synced_at', { withTimezone: true }).defaultNow(),
 });
+
+/**
+ * トークノート投稿ログ
+ * Talknoteから受信した投稿をそのまま保存。店舗はシフトDBから補完。
+ */
+export const talknotePosts = pgTable('talknote_posts', {
+  id: serial('id').primaryKey(),
+  date: text('date').notNull(),          // 'YYYY-MM-DD'
+  postedAt: text('posted_at').notNull(), // '2026-03-31 10:14:00'
+  staffName: text('staff_name').notNull(),
+  site: text('site').default(''),
+  message: text('message').notNull(),
+  syncedAt: timestamp('synced_at', { withTimezone: true }).defaultNow(),
+});

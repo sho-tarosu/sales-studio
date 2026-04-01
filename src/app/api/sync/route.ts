@@ -12,7 +12,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { sql, eq } from 'drizzle-orm';
+import { sql, eq, and } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { dbSupabase } from '@/lib/db-supabase';
 import {
@@ -22,6 +22,7 @@ import {
   shiftRows,
   employeeShifts,
   shiftStaffNames,
+  talknotePosts,
 } from '@/lib/schema';
 
 function checkAuth(request: NextRequest): boolean {
@@ -96,7 +97,13 @@ interface EmployeeShiftPayload {
   cells: Record<string, Record<string, string>>;
 }
 
-type SyncPayload = SalesPayload | AgePayload | TypePayload | ShiftPayload | EmployeeShiftPayload;
+interface TalknotePayload {
+  type: 'talknote';
+  month: string;
+  rows: { postedAt: string; staffName: string; message: string }[];
+}
+
+type SyncPayload = SalesPayload | AgePayload | TypePayload | ShiftPayload | EmployeeShiftPayload | TalknotePayload;
 
 // ──────────────────────────────────────────────
 // 各シート種別の同期処理
@@ -298,6 +305,56 @@ async function syncEmployeeShift(payload: EmployeeShiftPayload) {
   return { inserted: toInsert.length };
 }
 
+async function syncTalknote(payload: TalknotePayload) {
+  const { month, rows } = payload;
+  if (rows.length === 0) return { inserted: 0 };
+
+  // 対象月のデータを全削除
+  await Promise.all([
+    db.delete(talknotePosts).where(sql`LEFT(${talknotePosts.date}, 7) = ${month}`),
+    dbSupabase.delete(talknotePosts).where(sql`LEFT(${talknotePosts.date}, 7) = ${month}`),
+  ]);
+
+  const toInsert: (typeof talknotePosts.$inferInsert)[] = [];
+  for (const row of rows) {
+    const date = row.postedAt.split(' ')[0]; // 'YYYY-MM-DD'
+    const [, m, d] = date.split('-');
+    const shiftDate = `${parseInt(m)}/${parseInt(d)}`; // '3/31'
+    // 姓のみで照合（Talknote: "大久保 光" → "大久保"、シフト: "大久保"）
+    const surname = row.staffName.split(/[\s　]/)[0];
+
+    const shiftResult = await db
+      .select({ location: shiftRows.location })
+      .from(shiftRows)
+      .where(
+        and(
+          eq(shiftRows.month, month),
+          eq(shiftRows.date, shiftDate),
+          sql`${shiftRows.staff}::jsonb @> jsonb_build_array(${surname}::text)`
+        )
+      )
+      .limit(1);
+
+    toInsert.push({
+      date,
+      postedAt: row.postedAt,
+      staffName: row.staffName,
+      site: shiftResult[0]?.location ?? '',
+      message: row.message,
+    });
+  }
+
+  const CHUNK = 50;
+  for (let i = 0; i < toInsert.length; i += CHUNK) {
+    const chunk = toInsert.slice(i, i + CHUNK);
+    await Promise.all([
+      db.insert(talknotePosts).values(chunk),
+      dbSupabase.insert(talknotePosts).values(chunk),
+    ]);
+  }
+  return { inserted: toInsert.length };
+}
+
 // ──────────────────────────────────────────────
 // Route Handler
 // ──────────────────────────────────────────────
@@ -340,6 +397,9 @@ export async function POST(request: NextRequest) {
         break;
       case 'employee-shift':
         result = await syncEmployeeShift(payload);
+        break;
+      case 'talknote':
+        result = await syncTalknote(payload);
         break;
       default:
         return NextResponse.json({ error: '不明な type です' }, { status: 400 });
