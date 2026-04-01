@@ -320,8 +320,11 @@ async function syncTalknote(payload: TalknotePayload) {
     const date = row.postedAt.split(' ')[0]; // 'YYYY-MM-DD'
     const [, m, d] = date.split('-');
     const shiftDate = `${parseInt(m)}/${parseInt(d)}`; // '3/31'
-    // 姓のみで照合（Talknote: "大久保 光" → "大久保"、シフト: "大久保"）
-    const surname = row.staffName.split(/[\s　]/)[0];
+    // スペースを除去して照合
+    // Talknote "大久保 光"→"大久保光"、"岡田 和己"→"岡田和己"
+    // シフト側は "大久保"（姓のみ）や "岡田和"（姓+名一部）のケースがあるため
+    // 「シフト名が Talknote名（スペース除去）の前方一致」で照合する
+    const fullNameNoSpace = row.staffName.replace(/[\s　]/g, '');
 
     const shiftResult = await db
       .select({ location: shiftRows.location })
@@ -330,7 +333,10 @@ async function syncTalknote(payload: TalknotePayload) {
         and(
           eq(shiftRows.month, month),
           eq(shiftRows.date, shiftDate),
-          sql`${shiftRows.staff}::jsonb @> jsonb_build_array(${surname}::text)`
+          sql`EXISTS (
+            SELECT 1 FROM jsonb_array_elements_text(${shiftRows.staff}) AS s
+            WHERE ${fullNameNoSpace} LIKE s || '%'
+          )`
         )
       )
       .limit(1);
