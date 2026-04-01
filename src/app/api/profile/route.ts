@@ -35,7 +35,7 @@ export async function GET() {
     // 1行目はヘッダーとしてスキップ
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
-      const name = row[4]?.trim(); // E列: 氏名
+      const name = row[19]?.trim(); // T列: 名前
       if (!name) continue;
 
       total++;

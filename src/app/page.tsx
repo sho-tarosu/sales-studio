@@ -33,6 +33,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<TabName>('dashboard');
   const [rankingView, setRankingView] = useState<'chart' | 'table'>('chart');
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [meData, setMeData] = useState<{ birthday: string; bloodType: string; animal: string; zodiac: string } | null>(null);
 
   const now = new Date();
   const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -109,6 +110,14 @@ export default function Home() {
       fetchShift(selectedMonth);
     }
   }, [activeTab, selectedMonth, shiftFetchedMonth, fetchShift]);
+
+  useEffect(() => {
+    if (!drawerOpen || meData) return;
+    fetch('/api/me')
+      .then((r) => r.json())
+      .then((d) => setMeData(d))
+      .catch(() => {});
+  }, [drawerOpen, meData]);
 
   const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedMonth(e.target.value);
@@ -285,6 +294,34 @@ export default function Home() {
                 <div style={{ fontSize: 12, color: 'var(--text-sub)', marginTop: 2 }}>{session.user.role}</div>
               </div>
             </div>
+            {meData && (meData.birthday || meData.bloodType || meData.animal || meData.zodiac) && (
+              <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {meData.birthday && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                    <span style={{ color: 'var(--text-sub)' }}>生年月日</span>
+                    <span style={{ color: 'var(--text-main)' }}>{meData.birthday}</span>
+                  </div>
+                )}
+                {meData.bloodType && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                    <span style={{ color: 'var(--text-sub)' }}>血液型</span>
+                    <span style={{ color: 'var(--text-main)' }}>{meData.bloodType}型</span>
+                  </div>
+                )}
+                {meData.animal && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                    <span style={{ color: 'var(--text-sub)' }}>動物占い</span>
+                    <span style={{ color: 'var(--text-main)' }}>{meData.animal}</span>
+                  </div>
+                )}
+                {meData.zodiac && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                    <span style={{ color: 'var(--text-sub)' }}>星座</span>
+                    <span style={{ color: 'var(--text-main)' }}>{meData.zodiac}</span>
+                  </div>
+                )}
+              </div>
+            )}
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
               style={{
