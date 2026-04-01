@@ -26,13 +26,19 @@ const WORK_KEYWORDS = [
   'クレカ', 'ゴールド', '自銀', '金クレカ', '銀クレカ',
   '光', 'ひかり', '事変', '事業者変更', 'biglobe',
   'でんき', 'ガス',
-  'スタート',
   'SIM', 'sim', '端末',
   'docomo', 'ドコモ', 'UQ', '楽天', 'ワイモバイル', 'ahamo',
 ];
 
 function isWorkRelated(message: string): boolean {
   return WORK_KEYWORDS.some((kw) => message.toLowerCase().includes(kw.toLowerCase()));
+}
+
+function countWorkPosts(postsByStaff: SiteMap[string]): number {
+  return Object.values(postsByStaff).reduce(
+    (sum, posts) => sum + posts.filter((p) => isWorkRelated(p.message)).length,
+    0
+  );
 }
 
 function todayString() {
@@ -43,62 +49,131 @@ function todayString() {
   return `${y}-${m}-${d}`;
 }
 
-function SiteSection({ site, staffList, agency, siteMap }: {
+function SiteCard({ site, staffList, agency, siteMap }: {
   site: string;
   staffList: string[];
   agency: string;
   siteMap: SiteMap;
 }) {
   const postsByStaff = siteMap[site] ?? {};
+  const workCount = countWorkPosts(postsByStaff);
+  const hasReport = workCount > 0;
 
   return (
-    <div style={{ marginBottom: 20 }}>
-      {/* 現場ヘッダー */}
+    <div style={{
+      border: '1px solid var(--border-color)',
+      borderRadius: 10,
+      marginBottom: 8,
+      overflow: 'hidden',
+    }}>
+      {/* ヘッダー */}
       <div style={{
         display: 'flex',
-        alignItems: 'baseline',
-        gap: 8,
-        borderBottom: '1px solid var(--border-color)',
-        paddingBottom: 4,
-        marginBottom: 8,
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: 6,
+        padding: '9px 12px',
+        background: 'rgba(255,255,255,0.025)',
+        borderBottom: hasReport ? '1px solid var(--border-color)' : 'none',
       }}>
-        <span style={{ fontSize: 13, fontWeight: 'bold', color: 'var(--accent-color)' }}>
+        {/* 現場名 */}
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-color)', flexShrink: 0 }}>
           {site}
         </span>
+
+        {/* 代理店バッジ */}
         {agency && (
-          <span style={{ fontSize: 11, color: 'var(--text-sub)' }}>{agency}</span>
+          <span style={{
+            fontSize: 10,
+            color: 'var(--text-sub)',
+            background: 'rgba(255,255,255,0.07)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            borderRadius: 4,
+            padding: '1px 6px',
+            flexShrink: 0,
+          }}>
+            {agency}
+          </span>
         )}
-        {staffList.length > 0 && (
-          <span style={{ fontSize: 11, color: 'var(--text-sub)', marginLeft: 4 }}>
-            {staffList.join('・')}
+
+        {/* スタッフバッジ */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, flex: 1, minWidth: 0 }}>
+          {staffList.map((name) => (
+            <span key={name} style={{
+              fontSize: 10,
+              color: '#aaa',
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 4,
+              padding: '1px 6px',
+              whiteSpace: 'nowrap',
+            }}>
+              {name}
+            </span>
+          ))}
+        </div>
+
+        {/* 件数バッジ */}
+        {hasReport && (
+          <span style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: 'var(--accent-color)',
+            background: 'rgba(229,62,62,0.12)',
+            border: '1px solid rgba(229,62,62,0.25)',
+            borderRadius: 20,
+            padding: '2px 9px',
+            marginLeft: 'auto',
+            flexShrink: 0,
+          }}>
+            {workCount}件
           </span>
         )}
       </div>
 
-      {/* 投稿 */}
-      {Object.entries(postsByStaff).map(([staffName, posts]) => {
-        const workPosts = posts.filter((p) => isWorkRelated(p.message));
-        if (workPosts.length === 0) return null;
-        return (
-          <div key={staffName} style={{ marginBottom: 10 }}>
-            <div style={{ fontSize: 12, fontWeight: 'bold', color: 'var(--text-main)', marginBottom: 4 }}>
-              {staffName}
-            </div>
-            {workPosts.map((post, idx) => (
-              <div key={idx} style={{
-                fontSize: 12,
-                color: 'var(--text-sub)',
-                whiteSpace: 'pre-wrap',
-                paddingLeft: 8,
-                borderLeft: '2px solid var(--border-color)',
-                marginBottom: 4,
-              }}>
-                {post.message}
+      {/* コンテンツ */}
+      {hasReport ? (
+        <div style={{ padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {Object.entries(postsByStaff).map(([staffName, posts]) => {
+            const workPosts = posts.filter((p) => isWorkRelated(p.message));
+            if (workPosts.length === 0) return null;
+            return (
+              <div key={staffName}>
+                <div style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: 'var(--text-sub)',
+                  marginBottom: 4,
+                  letterSpacing: '0.02em',
+                }}>
+                  {staffName}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, paddingLeft: 8 }}>
+                  {workPosts.map((post, idx) => (
+                    <div key={idx} style={{
+                      fontSize: 12,
+                      color: 'var(--text-main)',
+                      whiteSpace: 'pre-wrap',
+                      lineHeight: 1.65,
+                      opacity: 0.85,
+                    }}>
+                      {post.message}
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
-        );
-      })}
+            );
+          })}
+        </div>
+      ) : (
+        <div style={{
+          padding: '7px 12px',
+          fontSize: 11,
+          color: 'var(--text-muted)',
+        }}>
+          報告なし
+        </div>
+      )}
     </div>
   );
 }
@@ -117,27 +192,34 @@ export default function TalknoteCard() {
       .finally(() => setLoading(false));
   }, [date]);
 
-  // シフト順の現場 + 店舗未確定（シフトにない投稿）
-  const orderedSites: { location: string; staff: string[]; agency: string }[] = [];
-  if (data) {
-    // シフト表の順
-    for (const s of data.siteOrder) {
-      orderedSites.push(s);
-    }
-    // siteMap にあってシフト順に含まれていない現場を末尾に追加
-    for (const site of Object.keys(data.siteMap)) {
-      if (!orderedSites.some((s) => s.location === site)) {
-        orderedSites.push({ location: site, staff: [], agency: '' });
-      }
-    }
-  }
+  // スタッフがいる現場のみ（シフト順）
+  const orderedSites = data
+    ? data.siteOrder.filter((s) => s.staff.length > 0)
+    : [];
+
+  const totalReports = orderedSites.reduce((sum, s) => {
+    return sum + countWorkPosts(data?.siteMap[s.location] ?? {});
+  }, 0);
 
   return (
     <div className="chart-card" style={{ marginTop: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 'bold', color: 'var(--text-main)' }}>
-          現場レポート
-        </h3>
+      {/* カードヘッダー */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 12,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <h3 style={{ fontSize: 14, fontWeight: 'bold', color: 'var(--text-main)' }}>
+            稼働
+          </h3>
+          {!loading && data && totalReports > 0 && (
+            <span style={{ fontSize: 12, color: 'var(--text-sub)' }}>
+              {totalReports}件の報告
+            </span>
+          )}
+        </div>
         <input
           type="date"
           value={date}
@@ -155,19 +237,19 @@ export default function TalknoteCard() {
       </div>
 
       {loading && (
-        <div style={{ color: 'var(--text-sub)', fontSize: 13, textAlign: 'center', padding: '16px 0' }}>
+        <div style={{ color: 'var(--text-sub)', fontSize: 13, textAlign: 'center', padding: '20px 0' }}>
           読み込み中...
         </div>
       )}
 
       {!loading && orderedSites.length === 0 && (
-        <div style={{ color: 'var(--text-sub)', fontSize: 13, textAlign: 'center', padding: '16px 0' }}>
-          この日のレポートはありません
+        <div style={{ color: 'var(--text-sub)', fontSize: 13, textAlign: 'center', padding: '20px 0' }}>
+          この日のシフトデータはありません
         </div>
       )}
 
       {!loading && data && orderedSites.map((s) => (
-        <SiteSection
+        <SiteCard
           key={s.location}
           site={s.location}
           staffList={s.staff}
