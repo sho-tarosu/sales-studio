@@ -96,11 +96,15 @@ export default function AttendanceTable({ data, selectedMonth, loginName, userRo
       <div className="analysis-controls" style={{ flexWrap: 'nowrap', alignItems: 'center' }}>
         <div className="control-group">
           <span className="control-label">スタッフ選択</span>
-          <select className="control-select" value={staffName} onChange={(e) => setStaffName(e.target.value)}>
-            {data.ranking.map((s) => (
-              <option key={s.name} value={s.name}>{s.name}</option>
-            ))}
-          </select>
+          {userRole === 'アルバイト' ? (
+            <span className="control-label">{staffName}</span>
+          ) : (
+            <select className="control-select" value={staffName} onChange={(e) => setStaffName(e.target.value)}>
+              {data.ranking.map((s) => (
+                <option key={s.name} value={s.name}>{s.name}</option>
+              ))}
+            </select>
+          )}
         </div>
         <div style={{ display: 'flex', gap: 16, marginLeft: 8 }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.3 }}>
