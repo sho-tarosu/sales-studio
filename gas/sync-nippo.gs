@@ -41,7 +41,7 @@ const CONFIG = {
 // 各スプレッドシートのID（URLの /d/〇〇〇/ の部分）
 const DAWIN = {
   shiftSheetId: '1KmmKchHMKOvCHXp8Qkki6FDa2LMxDKzE_S4zXqxJKM8', // シフト表
-  idSheetId:    '17Muwohwb65qa0NoKmnLPJDS952DKAIGHCM-_MJE-8L4',   // スタッフ情報
+  idSheetId:    '1zbZFiAOCtvFfOGEO6mE1jV-Sh99SoaoxHZROzXNdsyE',   // スタッフ情報（このスプレッドシート自身）
   formSheetId1: '1gq06U0WG8ZxMLXP6Hy-hngxTW379Yz3SY2-CJt_BBCE',  // 日報フォーム①
   formSheetId2: '1s8xPwsQ2KyxcfHy9g0zFxaVRSzlK8jrNqN0DzjuaYpE',  // 日報フォーム②
   formUrl:      'https://forms.gle/c2XY1krdoSKbc9Ma8',             // 日報提出フォームURL
@@ -565,7 +565,7 @@ function syncStaffInfo_New() {
     // B列から15列分取得
     const data = sourceSheet.getRange(1, 2, lastRow, 15).getValues();
 
-    const targetSS    = SpreadsheetApp.openById(DAWIN.idSheetId);
+    const targetSS    = SpreadsheetApp.getActiveSpreadsheet(); // スタッフ情報はこのスプレッドシート内
     let   targetSheet = targetSS.getSheetByName(STAFF_SYNC.targetSheetName);
     if (!targetSheet) targetSheet = targetSS.insertSheet(STAFF_SYNC.targetSheetName);
     targetSheet.clear();
@@ -628,7 +628,7 @@ function sendEmailToTalknote_(toEmail, subject, body) {
 
 // スタッフ情報シートから「シフト名 → メールアドレス」のマップを作成
 function getStaffMap_(config) {
-  let ss; try { ss = SpreadsheetApp.openById(config.idSheetId); } catch(e) { return {}; }
+  const ss    = SpreadsheetApp.getActiveSpreadsheet(); // スタッフ情報はこのスプレッドシート内
   const sheet = ss.getSheetByName(config.idSheetName);
   if (!sheet) return {};
   const m = {};
