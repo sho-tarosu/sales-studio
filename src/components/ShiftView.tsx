@@ -11,6 +11,7 @@ interface ShiftViewProps {
   loading: boolean;
   error: string | null;
   selectedMonth: string; // 'YYYY-MM'
+  userRole?: string;
 }
 
 // 代理店ごとに割り当てるカラーパレット（色相環を均等12分割・最大限視覚的に識別可能）
@@ -72,6 +73,7 @@ export default function ShiftView({
   loading,
   error,
   selectedMonth,
+  userRole,
 }: ShiftViewProps) {
   const [regionFilter, setRegionFilter] = useState<'東京' | '福岡'>('東京');
   const [viewMode, setViewMode] = useState<ViewMode>('location');
@@ -330,12 +332,14 @@ export default function ShiftView({
               >
                 スタッフ別
               </button>
-              <button
-                className={`shift-region-btn${viewMode === 'employee' ? ' active' : ''}`}
-                onClick={() => { setViewMode('employee'); setPageMode('shift'); }}
-              >
-                社員
-              </button>
+              {userRole !== 'アルバイト' && (
+                <button
+                  className={`shift-region-btn${viewMode === 'employee' ? ' active' : ''}`}
+                  onClick={() => { setViewMode('employee'); setPageMode('shift'); }}
+                >
+                  社員
+                </button>
+              )}
             </div>
           )}
 

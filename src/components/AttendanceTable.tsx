@@ -7,6 +7,7 @@ interface AttendanceTableProps {
   data: DashboardData;
   selectedMonth: string; // 'YYYY-MM'
   loginName?: string;
+  userRole?: string;
 }
 
 const WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土'];
@@ -24,7 +25,7 @@ const rows: { label: string; key: CalendarKey; isTotal?: boolean }[] = [
   { label: 'クレカ', key: 'credit' },
 ];
 
-export default function AttendanceTable({ data, selectedMonth, loginName }: AttendanceTableProps) {
+export default function AttendanceTable({ data, selectedMonth, loginName, userRole }: AttendanceTableProps) {
   const initialName = (loginName && data.ranking.find((s) => s.name === loginName))
     ? loginName
     : data.ranking[0]?.name || '';
@@ -67,11 +68,15 @@ export default function AttendanceTable({ data, selectedMonth, loginName }: Atte
         <div className="analysis-controls">
           <div className="control-group">
             <span className="control-label">スタッフ選択</span>
-            <select className="control-select" value={staffName} onChange={(e) => setStaffName(e.target.value)}>
-              {data.ranking.map((s) => (
-                <option key={s.name} value={s.name}>{s.name}</option>
-              ))}
-            </select>
+            {userRole === 'アルバイト' ? (
+              <span className="control-label">{staffName}</span>
+            ) : (
+              <select className="control-select" value={staffName} onChange={(e) => setStaffName(e.target.value)}>
+                {data.ranking.map((s) => (
+                  <option key={s.name} value={s.name}>{s.name}</option>
+                ))}
+              </select>
+            )}
           </div>
         </div>
         <div className="chart-card" style={{ padding: 0, overflow: 'hidden' }}>

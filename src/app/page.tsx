@@ -35,6 +35,12 @@ export default function Home() {
   const [rankingView, setRankingView] = useState<'chart' | 'table'>('chart');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [meData, setMeData] = useState<{ birthday: string; bloodType: string; animal: string; zodiac: string } | null>(null);
+  const [impersonated, setImpersonated] = useState<{ name: string; role: string } | null>(null);
+  const [allUsers, setAllUsers] = useState<{ name: string; role: string }[]>([]);
+
+  // なりすまし時に使う実効値
+  const effectiveName = impersonated?.name ?? session?.user?.name;
+  const effectiveRole = impersonated?.role ?? session?.user?.role;
 
   const now = new Date();
   const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -120,6 +126,14 @@ export default function Home() {
       .catch(() => {});
   }, [drawerOpen, meData]);
 
+  useEffect(() => {
+    if (!drawerOpen || (session?.user?.role as string) !== '管理者' || allUsers.length > 0) return;
+    fetch('/api/admin/users')
+      .then((r) => r.json())
+      .then((d) => setAllUsers(d))
+      .catch(() => {});
+  }, [drawerOpen, session?.user?.role, allUsers.length]);
+
   const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedMonth(e.target.value);
   };
@@ -184,6 +198,30 @@ export default function Home() {
         </header>
 
         <NippoAlert />
+
+        {/* なりすまし中バナー */}
+        {impersonated && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            background: 'rgba(234,179,8,0.15)',
+            border: '1px solid rgba(234,179,8,0.4)',
+            borderRadius: 8,
+            padding: '6px 12px',
+            marginBottom: 8,
+            fontSize: 13,
+            color: '#fbbf24',
+          }}>
+            <span>{impersonated.name}（{impersonated.role}）でログイン中</span>
+            <button
+              onClick={() => setImpersonated(null)}
+              style={{ background: 'none', border: 'none', color: '#fbbf24', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: '0 4px' }}
+            >
+              ×
+            </button>
+          </div>
+        )}
 
         {loading && (
           <div style={{ textAlign: 'center', padding: 40, color: '#aaa' }}>
@@ -259,7 +297,7 @@ export default function Home() {
             )}
 
             {activeTab === 'attendance' && (
-              <AttendanceTable data={data} selectedMonth={selectedMonth} loginName={session?.user?.name} />
+              <AttendanceTable data={data} selectedMonth={selectedMonth} loginName={effectiveName} userRole={effectiveRole} />
             )}
           </>
         )}
@@ -272,6 +310,7 @@ export default function Home() {
             loading={shiftLoading}
             error={shiftError}
             selectedMonth={selectedMonth}
+            userRole={effectiveRole}
           />
         )}
 
@@ -324,6 +363,52 @@ export default function Home() {
                 )}
               </div>
             )}
+            {/* 管理者向けスタッフ切り替え */}
+            {(session.user.role as string) === '管理者' && allUsers.length > 0 && (
+              <div style={{ marginBottom: 12 }}>
+                <div style={{ fontSize: 11, color: 'var(--text-sub)', marginBottom: 6 }}>スタッフとして表示</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <select
+                    style={{
+                      flex: 1,
+                      background: 'var(--card-bg)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: 6,
+                      color: 'var(--text-main)',
+                      fontSize: 13,
+                      padding: '6px 8px',
+                    }}
+                    value={impersonated?.name ?? ''}
+                    onChange={(e) => {
+                      const user = allUsers.find((u) => u.name === e.target.value);
+                      setImpersonated(user ? { name: user.name, role: user.role as string } : null);
+                    }}
+                  >
+                    <option value=''>-- 選択 --</option>
+                    {allUsers.map((u) => (
+                      <option key={u.name} value={u.name}>{u.name}（{u.role}）</option>
+                    ))}
+                  </select>
+                  {impersonated && (
+                    <button
+                      onClick={() => setImpersonated(null)}
+                      style={{
+                        background: 'none',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: 6,
+                        color: 'var(--text-sub)',
+                        fontSize: 12,
+                        padding: '6px 10px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      解除
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
               style={{

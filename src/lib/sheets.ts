@@ -155,6 +155,21 @@ export async function getUserById(userId: string): Promise<(User & { passwordHas
   return null;
 }
 
+export async function getAllUsers(): Promise<{ name: string; role: Role }[]> {
+  const rows = await getSheetData(USER_SHEET_NAME);
+  const users: { name: string; role: Role }[] = [];
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const name = row[19];
+    const role = row[22] as Role;
+    const active = row[23];
+    if (name && active?.toUpperCase() === 'TRUE') {
+      users.push({ name, role });
+    }
+  }
+  return users;
+}
+
 export async function updateLastLogin(rowIndex: number): Promise<void> {
   const sheets = await getSheetsClient();
   const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
