@@ -201,6 +201,7 @@ export default function Home() {
           <>
             {activeTab === 'dashboard' && (
               <>
+                <TalknoteCard />
                 <KpiCards kpi={data.kpi} prevKpi={data.prevKpi} />
                 <div className="dashboard-split">
                   <div className="chart-card">
@@ -216,7 +217,6 @@ export default function Home() {
                     <RankingList ranking={data.ranking} limit={5} />
                   </div>
                 </div>
-                <TalknoteCard />
               </>
             )}
 
