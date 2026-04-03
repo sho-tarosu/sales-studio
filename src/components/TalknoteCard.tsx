@@ -20,6 +20,14 @@ interface TalknoteData {
   siteMap: SiteMap;
 }
 
+function normalizeSiteName(location: string): string {
+  // IY → イトーヨーカドー に展開
+  let name = location.replace(/^IY/, 'イトーヨーカドー');
+  // スペース（半角・全角）以降を除去
+  const spaceIdx = name.search(/[ 　]/);
+  return spaceIdx === -1 ? name : name.slice(0, spaceIdx);
+}
+
 const WORK_KEYWORDS = [
   'MNP', '新規', 'NEW', 'new',
   'セルアップ', 'アップセル', 'cellup',
@@ -78,7 +86,7 @@ function SiteCard({ site, staffList, agency, siteMap }: {
       }}>
         {/* 現場名 */}
         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-color)', flexShrink: 0 }}>
-          {site}
+          {normalizeSiteName(site)}
         </span>
 
         {/* 代理店バッジ */}
