@@ -149,6 +149,62 @@ function syncTalknote(month) {
   callSyncApi_({ type: 'talknote', month: month, rows: rows });
 }
 
+// ──────────────────────────────────────────────
+// Talknoteメール取得 → シート記録 → DB同期
+// ──────────────────────────────────────────────
+function fetchAndSyncTalknote() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_TALKNOTE);
+
+  // シートがなければ作成
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_TALKNOTE);
+    sheet.appendRow(['受信日時', '送信者', 'メッセージ内容']);
+  }
+
+  const threads = GmailApp.search('from:no-reply@talknote.com is:unread');
+  if (threads.length === 0) {
+    Logger.log('[talknote] 新着メールなし');
+    return;
+  }
+
+  let count = 0;
+  for (const thread of threads) {
+    for (const message of thread.getMessages()) {
+      if (!message.isUnread()) continue;
+
+      const date    = message.getDate();
+      const subject = message.getSubject();
+      const body    = message.getPlainBody();
+
+      // 件名から送信者名を抽出
+      let senderName = '不明';
+      const nameMatch = subject.match(/Talknote\s*[：:]\s*(.+?)さんからメッセージ/);
+      if (nameMatch && nameMatch[1]) senderName = nameMatch[1].trim();
+
+      // 本文からメッセージを抽出
+      let msgContent = '（内容をうまく取得できませんでした）';
+      const bodyMatch = body.match(/からのメッセージ\s*[：:]\s*([\s\S]*?)(?=\n+返信はこちらから)/);
+      if (bodyMatch && bodyMatch[1]) msgContent = bodyMatch[1].trim();
+
+      sheet.appendRow([
+        Utilities.formatDate(date, 'Asia/Tokyo', 'yyyy/MM/dd HH:mm:ss'),
+        senderName,
+        msgContent,
+      ]);
+      message.markRead();
+      count++;
+    }
+  }
+
+  Logger.log('[talknote] ' + count + '件をシートに記録');
+
+  // 記録があればそのままDBへ同期
+  if (count > 0) {
+    syncTalknote(getCurrentMonth_());
+  }
+}
+
 // 全シートを現在月で一括同期（手動実行・定期実行用）
 function syncAll() {
   const month = getCurrentMonth_();
@@ -208,6 +264,12 @@ function setupTriggers() {
   ScriptApp.newTrigger('syncAll')
     .timeBased()
     .everyMinutes(10)
+    .create();
+
+  // ③ 5分ごとにTalknoteメールを取得してDB同期
+  ScriptApp.newTrigger('fetchAndSyncTalknote')
+    .timeBased()
+    .everyMinutes(5)
     .create();
 
   Logger.log('トリガーを設定しました ✅');
