@@ -231,7 +231,7 @@ export default function TalknoteCard() {
   }, 0);
 
   return (
-    <div className="chart-card" style={{ marginTop: 16 }}>
+    <div className="chart-card" style={{ marginTop: 16, minHeight: 'unset' }}>
       {/* カードヘッダー */}
       <div style={{
         display: 'flex',
