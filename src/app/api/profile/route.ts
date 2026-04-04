@@ -4,7 +4,7 @@ import { auth } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-const SHEET_NAME = 'プロフィール';
+const SHEET_NAME = 'スタッフ情報';
 
 const PREFECTURE_TO_REGION: Record<string, string> = {
   '北海道': '北海道',

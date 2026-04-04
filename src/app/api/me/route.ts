@@ -11,7 +11,7 @@ export async function GET() {
   }
 
   try {
-    const rows = await getSheetData('プロフィール');
+    const rows = await getSheetData('スタッフ情報');
     const userId = session.user.id;
 
     for (let i = 1; i < rows.length; i++) {

@@ -3,7 +3,7 @@ import path from 'path';
 import type { User, Role } from '@/types';
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
-const USER_SHEET_NAME = 'プロフィール';
+const USER_SHEET_NAME = 'スタッフ情報';
 
 export async function getSheetsClient() {
   let auth;
