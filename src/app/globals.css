@@ -1,4 +1,5 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { overflow-x: hidden; overscroll-behavior-x: none; }
 
 :root {
   /* Base */
@@ -205,6 +206,7 @@ body {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior-x: none;
   min-width: 0;
   padding: 28px 32px;
   padding-bottom: 80px;
@@ -279,12 +281,6 @@ input[type="password"]:focus {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
-.kpi-card:hover {
-  border-color: rgba(229, 62, 62, 0.35);
-  box-shadow: 0 0 0 1px rgba(229, 62, 62, 0.08);
 }
 
 .kpi-title {
