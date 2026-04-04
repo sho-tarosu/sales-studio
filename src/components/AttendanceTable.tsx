@@ -67,9 +67,9 @@ export default function AttendanceTable({ data, selectedMonth, loginName, userRo
       <>
         <div className="analysis-controls">
           <div className="control-group">
-            <span className="control-label">スタッフ選択</span>
+            {userRole !== 'アルバイト' && <span className="control-label">スタッフ選択</span>}
             {userRole === 'アルバイト' ? (
-              <span className="control-label">{staffName}</span>
+              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-main)' }}>{staffName}</span>
             ) : (
               <select className="control-select" value={staffName} onChange={(e) => setStaffName(e.target.value)}>
                 {data.ranking.map((s) => (
@@ -95,9 +95,9 @@ export default function AttendanceTable({ data, selectedMonth, loginName, userRo
     <>
       <div className="analysis-controls" style={{ flexWrap: 'nowrap', alignItems: 'center' }}>
         <div className="control-group">
-          <span className="control-label">スタッフ選択</span>
+          {userRole !== 'アルバイト' && <span className="control-label">スタッフ選択</span>}
           {userRole === 'アルバイト' ? (
-            <span className="control-label">{staffName}</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-main)' }}>{staffName}</span>
           ) : (
             <select className="control-select" value={staffName} onChange={(e) => setStaffName(e.target.value)}>
               {data.ranking.map((s) => (

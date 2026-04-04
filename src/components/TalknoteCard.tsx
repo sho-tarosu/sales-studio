@@ -20,6 +20,27 @@ interface TalknoteData {
   siteMap: SiteMap;
 }
 
+const PILL_COLORS = [
+  { bg: 'rgba(248,113,113,0.20)', text: '#f87171' },
+  { bg: 'rgba(251,146,60,0.20)',  text: '#fb923c' },
+  { bg: 'rgba(250,204,21,0.20)',  text: '#facc15' },
+  { bg: 'rgba(163,230,53,0.20)',  text: '#a3e635' },
+  { bg: 'rgba(74,222,128,0.20)',  text: '#4ade80' },
+  { bg: 'rgba(45,212,191,0.20)',  text: '#2dd4bf' },
+  { bg: 'rgba(34,211,238,0.20)',  text: '#22d3ee' },
+  { bg: 'rgba(56,189,248,0.20)',  text: '#38bdf8' },
+  { bg: 'rgba(129,140,248,0.20)', text: '#818cf8' },
+  { bg: 'rgba(192,132,252,0.20)', text: '#c084fc' },
+  { bg: 'rgba(244,114,182,0.20)', text: '#f472b6' },
+  { bg: 'rgba(251,113,133,0.20)', text: '#fb7185' },
+];
+
+function agencyColor(name: string) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xfffffff;
+  return PILL_COLORS[h % PILL_COLORS.length];
+}
+
 function normalizeSiteName(location: string): string {
   // IY → イトーヨーカドー に展開
   let name = location.replace(/^IY/, 'イトーヨーカドー');
@@ -85,24 +106,24 @@ function SiteCard({ site, staffList, agency, siteMap }: {
         borderBottom: hasReport ? '1px solid var(--border-color)' : 'none',
       }}>
         {/* 現場名 */}
-        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-color)', flexShrink: 0 }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main)', flexShrink: 0 }}>
           {normalizeSiteName(site)}
         </span>
 
         {/* 代理店バッジ */}
-        {agency && (
+        {agency && (() => { const c = agencyColor(agency); return (
           <span style={{
             fontSize: 10,
-            color: 'var(--text-sub)',
-            background: 'rgba(255,255,255,0.07)',
-            border: '1px solid rgba(255,255,255,0.1)',
+            color: c.text,
+            background: c.bg,
+            border: `1px solid ${c.text}44`,
             borderRadius: 4,
             padding: '1px 6px',
             flexShrink: 0,
           }}>
             {agency}
           </span>
-        )}
+        ); })()}
 
         {/* スタッフバッジ */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, flex: 1, minWidth: 0 }}>
