@@ -587,8 +587,10 @@ function syncStaffInfo_New() {
 
     // ① 既存のログイン情報（T列=index19以降）を名前でマップ保存（スペース除去して正規化）
     const loginMap = {};
+    let loginHeader = null; // T列以降のヘッダー行を別途保存
     if (targetSheet.getLastRow() >= 2) {
       const existing = targetSheet.getDataRange().getValues();
+      loginHeader = existing[0].slice(19); // 0行目（ヘッダー）を保存
       for (let i = 1; i < existing.length; i++) {
         const name = normName(existing[i][19]); // T列: 名前
         if (name) loginMap[name] = existing[i].slice(19);
@@ -633,7 +635,12 @@ function syncStaffInfo_New() {
     let numCols = 0; for (let row of finalData) { numCols = row.length; break; }
     targetSheet.getRange(1, 1, numRows, numCols).setValues(finalData);
 
-    // ② 名前でマッチングしてログイン情報を復元（在籍中のスタッフのみ）
+    // ② ヘッダー行のT列以降を復元
+    if (loginHeader && loginHeader.length > 0) {
+      targetSheet.getRange(1, 20, 1, loginHeader.length).setValues([loginHeader]);
+    }
+
+    // ③ 名前でマッチングしてログイン情報を復元（在籍中のスタッフのみ）
     // finalData[0]はヘッダー、[1]以降がデータ。col[0]=target A列=source B列=名前
     const sourceNames = finalData.slice(1).map(function(row) { return normName(row[0]); });
     let restored = 0, unmatched = [];
