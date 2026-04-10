@@ -597,7 +597,7 @@ function syncStaffInfo_New() {
       }
     }
 
-    targetSheet.clear();
+    targetSheet.clearContents();
 
     let finalData = [], isFirst = true;
     let talknoteIdIndex = 6, birthPlaceIndex = 7, birthdayIndex = 3;
