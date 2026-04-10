@@ -13,9 +13,15 @@
  *   ⑤ スタッフ情報同期    毎日 6時
  *
  * 【目次】Ctrl+F でタグ検索 → 該当行へジャンプ
- *   [設定]     44行〜  [機能②]  136行〜  [機能①]  253行〜
- *   [補助]    350行〜  [機能④]  445行〜  [機能③]  471行〜
- *   [機能⑤]  564行〜  [内部]    630行〜  [トリガー] 848行〜
+ *   設定エリア（CONFIG）                44行〜
+ *   機能① Talknoteメール取得           253行〜
+ *   機能② DB同期（全シート）           136行〜
+ *   機能③ シフト通知（明日分）         471行〜
+ *   機能④ 日報催促                    445行〜
+ *   機能⑤ スタッフ情報同期            564行〜
+ *   補助関数（月次・過去データ等）      350行〜
+ *   内部処理（集計・送信・整形）        630行〜
+ *   トリガー管理                       848行〜
  *
  * ============================================================
  */
@@ -119,13 +125,24 @@ function callSyncApi_(payload) {
 //    手動で今すぐ同期したい場合は syncAll() を実行。
 // ============================================================
 
-// 合算データシートをDBへ送る
+// 合算データシートをDBへ送る（当月分のみ送信）
 function syncNippoSheet(month) {
   const ss    = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(SHEET_NIPPO);
   if (!sheet) { Logger.log(SHEET_NIPPO + ' が見つかりません'); return; }
 
-  const rows = sheet.getDataRange().getValues().map(function(row) {
+  const targetMonth = month || getCurrentMonth_(); // 'YYYY-MM'
+  const allRows = sheet.getDataRange().getValues();
+
+  const rows = allRows.filter(function(row, idx) {
+    if (idx === 0) return true; // ヘッダー行は必ず含める
+    const cell = row[1]; // B列: 日付
+    if (!cell) return false;
+    const d = cell instanceof Date ? cell : new Date(cell);
+    if (isNaN(d.getTime())) return false;
+    const rowMonth = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    return rowMonth === targetMonth;
+  }).map(function(row) {
     return row.map(function(cell) {
       if (cell instanceof Date) {
         const y = cell.getFullYear();
@@ -136,7 +153,9 @@ function syncNippoSheet(month) {
       return String(cell);
     });
   });
-  callSyncApi_({ type: 'sales', month: month || getCurrentMonth_(), rows: rows });
+
+  Logger.log('syncNippoSheet: ' + (rows.length - 1) + '行送信（当月: ' + targetMonth + '）');
+  callSyncApi_({ type: 'sales', month: targetMonth, rows: rows });
 }
 
 // 年代シートをDBへ送る
@@ -210,14 +229,14 @@ function syncTalknote(month) {
   callSyncApi_({ type: 'talknote', month: month, rows: rows });
 }
 
-// 全シートを現在月で一括同期（10分おき自動実行 / 手動実行も可）
+// 全シートを現在月で一括同期（1時間おき自動実行 / 手動実行も可）
+// ※トークノートは fetchAndSyncTalknote（5分おき）が別途同期するため除外
 function syncAll() {
   const month = getCurrentMonth_();
   Logger.log('DB同期開始: ' + month);
   syncNippoSheet(month);
   syncAgeSheet(month);
   syncTypeSheet(month);
-  syncTalknote(month);
   Logger.log('DB同期完了');
 }
 
@@ -560,9 +579,22 @@ function syncStaffInfo_New() {
     // B列から15列分取得
     const data = sourceSheet.getRange(1, 2, lastRow, 15).getValues();
 
+    const normName = function(s) { return String(s || '').replace(/[\s　]/g, ''); };
+
     const targetSS    = SpreadsheetApp.getActiveSpreadsheet(); // スタッフ情報はこのスプレッドシート内
     let   targetSheet = targetSS.getSheetByName(STAFF_SYNC.targetSheetName);
     if (!targetSheet) targetSheet = targetSS.insertSheet(STAFF_SYNC.targetSheetName);
+
+    // ① 既存のログイン情報（T列=index19以降）を名前でマップ保存（スペース除去して正規化）
+    const loginMap = {};
+    if (targetSheet.getLastRow() >= 2) {
+      const existing = targetSheet.getDataRange().getValues();
+      for (let i = 1; i < existing.length; i++) {
+        const name = normName(existing[i][19]); // T列: 名前
+        if (name) loginMap[name] = existing[i].slice(19);
+      }
+    }
+
     targetSheet.clear();
 
     let finalData = [], isFirst = true;
@@ -600,7 +632,24 @@ function syncStaffInfo_New() {
     const numRows = finalData.length;
     let numCols = 0; for (let row of finalData) { numCols = row.length; break; }
     targetSheet.getRange(1, 1, numRows, numCols).setValues(finalData);
-    Logger.log('[スタッフ同期] ' + numRows + '行を同期しました');
+
+    // ② 名前でマッチングしてログイン情報を復元（在籍中のスタッフのみ）
+    // finalData[0]はヘッダー、[1]以降がデータ。col[0]=target A列=source B列=名前
+    const sourceNames = finalData.slice(1).map(function(row) { return normName(row[0]); });
+    let restored = 0, unmatched = [];
+    for (let i = 0; i < sourceNames.length; i++) {
+      const name = sourceNames[i];
+      if (!name) continue;
+      if (loginMap[name]) {
+        targetSheet.getRange(i + 2, 20, 1, loginMap[name].length).setValues([loginMap[name]]);
+        restored++;
+      } else {
+        unmatched.push(name);
+      }
+    }
+
+    Logger.log('[スタッフ同期] ' + numRows + '行を同期、' + restored + '件のログイン情報を復元');
+    if (unmatched.length > 0) Logger.log('[スタッフ同期] ログイン情報未設定: ' + unmatched.join(', '));
   } catch (e) {
     Logger.log('[スタッフ同期] エラー: ' + e.message);
   }
