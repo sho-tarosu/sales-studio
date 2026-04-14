@@ -9,8 +9,8 @@ interface RankingTableProps {
 export default function RankingTable({ ranking }: RankingTableProps) {
   return (
     <div className="chart-card">
-      <div className="table-wrapper">
-        <table className="full-ranking-table">
+      <div className="table-wrapper" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+        <table className="full-ranking-table" style={{ minWidth: 700 }}>
           <thead>
             <tr>
               <th style={{ textAlign: 'center', width: 48 }}>順位</th>
