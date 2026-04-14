@@ -36,7 +36,7 @@ const TAB_TITLES: Record<TabName, string> = {
 export default function Home() {
   const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<TabName>('dashboard');
-  const [rankingView, setRankingView] = useState<'chart' | 'table'>('chart');
+  const [rankingView, setRankingView] = useState<'total' | 'selfclose' | 'table'>('total');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [meData, setMeData] = useState<{ birthday: string; bloodType: string; animal: string; zodiac: string } | null>(null);
   const [impersonated, setImpersonated] = useState<{ name: string; role: string } | null>(null);
@@ -267,10 +267,16 @@ export default function Home() {
                 <div className="shift-controls" style={{ marginBottom: '16px' }}>
                   <div className="shift-region-toggle">
                     <button
-                      className={`shift-region-btn${rankingView === 'chart' ? ' active' : ''}`}
-                      onClick={() => setRankingView('chart')}
+                      className={`shift-region-btn${rankingView === 'total' ? ' active' : ''}`}
+                      onClick={() => setRankingView('total')}
                     >
-                      グラフ
+                      獲得
+                    </button>
+                    <button
+                      className={`shift-region-btn${rankingView === 'selfclose' ? ' active' : ''}`}
+                      onClick={() => setRankingView('selfclose')}
+                    >
+                      自己クロ
                     </button>
                     <button
                       className={`shift-region-btn${rankingView === 'table' ? ' active' : ''}`}
@@ -280,22 +286,21 @@ export default function Home() {
                     </button>
                   </div>
                 </div>
-                {rankingView === 'chart' ? (
-                  <div style={{ display: 'flex', gap: 12, height: 'calc(100vh - 200px)' }}>
-                    <div className="chart-card" style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, color: 'var(--text-sub)', marginBottom: 8 }}>獲得ポイント</div>
-                      <BarChart ranking={data.ranking} />
-                    </div>
-                    <div className="chart-card" style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12, color: 'var(--text-sub)', marginBottom: 8 }}>自己クロポイント</div>
-                      <BarChart
-                        ranking={[...data.ranking].sort((a, b) => b.selfClose - a.selfClose)}
-                        getValue={(s) => s.selfClose}
-                        color="#f97316"
-                      />
-                    </div>
+                {rankingView === 'total' && (
+                  <div className="chart-card" style={{ height: 'calc(100vh - 200px)' }}>
+                    <BarChart ranking={data.ranking} />
                   </div>
-                ) : (
+                )}
+                {rankingView === 'selfclose' && (
+                  <div className="chart-card" style={{ height: 'calc(100vh - 200px)' }}>
+                    <BarChart
+                      ranking={[...data.ranking].sort((a, b) => b.selfClose - a.selfClose)}
+                      getValue={(s) => s.selfClose}
+                      color="#f97316"
+                    />
+                  </div>
+                )}
+                {rankingView === 'table' && (
                   <RankingTable ranking={data.ranking} />
                 )}
               </>

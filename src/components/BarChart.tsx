@@ -11,7 +11,7 @@ interface BarChartProps {
   color?: string;
 }
 
-export default function BarChart({ ranking, limit, nameWidth = 100, getValue, color }: BarChartProps) {
+export default function BarChart({ ranking, limit, nameWidth = 120, getValue, color }: BarChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const getVal = getValue ?? ((s: Staff) => s.total);
   const items = limit ? ranking.slice(0, limit) : ranking;
@@ -36,11 +36,13 @@ export default function BarChart({ ranking, limit, nameWidth = 100, getValue, co
         const percent = (val / maxVal) * 100;
         return (
           <div key={staff.name} className="bar-row">
-            <div className="bar-name" style={{ width: nameWidth }}>{staff.name}</div>
+            <div className="bar-name" style={{ width: nameWidth, textAlign: 'left' }}>
+              {staff.name}
+            </div>
             <div className="bar-area">
               <div className="bar-fill" data-width={`${percent}%`} style={{ width: 0, ...(color ? { background: color } : {}) }} />
-              <div className="bar-val">{val}</div>
             </div>
+            <div className="bar-val" style={{ position: 'static', minWidth: 36, textAlign: 'left' }}>{val}</div>
           </div>
         );
       })}

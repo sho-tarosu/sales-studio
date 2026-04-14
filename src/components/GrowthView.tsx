@@ -284,10 +284,10 @@ export default function GrowthView() {
                     <span style={{ color: 'var(--text-sub)', fontSize: 11 }}>/42</span>
                   </td>
                   <td style={{ padding: '10px 12px' }}>
-                    <Stars value={levelToStars(s.potential)} />
+                    {s.potential ? <LevelBadge label={s.potential} /> : '—'}
                   </td>
                   <td style={{ padding: '10px 12px' }}>
-                    <Stars value={levelToStars(s.attendance)} />
+                    {s.attendance ? <LevelBadge label={s.attendance} /> : '—'}
                   </td>
                   <td style={{ padding: '10px 12px' }}>
                     {s.attribute ? <AttributeBadge label={s.attribute} /> : '—'}

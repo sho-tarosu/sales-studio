@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Staff } from '@/types';
 
 type SortKey = 'total' | 'selfClose' | 'mnp' | 'new' | 'change' | 'hikari' | 'tablet' | 'other';
@@ -22,17 +22,25 @@ interface RankingTableProps {
 
 export default function RankingTable({ ranking }: RankingTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('total');
+  const rankColRef = useRef<HTMLTableCellElement>(null);
+  const [nameLeft, setNameLeft] = useState(44);
+
+  useEffect(() => {
+    if (rankColRef.current) {
+      setNameLeft(rankColRef.current.getBoundingClientRect().width);
+    }
+  }, []);
 
   const sorted = [...ranking].sort((a, b) => b[sortKey] - a[sortKey]);
 
   return (
-    <div className="chart-card">
+    <div className="chart-card" style={{ padding: '24px 24px 24px 0' }}>
       <div className="table-wrapper" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
         <table className="full-ranking-table" style={{ minWidth: 700 }}>
           <thead>
             <tr>
-              <th style={{ textAlign: 'center', width: 32, paddingLeft: 4, paddingRight: 4 }}>順位</th>
-              <th style={{ minWidth: 120 }}>名前</th>
+              <th ref={rankColRef}>順位</th>
+              <th style={{ left: nameLeft }}>名前</th>
               {COLUMNS.map(({ key, label }) => (
                 <th
                   key={key}
@@ -55,7 +63,7 @@ export default function RankingTable({ ranking }: RankingTableProps) {
                 <td style={{ textAlign: 'center', color: i < 3 ? '#facc15' : 'var(--text-sub)', fontWeight: i < 3 ? 700 : 400 }}>
                   {i + 1}
                 </td>
-                <td style={{ whiteSpace: 'nowrap' }}>{staff.name}</td>
+                <td style={{ whiteSpace: 'nowrap', left: nameLeft }}>{staff.name.length > 12 ? staff.name.slice(0, 12) + '…' : staff.name}</td>
                 <td style={{ color: '#3ea6ff', fontWeight: 'bold' }}>{staff.total}</td>
                 <td style={{ color: staff.selfClose > 0 ? '#f97316' : 'var(--text-sub)' }}>{staff.selfClose}</td>
                 <td>{staff.mnp}</td>
