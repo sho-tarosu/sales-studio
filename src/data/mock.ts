@@ -75,8 +75,6 @@ function generateStaff(name: string, skill: number): Staff {
     hikari,
     tablet,
     other,
-    life: Math.round(rand(0, 3) * 10) / 10,
-    credit: Math.round(rand(0, 3) * 10) / 10,
     selfClose: Math.round(rand(0, 5)),
     sites,
     ages,

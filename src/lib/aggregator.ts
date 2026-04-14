@@ -47,7 +47,7 @@ export function aggregateMainSheet(
     if (!staffMap[name]) {
       staffMap[name] = {
         name,
-        total: 0, mnp: 0, new: 0, change: 0, hikari: 0, tablet: 0, other: 0, life: 0, credit: 0, selfClose: 0,
+        total: 0, mnp: 0, new: 0, change: 0, hikari: 0, tablet: 0, other: 0, selfClose: 0,
         sites: {}, ages: {}, types: {},
         dailyTotal: new Array(daysInMonth).fill(0),
         dailyBySite: {},
@@ -95,8 +95,6 @@ export function aggregateMainSheet(
       s.hikari = safeAdd(s.hikari, hikari);
       s.tablet = safeAdd(s.tablet, tablet);
       s.other = safeAdd(s.other, other);
-      s.life = safeAdd(s.life, life);
-      s.credit = safeAdd(s.credit, credit);
       s.total = safeAdd(s.total, rowTotal);
       s.selfClose = safeAdd(s.selfClose, selfClose);
 

@@ -28,8 +28,6 @@ export interface Staff {
   hikari: number;
   tablet: number;
   other: number;
-  life: number;
-  credit: number;
   selfClose: number;
   sites: Record<string, number>;
   ages: Record<string, number>;

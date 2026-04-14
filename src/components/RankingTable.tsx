@@ -22,8 +22,7 @@ export default function RankingTable({ ranking }: RankingTableProps) {
               <th>機変</th>
               <th>ひかり</th>
               <th>タブ</th>
-              <th>ライフ</th>
-              <th>クレジット</th>
+              <th>他</th>
             </tr>
           </thead>
           <tbody>
@@ -40,8 +39,7 @@ export default function RankingTable({ ranking }: RankingTableProps) {
                 <td>{staff.change}</td>
                 <td>{staff.hikari}</td>
                 <td>{staff.tablet}</td>
-                <td>{staff.life}</td>
-                <td>{staff.credit}</td>
+                <td>{staff.other}</td>
               </tr>
             ))}
           </tbody>
