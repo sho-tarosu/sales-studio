@@ -13,8 +13,8 @@ export default function RankingTable({ ranking }: RankingTableProps) {
         <table className="full-ranking-table">
           <thead>
             <tr>
-              <th style={{ textAlign: 'center' }}>順位</th>
-              <th>名前</th>
+              <th style={{ textAlign: 'center', width: 48 }}>順位</th>
+              <th style={{ minWidth: 120 }}>名前</th>
               <th>合計</th>
               <th>MNP</th>
               <th>新規</th>
@@ -31,7 +31,7 @@ export default function RankingTable({ ranking }: RankingTableProps) {
                 <td style={{ textAlign: 'center', color: i < 3 ? '#facc15' : 'var(--text-sub)', fontWeight: i < 3 ? 700 : 400 }}>
                   {i + 1}
                 </td>
-                <td>{staff.name}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>{staff.name}</td>
                 <td style={{ color: '#3ea6ff', fontWeight: 'bold' }}>{staff.total}</td>
                 <td>{staff.mnp}</td>
                 <td>{staff.new}</td>
