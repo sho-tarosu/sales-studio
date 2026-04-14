@@ -281,8 +281,19 @@ export default function Home() {
                   </div>
                 </div>
                 {rankingView === 'chart' ? (
-                  <div className="chart-card" style={{ height: 'calc(100vh - 200px)' }}>
-                    <BarChart ranking={data.ranking} />
+                  <div style={{ display: 'flex', gap: 12, height: 'calc(100vh - 200px)' }}>
+                    <div className="chart-card" style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, color: 'var(--text-sub)', marginBottom: 8 }}>獲得ポイント</div>
+                      <BarChart ranking={data.ranking} />
+                    </div>
+                    <div className="chart-card" style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12, color: 'var(--text-sub)', marginBottom: 8 }}>自己クロポイント</div>
+                      <BarChart
+                        ranking={[...data.ranking].sort((a, b) => b.selfClose - a.selfClose)}
+                        getValue={(s) => s.selfClose}
+                        color="#f97316"
+                      />
+                    </div>
                   </div>
                 ) : (
                   <RankingTable ranking={data.ranking} />

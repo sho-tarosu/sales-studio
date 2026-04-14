@@ -28,6 +28,7 @@ export interface Staff {
   hikari: number;
   tablet: number;
   other: number;
+  selfClose: number;
   sites: Record<string, number>;
   ages: Record<string, number>;
   types: Record<string, number>;
