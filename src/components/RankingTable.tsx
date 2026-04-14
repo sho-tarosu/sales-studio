@@ -13,6 +13,7 @@ export default function RankingTable({ ranking }: RankingTableProps) {
         <table className="full-ranking-table">
           <thead>
             <tr>
+              <th style={{ textAlign: 'center' }}>順位</th>
               <th>名前</th>
               <th>合計</th>
               <th>MNP</th>
@@ -21,11 +22,15 @@ export default function RankingTable({ ranking }: RankingTableProps) {
               <th>ひかり</th>
               <th>タブ</th>
               <th>他</th>
+              <th>自己クロ</th>
             </tr>
           </thead>
           <tbody>
-            {ranking.map((staff) => (
+            {ranking.map((staff, i) => (
               <tr key={staff.name}>
+                <td style={{ textAlign: 'center', color: i < 3 ? '#facc15' : 'var(--text-sub)', fontWeight: i < 3 ? 700 : 400 }}>
+                  {i + 1}
+                </td>
                 <td>{staff.name}</td>
                 <td style={{ color: '#3ea6ff', fontWeight: 'bold' }}>{staff.total}</td>
                 <td>{staff.mnp}</td>
@@ -34,6 +39,7 @@ export default function RankingTable({ ranking }: RankingTableProps) {
                 <td>{staff.hikari}</td>
                 <td>{staff.tablet}</td>
                 <td>{staff.other}</td>
+                <td style={{ color: staff.selfClose > 0 ? '#f97316' : 'var(--text-sub)' }}>{staff.selfClose}</td>
               </tr>
             ))}
           </tbody>
