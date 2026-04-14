@@ -20,6 +20,7 @@ import NippoAlert from '@/components/NippoAlert';
 import TalknoteCard from '@/components/TalknoteCard';
 import GrowthView from '@/components/GrowthView';
 import AnalyticsView from '@/components/AnalyticsView';
+import { useActivityTracker } from '@/hooks/useActivityTracker';
 
 const TAB_TITLES: Record<TabName, string> = {
   'dashboard': '獲得状況',
@@ -35,6 +36,7 @@ const TAB_TITLES: Record<TabName, string> = {
 
 export default function Home() {
   const { data: session } = useSession();
+  useActivityTracker();
   const [activeTab, setActiveTab] = useState<TabName>('dashboard');
   const [rankingView, setRankingView] = useState<'total' | 'selfclose' | 'table'>('total');
   const [drawerOpen, setDrawerOpen] = useState(false);
