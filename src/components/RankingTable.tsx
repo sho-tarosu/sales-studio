@@ -22,7 +22,7 @@ export default function RankingTable({ ranking }: RankingTableProps) {
               <th>機変</th>
               <th>ひかり</th>
               <th>タブ</th>
-              <th>他</th>
+              <th>自銀・クレカ</th>
             </tr>
           </thead>
           <tbody>
