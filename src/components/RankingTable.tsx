@@ -15,14 +15,15 @@ export default function RankingTable({ ranking }: RankingTableProps) {
             <tr>
               <th style={{ textAlign: 'center', width: 48 }}>順位</th>
               <th style={{ minWidth: 120 }}>名前</th>
-              <th>合計</th>
+              <th>獲得合計</th>
+              <th>自己クロ</th>
               <th>MNP</th>
               <th>新規</th>
               <th>機変</th>
               <th>ひかり</th>
               <th>タブ</th>
-              <th>他</th>
-              <th>自己クロ</th>
+              <th>ライフ</th>
+              <th>クレジット</th>
             </tr>
           </thead>
           <tbody>
@@ -33,13 +34,14 @@ export default function RankingTable({ ranking }: RankingTableProps) {
                 </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{staff.name}</td>
                 <td style={{ color: '#3ea6ff', fontWeight: 'bold' }}>{staff.total}</td>
+                <td style={{ color: staff.selfClose > 0 ? '#f97316' : 'var(--text-sub)' }}>{staff.selfClose}</td>
                 <td>{staff.mnp}</td>
                 <td>{staff.new}</td>
                 <td>{staff.change}</td>
                 <td>{staff.hikari}</td>
                 <td>{staff.tablet}</td>
-                <td>{staff.other}</td>
-                <td style={{ color: staff.selfClose > 0 ? '#f97316' : 'var(--text-sub)' }}>{staff.selfClose}</td>
+                <td>{staff.life}</td>
+                <td>{staff.credit}</td>
               </tr>
             ))}
           </tbody>
