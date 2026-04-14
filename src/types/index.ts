@@ -89,6 +89,20 @@ export type TabName =
   | 'analysis'
   | 'attendance'
   | 'shift'
-  | 'profile';
+  | 'profile'
+  | 'growth';
+
+export interface StaffEvaluation {
+  staffName: string;
+  totalScore: number;
+  rank: number;
+  potential: string;
+  attendance: string;
+  attribute: string;
+  supervisor: string;
+  scores: Record<string, number>;
+  knowledge: Record<string, boolean>;
+  knowledgeItems: string[];
+}
 
 export type AnalysisMode = 'overall' | 'individual' | 'site' | 'compare';

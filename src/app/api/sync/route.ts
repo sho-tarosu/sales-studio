@@ -23,6 +23,7 @@ import {
   employeeShifts,
   shiftStaffNames,
   talknotePosts,
+  staffEvaluations,
 } from '@/lib/schema';
 
 function checkAuth(request: NextRequest): boolean {
@@ -103,7 +104,26 @@ interface TalknotePayload {
   rows: { postedAt: string; staffName: string; message: string }[];
 }
 
-type SyncPayload = SalesPayload | AgePayload | TypePayload | ShiftPayload | EmployeeShiftPayload | TalknotePayload;
+interface EvaluationStaff {
+  name: string;
+  totalScore: number;
+  rank: number;
+  potential: string;
+  attendance: string;
+  attribute: string;
+  supervisor: string;
+  scores: Record<string, number>;
+  knowledge: Record<string, boolean>;
+  knowledgeItems: string[];
+}
+
+interface EvaluationPayload {
+  type: 'evaluation';
+  month: string;
+  staff: EvaluationStaff[];
+}
+
+type SyncPayload = SalesPayload | AgePayload | TypePayload | ShiftPayload | EmployeeShiftPayload | TalknotePayload | EvaluationPayload;
 
 // ──────────────────────────────────────────────
 // 各シート種別の同期処理
@@ -361,6 +381,34 @@ async function syncTalknote(payload: TalknotePayload) {
   return { inserted: toInsert.length };
 }
 
+async function syncEvaluation(payload: EvaluationPayload) {
+  if (payload.staff.length === 0) return { inserted: 0 };
+
+  await Promise.all([
+    db.delete(staffEvaluations),
+    dbSupabase.delete(staffEvaluations),
+  ]);
+
+  const toInsert = payload.staff.map((s) => ({
+    staffName: s.name,
+    totalScore: String(s.totalScore),
+    rank: String(s.rank),
+    potential: s.potential,
+    attendance: s.attendance,
+    attribute: s.attribute,
+    supervisor: s.supervisor,
+    scores: s.scores,
+    knowledge: s.knowledge,
+    knowledgeItems: s.knowledgeItems,
+  }));
+
+  await Promise.all([
+    db.insert(staffEvaluations).values(toInsert),
+    dbSupabase.insert(staffEvaluations).values(toInsert),
+  ]);
+  return { inserted: toInsert.length };
+}
+
 // ──────────────────────────────────────────────
 // Route Handler
 // ──────────────────────────────────────────────
@@ -406,6 +454,9 @@ export async function POST(request: NextRequest) {
         break;
       case 'talknote':
         result = await syncTalknote(payload);
+        break;
+      case 'evaluation':
+        result = await syncEvaluation(payload);
         break;
       default:
         return NextResponse.json({ error: '不明な type です' }, { status: 400 });

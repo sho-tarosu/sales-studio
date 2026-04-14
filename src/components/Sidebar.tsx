@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { LayoutDashboard, BarChart2, Layers, TrendingUp, Clock, Calendar, Users, Menu } from 'lucide-react';
+import { LayoutDashboard, BarChart2, Layers, TrendingUp, Clock, Calendar, Users, Menu, GraduationCap } from 'lucide-react';
 import { TabName } from '@/types';
 import { signOut } from 'next-auth/react';
 
@@ -15,15 +15,22 @@ interface SidebarProps {
 
 const ICON_PROPS = { size: 18, strokeWidth: 1.75 } as const;
 
-const menuItems: { id: TabName; label: string; icon: React.ReactNode }[] = [
+const ALL_MENU_ITEMS: { id: TabName; label: string; icon: React.ReactNode; minRole?: string }[] = [
   { id: 'dashboard',      label: 'ダッシュボード', icon: <LayoutDashboard {...ICON_PROPS} /> },
   { id: 'visual-ranking', label: 'ランキング',     icon: <BarChart2       {...ICON_PROPS} /> },
   { id: 'stacked-chart',  label: 'MNP・新規・SU',  icon: <Layers          {...ICON_PROPS} /> },
   { id: 'analysis',       label: '分析・比較',     icon: <TrendingUp      {...ICON_PROPS} /> },
   { id: 'attendance',     label: '出勤管理',       icon: <Clock           {...ICON_PROPS} /> },
   { id: 'shift',          label: 'シフト',         icon: <Calendar        {...ICON_PROPS} /> },
+  { id: 'growth',         label: '育成管理',       icon: <GraduationCap   {...ICON_PROPS} />, minRole: '社員' },
   { id: 'profile',        label: 'プロフィール',   icon: <Users           {...ICON_PROPS} /> },
 ];
+
+const ROLE_ORDER = ['アルバイト', '社員', '幹部', '管理者'];
+function hasMinRole(userRole: string | undefined, minRole: string): boolean {
+  const idx = ROLE_ORDER.indexOf(userRole ?? '');
+  return idx >= ROLE_ORDER.indexOf(minRole);
+}
 
 export default function Sidebar({ activeTab, onTabChange, userName, userRole }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -50,7 +57,7 @@ export default function Sidebar({ activeTab, onTabChange, userName, userRole }: 
 
       {/* Navigation */}
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
-        {menuItems.map((item) => (
+        {ALL_MENU_ITEMS.filter((item) => !item.minRole || hasMinRole(userRole, item.minRole)).map((item) => (
           <button
             key={item.id}
             className={`menu-item${activeTab === item.id ? ' active' : ''}${collapsed ? ' menu-item-collapsed' : ''}`}

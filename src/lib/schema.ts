@@ -99,6 +99,25 @@ export const shiftStaffNames = pgTable('shift_staff_names', {
 });
 
 /**
+ * スタッフ育成データ（評価＋知識を統合）
+ * 常に最新1件のみ保持（月次なし）
+ */
+export const staffEvaluations = pgTable('staff_evaluations', {
+  id: serial('id').primaryKey(),
+  staffName: text('staff_name').notNull(),
+  totalScore: numeric('total_score').default('0'),
+  rank: numeric('rank').default('0'),
+  potential: text('potential').default(''),       // 高/中/低
+  attendance: text('attendance').default(''),     // 高/中/低
+  attribute: text('attribute').default(''),       // フリーター/学生
+  supervisor: text('supervisor').default(''),     // 担当者名
+  scores: jsonb('scores').$type<Record<string, number>>().default({}),
+  knowledge: jsonb('knowledge').$type<Record<string, boolean>>().default({}),
+  knowledgeItems: jsonb('knowledge_items').$type<string[]>().default([]),
+  syncedAt: timestamp('synced_at', { withTimezone: true }).defaultNow(),
+});
+
+/**
  * トークノート投稿ログ
  * Talknoteから受信した投稿をそのまま保存。店舗はシフトDBから補完。
  */

@@ -18,6 +18,7 @@ import ShiftView from '@/components/ShiftView';
 import ProfileView from '@/components/ProfileView';
 import NippoAlert from '@/components/NippoAlert';
 import TalknoteCard from '@/components/TalknoteCard';
+import GrowthView from '@/components/GrowthView';
 
 const TAB_TITLES: Record<TabName, string> = {
   'dashboard': '獲得状況',
@@ -27,6 +28,7 @@ const TAB_TITLES: Record<TabName, string> = {
   'attendance': '出勤管理',
   'shift': 'シフト',
   'profile': 'プロフィール',
+  'growth': '育成管理',
 };
 
 export default function Home() {
@@ -315,9 +317,11 @@ export default function Home() {
         )}
 
         {activeTab === 'profile' && <ProfileView />}
+
+        {activeTab === 'growth' && <GrowthView />}
       </main>
 
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} userRole={effectiveRole} />
 
       {/* ユーザードロワー */}
       {drawerOpen && (
