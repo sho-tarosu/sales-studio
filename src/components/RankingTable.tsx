@@ -31,7 +31,7 @@ export default function RankingTable({ ranking }: RankingTableProps) {
         <table className="full-ranking-table" style={{ minWidth: 700 }}>
           <thead>
             <tr>
-              <th style={{ textAlign: 'center', width: 48 }}>順位</th>
+              <th style={{ textAlign: 'center', width: 32, paddingLeft: 4, paddingRight: 4 }}>順位</th>
               <th style={{ minWidth: 120 }}>名前</th>
               {COLUMNS.map(({ key, label }) => (
                 <th
@@ -39,7 +39,7 @@ export default function RankingTable({ ranking }: RankingTableProps) {
                   onClick={() => setSortKey(key)}
                   style={{
                     cursor: 'pointer',
-                    color: sortKey === key ? '#3ea6ff' : undefined,
+                    color: sortKey === key ? '#ff4e45' : undefined,
                     whiteSpace: 'nowrap',
                     userSelect: 'none',
                   }}
