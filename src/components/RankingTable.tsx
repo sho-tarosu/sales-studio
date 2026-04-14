@@ -44,7 +44,7 @@ export default function RankingTable({ ranking }: RankingTableProps) {
                     userSelect: 'none',
                   }}
                 >
-                  {label}{sortKey === key ? ' ▼' : ''}
+                  {label}
                 </th>
               ))}
             </tr>
@@ -56,14 +56,14 @@ export default function RankingTable({ ranking }: RankingTableProps) {
                   {i + 1}
                 </td>
                 <td style={{ whiteSpace: 'nowrap' }}>{staff.name}</td>
-                <td style={{ color: sortKey === 'total' ? '#3ea6ff' : undefined, fontWeight: sortKey === 'total' ? 'bold' : undefined }}>{staff.total}</td>
-                <td style={{ color: sortKey === 'selfClose' ? '#3ea6ff' : staff.selfClose > 0 ? '#f97316' : 'var(--text-sub)' }}>{staff.selfClose}</td>
-                <td style={{ color: sortKey === 'mnp' ? '#3ea6ff' : undefined }}>{staff.mnp}</td>
-                <td style={{ color: sortKey === 'new' ? '#3ea6ff' : undefined }}>{staff.new}</td>
-                <td style={{ color: sortKey === 'change' ? '#3ea6ff' : undefined }}>{staff.change}</td>
-                <td style={{ color: sortKey === 'hikari' ? '#3ea6ff' : undefined }}>{staff.hikari}</td>
-                <td style={{ color: sortKey === 'tablet' ? '#3ea6ff' : undefined }}>{staff.tablet}</td>
-                <td style={{ color: sortKey === 'other' ? '#3ea6ff' : undefined }}>{staff.other}</td>
+                <td style={{ color: '#3ea6ff', fontWeight: 'bold' }}>{staff.total}</td>
+                <td style={{ color: staff.selfClose > 0 ? '#f97316' : 'var(--text-sub)' }}>{staff.selfClose}</td>
+                <td>{staff.mnp}</td>
+                <td>{staff.new}</td>
+                <td>{staff.change}</td>
+                <td>{staff.hikari}</td>
+                <td>{staff.tablet}</td>
+                <td>{staff.other}</td>
               </tr>
             ))}
           </tbody>
