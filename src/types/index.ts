@@ -88,6 +88,7 @@ export type TabName =
   | 'stacked-chart'
   | 'analysis'
   | 'attendance'
+  | 'analytics'
   | 'shift'
   | 'profile'
   | 'growth';

@@ -1,6 +1,6 @@
 'use client';
 
-import { LayoutDashboard, BarChart2, TrendingUp, Clock, Calendar, Users, GraduationCap } from 'lucide-react';
+import { LayoutDashboard, BarChart2, PieChart, Calendar, Users } from 'lucide-react';
 import { TabName } from '@/types';
 
 interface BottomNavProps {
@@ -9,23 +9,17 @@ interface BottomNavProps {
   userRole?: string;
 }
 
-const ROLE_ORDER = ['アルバイト', '社員', '幹部', '管理者'];
-function hasMinRole(userRole: string | undefined, minRole: string): boolean {
-  return ROLE_ORDER.indexOf(userRole ?? '') >= ROLE_ORDER.indexOf(minRole);
-}
 
 const ALL_NAV_ITEMS: { id: TabName; icon: React.ReactNode; label: string; minRole?: string }[] = [
   { id: 'dashboard',      icon: <LayoutDashboard size={20} strokeWidth={1.75} />, label: 'ホーム' },
   { id: 'visual-ranking', icon: <BarChart2        size={20} strokeWidth={1.75} />, label: 'ランキング' },
-  { id: 'analysis',       icon: <TrendingUp       size={20} strokeWidth={1.75} />, label: '分析' },
-  { id: 'attendance',     icon: <Clock            size={20} strokeWidth={1.75} />, label: '出勤' },
+  { id: 'analytics',      icon: <PieChart         size={20} strokeWidth={1.75} />, label: '実績・分析' },
   { id: 'shift',          icon: <Calendar         size={20} strokeWidth={1.75} />, label: 'シフト' },
-  { id: 'growth',         icon: <GraduationCap    size={20} strokeWidth={1.75} />, label: '育成', minRole: '社員' },
   { id: 'profile',        icon: <Users            size={20} strokeWidth={1.75} />, label: 'プロフィール' },
 ];
 
-export default function BottomNav({ activeTab, onTabChange, userRole }: BottomNavProps) {
-  const navItems = ALL_NAV_ITEMS.filter((item) => !item.minRole || hasMinRole(userRole, item.minRole));
+export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
+  const navItems = ALL_NAV_ITEMS;
   return (
     <nav className="bottom-nav">
       {navItems.map((item) => {

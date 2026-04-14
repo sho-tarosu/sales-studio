@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { LayoutDashboard, BarChart2, Layers, TrendingUp, Clock, Calendar, Users, Menu, GraduationCap } from 'lucide-react';
+import { LayoutDashboard, BarChart2, Layers, PieChart, Clock, Calendar, Users, Menu, GraduationCap } from 'lucide-react';
 import { TabName } from '@/types';
 import { signOut } from 'next-auth/react';
 
@@ -19,8 +19,7 @@ const ALL_MENU_ITEMS: { id: TabName; label: string; icon: React.ReactNode; minRo
   { id: 'dashboard',      label: 'ダッシュボード', icon: <LayoutDashboard {...ICON_PROPS} /> },
   { id: 'visual-ranking', label: 'ランキング',     icon: <BarChart2       {...ICON_PROPS} /> },
   { id: 'stacked-chart',  label: 'MNP・新規・SU',  icon: <Layers          {...ICON_PROPS} /> },
-  { id: 'analysis',       label: '分析・比較',     icon: <TrendingUp      {...ICON_PROPS} /> },
-  { id: 'attendance',     label: '出勤管理',       icon: <Clock           {...ICON_PROPS} /> },
+  { id: 'analytics',      label: '実績・分析',     icon: <PieChart        {...ICON_PROPS} /> },
   { id: 'shift',          label: 'シフト',         icon: <Calendar        {...ICON_PROPS} /> },
   { id: 'growth',         label: '育成管理',       icon: <GraduationCap   {...ICON_PROPS} />, minRole: '社員' },
   { id: 'profile',        label: 'プロフィール',   icon: <Users           {...ICON_PROPS} /> },

@@ -19,13 +19,15 @@ import ProfileView from '@/components/ProfileView';
 import NippoAlert from '@/components/NippoAlert';
 import TalknoteCard from '@/components/TalknoteCard';
 import GrowthView from '@/components/GrowthView';
+import AnalyticsView from '@/components/AnalyticsView';
 
 const TAB_TITLES: Record<TabName, string> = {
   'dashboard': '獲得状況',
   'visual-ranking': 'ランキング',
   'stacked-chart': 'MNP・新規・SU',
   'analysis': '分析・比較',
-  'attendance': '出勤管理',
+  'attendance': '個人実績',
+  'analytics': '実績・分析',
   'shift': 'シフト',
   'profile': 'プロフィール',
   'growth': '育成管理',
@@ -300,6 +302,10 @@ export default function Home() {
 
             {activeTab === 'attendance' && (
               <AttendanceTable data={data} selectedMonth={selectedMonth} loginName={effectiveName} userRole={effectiveRole} />
+            )}
+
+            {activeTab === 'analytics' && (
+              <AnalyticsView data={data} selectedMonth={selectedMonth} loginName={effectiveName} userRole={effectiveRole} />
             )}
           </>
         )}
