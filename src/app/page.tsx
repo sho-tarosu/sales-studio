@@ -335,7 +335,7 @@ export default function Home() {
 
         {activeTab === 'profile' && <ProfileView />}
 
-        {activeTab === 'growth' && <GrowthView />}
+        {activeTab === 'growth' && ['社員', '幹部', '管理者'].includes(effectiveRole ?? '') && <GrowthView />}
       </main>
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} userRole={effectiveRole} />
