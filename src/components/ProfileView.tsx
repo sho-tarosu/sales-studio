@@ -198,7 +198,12 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
         ? `/api/me/stats?name=${encodeURIComponent(effectiveName)}`
         : '/api/me/stats';
       fetch(url).then(r => r.json()).then(setMyStats).catch(() => {});
+    } else {
+      setMyStats(null);
     }
+  }, [role, effectiveName]);
+
+  useEffect(() => {
     fetch('/api/profile')
       .then((r) => {
         if (!r.ok) return r.json().then((e: { error?: string }) => { throw new Error(e.error || 'エラー'); });
