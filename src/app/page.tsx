@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { RefreshCw, ChevronLeft } from 'lucide-react';
+import Image from 'next/image';
 import { TabName, DashboardData, ShiftRow } from '@/types';
 import AuthGuard from '@/components/AuthGuard';
 import Sidebar from '@/components/Sidebar';
@@ -187,10 +188,13 @@ export default function Home() {
                 />
               )}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-sub)', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
-                Sales Studio
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Image src="/logo-w.png" alt="logo" width={24} height={24} style={{ borderRadius: 6, flexShrink: 0 }} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main)', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
+                  Sales Studio
+                </span>
+              </div>
               {session?.user?.name && (
                 <button
                   onClick={() => setDrawerOpen(true)}
