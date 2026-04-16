@@ -20,12 +20,14 @@ const TIERS: Tier[] = [
   { name: 'ゼウス++',         pt: 60, incentive: 11000, selfClosePt: 60 },
 ];
 
-// 3ゾーン定義
 const ZONES = [
-  { label: 'グリーン〜ブロンズ', min: 0,  max: 15,  color: '#4ade80', trackColor: 'rgba(74,222,128,0.15)' },
+  { label: 'グリーン〜ブロンズ',    min: 0,  max: 15,  color: '#4ade80', trackColor: 'rgba(74,222,128,0.15)' },
   { label: 'クローザー〜レジェンド', min: 15, max: 30,  color: '#60a5fa', trackColor: 'rgba(96,165,250,0.15)' },
-  { label: 'ゼウス',            min: 30, max: 100, color: '#f87171', trackColor: 'rgba(248,113,113,0.15)' },
+  { label: 'ゼウス',                min: 30, max: 100, color: '#f87171', trackColor: 'rgba(248,113,113,0.15)' },
 ];
+
+const MAX_PT = 60;
+const p = (pt: number) => `${Math.min((pt / MAX_PT) * 100, 100)}%`;
 
 function getCurrentTier(total: number, selfClose: number): number {
   let idx = 0;
@@ -44,15 +46,21 @@ function zoneProgress(total: number, min: number, max: number): number {
   return Math.min(((total - min) / (max - min)) * 100, 100);
 }
 
+const MAJOR_TICKS = [0, 10, 20, 30, 40, 50, 60];
+const MINOR_TICKS = [5, 15, 25, 35, 45, 55];
+// グリーン(0pt)は左端なので除外、交互2段配置
+const TIER_LABELS = TIERS.filter(t => t.pt > 0).map((t, i) => ({ ...t, level: i % 2 }));
+
 export default function IncentiveBar({ total, selfClose }: { total: number; selfClose: number }) {
   const currentIdx = getCurrentTier(total, selfClose);
   const current = TIERS[currentIdx];
   const next = TIERS[currentIdx + 1] ?? null;
+  const clamped = Math.min(total, MAX_PT);
 
   return (
     <div className="chart-card" style={{ marginBottom: 12 }}>
-      {/* 現在クラス */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+      {/* ヘッダー */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
           <span style={{ fontSize: 11, color: 'var(--text-sub)', marginRight: 6 }}>現在クラス</span>
           <span style={{ fontSize: 18, fontWeight: 'bold', color: 'var(--text-main)' }}>{current.name}</span>
@@ -65,7 +73,100 @@ export default function IncentiveBar({ total, selfClose }: { total: number; self
         </div>
       </div>
 
-      {/* 3本バー */}
+      {/* 数直線ルーラー */}
+      <div style={{ position: 'relative', paddingTop: 42, paddingBottom: 28, marginBottom: 16 }}>
+        {/* クラス名ラベル（2段交互） */}
+        {TIER_LABELS.map((t) => {
+          const isCurrent = t.name === current.name;
+          const isPassed = total >= t.pt;
+          return (
+            <div key={t.name} style={{
+              position: 'absolute',
+              left: p(t.pt),
+              top: t.level === 0 ? 22 : 4,
+              transform: 'translateX(-50%)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              pointerEvents: 'none',
+            }}>
+              <span style={{
+                fontSize: 9,
+                whiteSpace: 'nowrap',
+                fontWeight: isCurrent ? 700 : 400,
+                color: isCurrent
+                  ? 'var(--text-main)'
+                  : isPassed
+                    ? 'rgba(255,255,255,0.35)'
+                    : 'rgba(255,255,255,0.2)',
+              }}>
+                {t.name}
+              </span>
+              <div style={{
+                width: 1,
+                height: t.level === 0 ? 12 : 30,
+                background: isCurrent ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.08)',
+              }} />
+            </div>
+          );
+        })}
+
+        {/* ルーラー本体（細いライン） */}
+        <div style={{ height: 2, background: 'rgba(255,255,255,0.12)', borderRadius: 1, position: 'relative' }}>
+          {/* 現在地までのフィル */}
+          <div style={{
+            position: 'absolute', top: 0, left: 0, bottom: 0,
+            width: p(clamped),
+            background: 'rgba(255,255,255,0.4)',
+            borderRadius: 1,
+            transition: 'width 0.6s ease',
+          }} />
+          {/* 現在地マーカー */}
+          <div style={{
+            position: 'absolute',
+            left: p(clamped),
+            top: -5,
+            transform: 'translateX(-50%)',
+            width: 2,
+            height: 12,
+            background: '#fff',
+            borderRadius: 1,
+            boxShadow: '0 0 6px rgba(255,255,255,0.7)',
+          }} />
+        </div>
+
+        {/* 大目盛り（10pt）＋ラベル */}
+        {MAJOR_TICKS.map(pt => (
+          <div key={pt} style={{
+            position: 'absolute',
+            left: p(pt),
+            top: 44,
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 2,
+          }}>
+            <div style={{ width: 1, height: 6, background: 'rgba(255,255,255,0.3)' }} />
+            <span style={{ fontSize: 10, color: 'var(--text-sub)', lineHeight: 1 }}>{pt}</span>
+          </div>
+        ))}
+
+        {/* 小目盛り（5pt） */}
+        {MINOR_TICKS.map(pt => (
+          <div key={pt} style={{
+            position: 'absolute',
+            left: p(pt),
+            top: 44,
+            transform: 'translateX(-50%)',
+            width: 1,
+            height: 4,
+            background: 'rgba(255,255,255,0.15)',
+          }} />
+        ))}
+      </div>
+
+      {/* 3本ゾーンバー */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
         {ZONES.map((zone) => {
           const pct = zoneProgress(total, zone.min, zone.max);
@@ -95,8 +196,8 @@ export default function IncentiveBar({ total, selfClose }: { total: number; self
 
       {/* 次のクラスの条件 */}
       {next && (
-        <div>
-          <div style={{ fontSize: 12, color: 'var(--text-sub)', marginBottom: 4 }}>
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12 }}>
+          <div style={{ fontSize: 12, color: 'var(--text-sub)', marginBottom: 6 }}>
             <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{next.name}</span> まで
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
