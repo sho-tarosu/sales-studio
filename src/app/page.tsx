@@ -154,9 +154,10 @@ export default function Home() {
       .catch(() => {});
   }, [drawerOpen, session?.user?.role, allUsers.length]);
 
-  // タブ切り替え時にプロフィールパネルを閉じる
+  // タブ切り替え時にすべてのパネルを閉じる
   useEffect(() => {
     setDrawerOpen(false);
+    setContactsOpen(false);
   }, [activeTab]);
 
   const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -656,7 +657,7 @@ export default function Home() {
                   </div>
                   {c.mentees.length > 0 && (
                     <div style={{ marginTop: 4, fontSize: 12, color: 'var(--text-sub)' }}>
-                      担当: {c.mentees.join('・')}
+                      {c.mentees.join('・')}
                     </div>
                   )}
                 </div>
