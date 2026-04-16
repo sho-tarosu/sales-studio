@@ -21,7 +21,7 @@ const ALL_MENU_ITEMS: { id: TabName; label: string; icon: React.ReactNode; minRo
   { id: 'analytics',      label: '実績・分析',     icon: <PieChart        {...ICON_PROPS} /> },
   { id: 'shift',          label: 'シフト',         icon: <Calendar        {...ICON_PROPS} /> },
   { id: 'growth',         label: '育成管理',       icon: <GraduationCap   {...ICON_PROPS} />, minRole: '社員' },
-  { id: 'profile',        label: 'プロフィール',   icon: <Users           {...ICON_PROPS} /> },
+  { id: 'profile',        label: 'スタッフ',       icon: <Users           {...ICON_PROPS} /> },
 ];
 
 const ROLE_ORDER = ['アルバイト', '社員', '幹部', '管理者'];

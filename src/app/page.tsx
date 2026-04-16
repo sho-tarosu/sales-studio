@@ -21,6 +21,7 @@ import TalknoteCard from '@/components/TalknoteCard';
 import GrowthView from '@/components/GrowthView';
 import AnalyticsView from '@/components/AnalyticsView';
 import { useActivityTracker } from '@/hooks/useActivityTracker';
+import IncentiveBar from '@/components/IncentiveBar';
 
 const TAB_TITLES: Record<TabName, string> = {
   'dashboard': '獲得状況',
@@ -30,7 +31,7 @@ const TAB_TITLES: Record<TabName, string> = {
   'attendance': '個人実績',
   'analytics': '実績・分析',
   'shift': 'シフト',
-  'profile': 'プロフィール',
+  'profile': 'スタッフ',
   'growth': '育成管理',
 };
 
@@ -41,6 +42,7 @@ export default function Home() {
   const [rankingView, setRankingView] = useState<'default' | 'total' | 'selfclose' | 'mnp' | 'table'>('default');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [meData, setMeData] = useState<{ birthday: string; bloodType: string; animal: string; zodiac: string } | null>(null);
+  const [myStats, setMyStats] = useState<{ total: number; selfClose: number } | null>(null);
   const [impersonated, setImpersonated] = useState<{ name: string; role: string } | null>(null);
   const [allUsers, setAllUsers] = useState<{ name: string; role: string }[]>([]);
 
@@ -51,6 +53,17 @@ export default function Home() {
   const now = new Date();
   const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
+
+  useEffect(() => {
+    if (effectiveRole === 'アルバイト') {
+      const url = effectiveName
+        ? `/api/me/stats?name=${encodeURIComponent(effectiveName)}`
+        : '/api/me/stats';
+      fetch(url).then(r => r.json()).then(setMyStats).catch(() => {});
+    } else {
+      setMyStats(null);
+    }
+  }, [effectiveRole, effectiveName]);
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -393,7 +406,12 @@ export default function Home() {
             )}
 
             {activeTab === 'analytics' && (
-              <AnalyticsView data={data} selectedMonth={selectedMonth} loginName={effectiveName} userRole={effectiveRole} />
+              <>
+                {effectiveRole === 'アルバイト' && myStats && (
+                  <IncentiveBar total={myStats.total} selfClose={myStats.selfClose} />
+                )}
+                <AnalyticsView data={data} selectedMonth={selectedMonth} loginName={effectiveName} userRole={effectiveRole} />
+              </>
             )}
           </>
         )}

@@ -15,7 +15,7 @@ const ALL_NAV_ITEMS: { id: TabName; icon: React.ReactNode; label: string; minRol
   { id: 'visual-ranking', icon: <BarChart2        size={20} strokeWidth={1.75} />, label: 'ランキング' },
   { id: 'analytics',      icon: <PieChart         size={20} strokeWidth={1.75} />, label: '実績・分析' },
   { id: 'shift',          icon: <Calendar         size={20} strokeWidth={1.75} />, label: 'シフト' },
-  { id: 'profile',        icon: <Users            size={20} strokeWidth={1.75} />, label: 'プロフィール' },
+  { id: 'profile',        icon: <Users            size={20} strokeWidth={1.75} />, label: 'スタッフ' },
 ];
 
 export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {

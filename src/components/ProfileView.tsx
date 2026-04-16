@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import IncentiveBar from '@/components/IncentiveBar';
 
 
 interface ProfileData {
@@ -179,30 +178,15 @@ function JapanRegionMap({ regions }: { regions: Record<string, number> }) {
   );
 }
 
-interface MyStats { total: number; selfClose: number; }
-
 interface ProfileViewProps {
   effectiveRole?: string;
   effectiveName?: string;
 }
 
 export default function ProfileView({ effectiveRole = '', effectiveName = '' }: ProfileViewProps) {
-  const role = effectiveRole;
-  const [myStats, setMyStats] = useState<MyStats | null>(null);
   const [data, setData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (role === 'アルバイト') {
-      const url = effectiveName
-        ? `/api/me/stats?name=${encodeURIComponent(effectiveName)}`
-        : '/api/me/stats';
-      fetch(url).then(r => r.json()).then(setMyStats).catch(() => {});
-    } else {
-      setMyStats(null);
-    }
-  }, [role, effectiveName]);
 
   useEffect(() => {
     fetch('/api/profile')
@@ -225,11 +209,6 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
 
   return (
     <div style={{ padding: '0 0 80px' }}>
-      {/* アルバイト向けインセンティブバー */}
-      {role === 'アルバイト' && myStats && (
-        <IncentiveBar total={myStats.total} selfClose={myStats.selfClose} />
-      )}
-
       {/* 総勢 */}
       <div className="chart-card" style={{ marginBottom: 12, minHeight: 'unset', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
