@@ -375,8 +375,10 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
               gap: 4,
             }}>
               <span style={{ fontSize: 11, color: color, fontWeight: 600, letterSpacing: '0.05em' }}>{label}</span>
-              <span style={{ fontSize: 28, fontWeight: 'bold', color: color, lineHeight: 1, letterSpacing: '-1px' }}>{data.roleCounts?.[label] ?? 0}</span>
-              <span style={{ fontSize: 10, color: 'var(--text-sub)' }}>名</span>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
+                <span style={{ fontSize: 28, fontWeight: 'bold', color: color, lineHeight: 1, letterSpacing: '-1px' }}>{data.roleCounts?.[label] ?? 0}</span>
+                <span style={{ fontSize: 10, color: 'var(--text-sub)' }}>名</span>
+              </div>
             </div>
           ))}
         </div>
