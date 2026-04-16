@@ -41,7 +41,7 @@ export default function Sidebar({ activeTab, onTabChange, userName, userRole }: 
       <div className="sidebar-brand-row">
         {!collapsed && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Image src="/icon-192.png" alt="logo" width={22} height={22} style={{ borderRadius: 4 }} />
+            <Image src="/icon-192.png" alt="logo" width={48} height={48} style={{ borderRadius: 8 }} />
             <div className="brand-text">Sales Studio</div>
           </div>
         )}

@@ -266,45 +266,64 @@ export default function Home() {
 
             {activeTab === 'visual-ranking' && (
               <>
-                <div className="shift-controls" style={{ marginBottom: '16px' }}>
-                  <div className="shift-region-toggle">
-                    <button
-                      className={`shift-region-btn${rankingView === 'total' ? ' active' : ''}`}
-                      onClick={() => setRankingView('total')}
-                    >
-                      獲得
-                    </button>
-                    <button
-                      className={`shift-region-btn${rankingView === 'selfclose' ? ' active' : ''}`}
-                      onClick={() => setRankingView('selfclose')}
-                    >
-                      自己クロ
-                    </button>
-                    <button
-                      className={`shift-region-btn${rankingView === 'table' ? ' active' : ''}`}
-                      onClick={() => setRankingView('table')}
-                    >
-                      詳細
-                    </button>
-                  </div>
-                </div>
-                {rankingView === 'total' && (
-                  <div className="chart-card" style={{ height: 'calc(100vh - 200px)' }}>
+                {/* PC: 獲得・自己クロを横並び表示 */}
+                <div className="ranking-charts-pc">
+                  <div className="chart-card" style={{ flex: 1, height: 'calc(100vh - 160px)' }}>
+                    <div style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 8 }}>獲得</div>
                     <BarChart ranking={data.ranking} />
                   </div>
-                )}
-                {rankingView === 'selfclose' && (
-                  <div className="chart-card" style={{ height: 'calc(100vh - 200px)' }}>
+                  <div className="chart-card" style={{ flex: 1, height: 'calc(100vh - 160px)' }}>
+                    <div style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 8 }}>自己クロ</div>
                     <BarChart
                       ranking={[...data.ranking].sort((a, b) => b.selfClose - a.selfClose)}
                       getValue={(s) => s.selfClose}
                       color="#f97316"
                     />
                   </div>
-                )}
-                {rankingView === 'table' && (
-                  <RankingTable ranking={data.ranking} />
-                )}
+                </div>
+
+                {/* スマホ: タブ切り替え */}
+                <div className="ranking-charts-sp">
+                  <div className="shift-controls" style={{ marginBottom: '16px' }}>
+                    <div className="shift-region-toggle">
+                      <button
+                        className={`shift-region-btn${rankingView === 'total' ? ' active' : ''}`}
+                        onClick={() => setRankingView('total')}
+                      >
+                        獲得
+                      </button>
+                      <button
+                        className={`shift-region-btn${rankingView === 'selfclose' ? ' active' : ''}`}
+                        onClick={() => setRankingView('selfclose')}
+                      >
+                        自己クロ
+                      </button>
+                      <button
+                        className={`shift-region-btn${rankingView === 'table' ? ' active' : ''}`}
+                        onClick={() => setRankingView('table')}
+                      >
+                        詳細
+                      </button>
+                    </div>
+                  </div>
+                  {rankingView === 'total' && (
+                    <div className="chart-card" style={{ height: 'calc(100vh - 200px)' }}>
+                      <BarChart ranking={data.ranking} />
+                    </div>
+                  )}
+                  {rankingView === 'selfclose' && (
+                    <div className="chart-card" style={{ height: 'calc(100vh - 200px)' }}>
+                      <BarChart
+                        ranking={[...data.ranking].sort((a, b) => b.selfClose - a.selfClose)}
+                        getValue={(s) => s.selfClose}
+                        color="#f97316"
+                      />
+                    </div>
+                  )}
+                  {rankingView === 'table' && (
+                    <RankingTable ranking={data.ranking} />
+                  )}
+                </div>
               </>
             )}
 

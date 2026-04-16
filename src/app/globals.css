@@ -321,6 +321,14 @@ input[type="password"]:focus {
   min-height: 400px;
 }
 
+/* PC: 獲得・自己クロ横並び / SP: タブ切り替え */
+.ranking-charts-pc { display: none; }
+.ranking-charts-sp { display: block; }
+@media (min-width: 768px) {
+  .ranking-charts-pc { display: flex; gap: 16px; }
+  .ranking-charts-sp { display: none; }
+}
+
 .ranking-card {
   background: var(--card-bg);
   border: 1px solid var(--border-color);
