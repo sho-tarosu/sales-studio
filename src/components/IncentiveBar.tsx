@@ -67,7 +67,7 @@ export default function IncentiveBar({ total, selfClose }: { total: number; self
         </div>
       </div>
 
-      {/* 3本ゾーンバー */}
+      {/* 3本ゾーンバー（次ランク条件をそのバーの直下に表示） */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 16 }}>
         {ZONES.map((zone) => {
           const pct = zoneProgress(total, zone.min, zone.max);
@@ -79,108 +79,111 @@ export default function IncentiveBar({ total, selfClose }: { total: number; self
           }
           const tickPct = (pt: number) => ((pt - zone.min) / range) * 100;
 
-          // レイアウト定数
-          const RANK_H = 14;   // ランク名エリアの高さ
-          const BAR_H = 8;     // バーの高さ
-          const GAP = 5;       // バー下の隙間
-          const TOTAL_H = RANK_H + BAR_H + GAP + 14; // 数字エリア込みの高さ
+          const RANK_H = 14;
+          const BAR_H = 8;
+          const GAP = 5;
+          const TOTAL_H = RANK_H + BAR_H + GAP + 14;
+
+          // このゾーンに次のランクが含まれるか
+          const nextInZone = next && next.pt > zone.min && next.pt <= zone.max;
 
           return (
-            <div key={zone.label} style={{ position: 'relative', height: TOTAL_H }}>
+            <div key={zone.label}>
+              <div style={{ position: 'relative', height: TOTAL_H }}>
+                {/* ランク名（バー上段） */}
+                {allTicks.map((pt, i) => {
+                  const tierName = TIERS.find(t => t.pt === pt)?.name ?? null;
+                  if (!tierName) return null;
+                  const isFirst = i === 0;
+                  const isLast = i === allTicks.length - 1;
+                  return (
+                    <span key={`name-${pt}`} style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: isFirst ? '0%' : isLast ? '100%' : `${tickPct(pt)}%`,
+                      transform: isFirst ? 'none' : isLast ? 'translateX(-100%)' : 'translateX(-50%)',
+                      fontSize: 9,
+                      color: total >= pt ? zone.color : 'rgba(255,255,255,0.22)',
+                      fontWeight: total >= pt ? 600 : 400,
+                      whiteSpace: 'nowrap',
+                      lineHeight: 1,
+                      pointerEvents: 'none',
+                    }}>
+                      {tierName}
+                    </span>
+                  );
+                })}
 
-              {/* ランク名（バー上段） */}
-              {allTicks.map((pt, i) => {
-                const tierName = TIERS.find(t => t.pt === pt)?.name ?? null;
-                if (!tierName) return null;
-                const isFirst = i === 0;
-                const isLast = i === allTicks.length - 1;
-                return (
-                  <span key={`name-${pt}`} style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: isFirst ? '0%' : isLast ? '100%' : `${tickPct(pt)}%`,
-                    transform: isFirst ? 'none' : isLast ? 'translateX(-100%)' : 'translateX(-50%)',
-                    fontSize: 9,
-                    color: total >= pt ? zone.color : 'rgba(255,255,255,0.22)',
-                    fontWeight: total >= pt ? 600 : 400,
-                    whiteSpace: 'nowrap',
-                    lineHeight: 1,
-                    pointerEvents: 'none',
-                  }}>
-                    {tierName}
-                  </span>
-                );
-              })}
+                {/* バー本体 */}
+                <div style={{ position: 'absolute', top: RANK_H, left: 0, right: 0,
+                  background: zone.trackColor, borderRadius: 6, height: BAR_H, overflow: 'hidden' }}>
+                  <div style={{
+                    width: `${pct}%`, height: '100%',
+                    background: zone.color, borderRadius: 6,
+                    transition: 'width 0.6s ease',
+                    opacity: pct === 0 ? 0.3 : 1,
+                  }} />
+                </div>
 
-              {/* バー本体 */}
-              <div style={{ position: 'absolute', top: RANK_H, left: 0, right: 0,
-                background: zone.trackColor, borderRadius: 6, height: BAR_H, overflow: 'hidden' }}>
-                <div style={{
-                  width: `${pct}%`, height: '100%',
-                  background: zone.color, borderRadius: 6,
-                  transition: 'width 0.6s ease',
-                  opacity: pct === 0 ? 0.3 : 1,
-                }} />
+                {/* 目盛り線＋pt数字（バー下段） */}
+                {allTicks.map((pt, i) => {
+                  const isFirst = i === 0;
+                  const isLast = i === allTicks.length - 1;
+                  return (
+                    <div key={`tick-${pt}`} style={{
+                      position: 'absolute',
+                      top: RANK_H + BAR_H,
+                      left: isFirst ? '0%' : isLast ? 'auto' : `${tickPct(pt)}%`,
+                      right: isLast ? 0 : 'auto',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: isFirst ? 'flex-start' : isLast ? 'flex-end' : 'center',
+                      transform: (!isFirst && !isLast) ? 'translateX(-50%)' : 'none',
+                      pointerEvents: 'none',
+                    }}>
+                      <div style={{ width: 1, height: GAP, background: 'rgba(255,255,255,0.18)' }} />
+                      <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', lineHeight: 1, whiteSpace: 'nowrap' }}>
+                        {pt}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* 目盛り線＋pt数字（バー下段） */}
-              {allTicks.map((pt, i) => {
-                const isFirst = i === 0;
-                const isLast = i === allTicks.length - 1;
-                return (
-                  <div key={`tick-${pt}`} style={{
-                    position: 'absolute',
-                    top: RANK_H + BAR_H,
-                    left: isFirst ? '0%' : isLast ? 'auto' : `${tickPct(pt)}%`,
-                    right: isLast ? 0 : 'auto',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: isFirst ? 'flex-start' : isLast ? 'flex-end' : 'center',
-                    transform: (!isFirst && !isLast) ? 'translateX(-50%)' : 'none',
-                    pointerEvents: 'none',
-                  }}>
-                    <div style={{ width: 1, height: GAP, background: 'rgba(255,255,255,0.18)' }} />
-                    <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', lineHeight: 1, whiteSpace: 'nowrap' }}>
-                      {pt}
-                    </span>
+              {/* 次のランク条件（このゾーンに次ランクがある場合） */}
+              {nextInZone && next && (
+                <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                  <div style={{ fontSize: 12, color: 'var(--text-sub)', marginBottom: 6 }}>
+                    <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{next.name}</span> まで
                   </div>
-                );
-              })}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
+                      <span style={{ color: 'var(--text-sub)' }}>獲得</span>
+                      <span style={{ color: 'var(--text-main)' }}>{next.pt}pt以上</span>
+                      {total >= next.pt ? (
+                        <span style={{ color: '#4ade80', fontWeight: 700, fontSize: 12 }}>clear</span>
+                      ) : (
+                        <span style={{ color: 'var(--text-sub)', fontSize: 12 }}>あと {Math.ceil((next.pt - total) * 10) / 10}pt</span>
+                      )}
+                    </div>
+                    {next.selfClosePt !== null && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
+                        <span style={{ color: 'var(--text-sub)' }}>自己クロ</span>
+                        <span style={{ color: 'var(--text-main)' }}>{next.selfClosePt}pt以上</span>
+                        {selfClose >= next.selfClosePt ? (
+                          <span style={{ color: '#4ade80', fontWeight: 700, fontSize: 12 }}>clear</span>
+                        ) : (
+                          <span style={{ color: 'var(--text-sub)', fontSize: 12 }}>あと {Math.ceil((next.selfClosePt - selfClose) * 10) / 10}pt</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
       </div>
-
-      {/* 次のクラスの条件 */}
-      {next && (
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12 }}>
-          <div style={{ fontSize: 12, color: 'var(--text-sub)', marginBottom: 6 }}>
-            <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{next.name}</span> まで
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
-              <span style={{ color: 'var(--text-sub)' }}>獲得</span>
-              <span style={{ color: 'var(--text-main)' }}>{next.pt}pt以上</span>
-              {total >= next.pt ? (
-                <span style={{ color: '#4ade80', fontWeight: 700, fontSize: 12 }}>clear</span>
-              ) : (
-                <span style={{ color: 'var(--text-sub)', fontSize: 12 }}>あと {Math.ceil((next.pt - total) * 10) / 10}pt</span>
-              )}
-            </div>
-            {next.selfClosePt !== null && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
-                <span style={{ color: 'var(--text-sub)' }}>自己クロ</span>
-                <span style={{ color: 'var(--text-main)' }}>{next.selfClosePt}pt以上</span>
-                {selfClose >= next.selfClosePt ? (
-                  <span style={{ color: '#4ade80', fontWeight: 700, fontSize: 12 }}>clear</span>
-                ) : (
-                  <span style={{ color: 'var(--text-sub)', fontSize: 12 }}>あと {Math.ceil((next.selfClosePt - selfClose) * 10) / 10}pt</span>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* ゼウス達成時 */}
       {!next && (
