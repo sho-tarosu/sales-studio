@@ -62,7 +62,7 @@ export default function Home() {
     } else {
       setMyStats(null);
     }
-  }, [effectiveRole, effectiveName, selectedMonth]);
+  }, [effectiveRole, effectiveName, selectedMonth, data]);
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
