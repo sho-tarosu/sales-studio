@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getSheetData, getStaffGenders } from '@/lib/sheets';
 import { auth } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { staffProfiles } from '@/lib/schema';
 
 export const dynamic = 'force-dynamic';
-
-const SHEET_NAME = 'スタッフ情報';
 
 const PREFECTURE_TO_REGION: Record<string, string> = {
   '北海道': '北海道',
@@ -20,7 +19,6 @@ const PREFECTURE_TO_REGION: Record<string, string> = {
 
 function calcAge(birthday: string): number | null {
   if (!birthday) return null;
-  // Google Sheets serial number (numeric string)
   const serial = Number(birthday);
   let birth: Date;
   if (!isNaN(serial) && serial > 10000) {
@@ -51,7 +49,8 @@ export async function GET(request: Request) {
   const regionFilter = searchParams.get('region') ?? '全国';
 
   try {
-    const rows = await getSheetData(SHEET_NAME);
+    // DBから全スタッフ取得
+    const allStaff = await db.select().from(staffProfiles);
 
     const prefectures: Record<string, number> = {};
     const regions: Record<string, number> = {};
@@ -71,24 +70,16 @@ export async function GET(request: Request) {
     const genderMap: Record<string, 'male' | 'female'> = {};
     const prefectureStaff: Record<string, string[]> = {};
 
-    for (let i = 1; i < rows.length; i++) {
-      const row = rows[i];
-      const name   = row[19]?.trim();
-      if (!name) continue;
+    for (const s of allStaff) {
+      const name = s.name;
 
-      const active = row[23]?.trim();
-      if (active?.toUpperCase() !== 'TRUE') continue;
-
-      // 拠点フィルター（B列 = index 1）
-      if (regionFilter !== '全国') {
-        const base = row[1]?.trim();
-        if (base !== regionFilter) continue;
-      }
+      // 拠点フィルター
+      if (regionFilter !== '全国' && s.base !== regionFilter) continue;
 
       total++;
 
       // ロール
-      const role = row[22]?.trim();
+      const role = s.role ?? '';
       let roleKey: string;
       if (role === 'アルバイト') { roleKey = 'アルバイト'; roleCounts['アルバイト']++; }
       else if (role === '社員' || role === '管理者') { roleKey = '社員'; roleCounts['社員']++; }
@@ -96,8 +87,7 @@ export async function GET(request: Request) {
       roleStaff[roleKey].push(name);
 
       // 出身地
-      const rawPref = row[7]?.trim();
-      const prefecture = rawPref ? rawPref.replace(/[都道府県]$/, '') : '';
+      const prefecture = s.prefecture ?? '';
       if (prefecture) {
         prefectures[prefecture] = (prefectures[prefecture] || 0) + 1;
         const region = PREFECTURE_TO_REGION[prefecture] || '海外';
@@ -109,24 +99,23 @@ export async function GET(request: Request) {
       }
 
       // 血液型
-      const rawBlood = row[8]?.trim();
-      const bloodType = rawBlood ? (rawBlood.endsWith('型') ? rawBlood : rawBlood + '型') : '';
+      const bloodType = s.bloodType ?? '';
       if (bloodType) {
         bloodTypes[bloodType] = (bloodTypes[bloodType] || 0) + 1;
         if (!bloodStaff[bloodType]) bloodStaff[bloodType] = [];
         bloodStaff[bloodType].push(name);
       }
 
-      // 動物占い（K列 = index 10）
-      const animal = row[10]?.trim();
+      // 動物占い
+      const animal = s.animal ?? '';
       if (animal) {
         animalTypes[animal] = (animalTypes[animal] || 0) + 1;
         if (!animalStaff[animal]) animalStaff[animal] = [];
         animalStaff[animal].push(name);
       }
 
-      // 年齢（E列 = index 4）
-      const age = calcAge(row[4]?.trim() ?? '');
+      // 年齢
+      const age = calcAge(s.birthday ?? '');
       if (age !== null) {
         const bracket = ageBracket(age);
         ageBrackets[bracket] = (ageBrackets[bracket] || 0) + 1;
@@ -134,8 +123,8 @@ export async function GET(request: Request) {
         ageBracketStaff[bracket].push(name);
       }
 
-      // 性別（AB列 = index 27）
-      const gender = row[27]?.trim();
+      // 性別
+      const gender = s.gender ?? '';
       if (gender === '男') { genderMale++; genderStaff.male.push(name); genderMap[name] = 'male'; }
       else if (gender === '女') { genderFemale++; genderStaff.female.push(name); genderMap[name] = 'female'; }
     }

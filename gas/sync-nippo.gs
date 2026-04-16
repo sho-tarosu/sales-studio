@@ -668,6 +668,43 @@ function syncStaffInfo_New() {
 
 
 // ============================================================
+//  [機能⑤-B] スタッフプロフィール → DB同期
+//    手動実行: syncStaffProfilesToDB()
+//    毎日6時トリガーで自動実行（syncStaffInfo_New の直後に呼ぶ）
+// ============================================================
+
+function syncStaffProfilesToDB() {
+  try {
+    const ss    = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName('スタッフ情報');
+    if (!sheet) { Logger.log('[スタッフDB同期] スタッフ情報シートが見つかりません'); return; }
+
+    const lastRow = sheet.getLastRow();
+    const lastCol = sheet.getLastColumn();
+    if (lastRow < 2) { Logger.log('[スタッフDB同期] データなし'); return; }
+
+    const rows = sheet.getRange(1, 1, lastRow, lastCol).getValues();
+
+    const payload = JSON.stringify({ rows: rows });
+    const options = {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { Authorization: 'Bearer ' + CONFIG.SYNC_SECRET },
+      payload: payload,
+      muteHttpExceptions: true,
+    };
+
+    const url = CONFIG.SYNC_URL.replace('/api/sync', '/api/sync/staff');
+    const res = UrlFetchApp.fetch(url, options);
+    const body = res.getContentText();
+    Logger.log('[スタッフDB同期] ' + res.getResponseCode() + ' ' + body);
+  } catch (e) {
+    Logger.log('[スタッフDB同期] エラー: ' + e.message);
+  }
+}
+
+
+// ============================================================
 //  [機能⑥] 育成管理データ同期（スキル評価 + 知識チェック）
 //
 //    手動実行: syncEvaluation()

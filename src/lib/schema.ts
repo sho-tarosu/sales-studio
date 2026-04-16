@@ -118,6 +118,23 @@ export const staffEvaluations = pgTable('staff_evaluations', {
 });
 
 /**
+ * スタッフプロフィール
+ * スタッフ情報シートから毎日同期（全件洗い替え）
+ */
+export const staffProfiles = pgTable('staff_profiles', {
+  id:          serial('id').primaryKey(),
+  name:        text('name').notNull(),
+  base:        text('base').default(''),        // B列: 拠点（関東/九州）
+  birthday:    text('birthday').default(''),    // E列: 生年月日
+  prefecture:  text('prefecture').default(''),  // H列: 出身都道府県
+  bloodType:   text('blood_type').default(''),  // I列: 血液型
+  animal:      text('animal').default(''),      // K列: 動物占い
+  role:        text('role').default(''),        // W列: ロール
+  gender:      text('gender').default(''),      // AB列: 性別
+  syncedAt:    timestamp('synced_at', { withTimezone: true }).defaultNow(),
+});
+
+/**
  * トークノート投稿ログ
  * Talknoteから受信した投稿をそのまま保存。店舗はシフトDBから補完。
  */
