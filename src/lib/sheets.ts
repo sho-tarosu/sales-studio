@@ -170,6 +170,33 @@ export async function getAllUsers(): Promise<{ name: string; role: Role }[]> {
   return users;
 }
 
+export type Gender = 'male' | 'female' | 'unknown';
+
+/** スタッフ情報シートのT列背景色から性別を判定して返す（行インデックス対応） */
+export async function getStaffGenders(): Promise<Gender[]> {
+  const sheets = await getSheetsClient();
+  const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
+  if (!spreadsheetId) return [];
+  try {
+    const res = await sheets.spreadsheets.get({
+      spreadsheetId,
+      ranges: ['スタッフ情報!T:T'],
+      includeGridData: true,
+    });
+    const rowData = res.data.sheets?.[0]?.data?.[0]?.rowData ?? [];
+    return rowData.map((row) => {
+      const bg = row?.values?.[0]?.effectiveFormat?.backgroundColor;
+      if (!bg) return 'unknown' as Gender;
+      const r = bg.red ?? 1, g = bg.green ?? 1, b = bg.blue ?? 1;
+      if (b - r > 0.05) return 'male' as Gender;      // 水色
+      if (r - b > 0.05 && g < 0.95) return 'female' as Gender; // ピンク
+      return 'unknown' as Gender;
+    });
+  } catch {
+    return [];
+  }
+}
+
 export async function updateLastLogin(rowIndex: number): Promise<void> {
   const sheets = await getSheetsClient();
   const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;

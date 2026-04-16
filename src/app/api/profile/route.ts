@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSheetData } from '@/lib/sheets';
+import { getSheetData, getStaffGenders } from '@/lib/sheets';
 import { auth } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
@@ -18,6 +18,29 @@ const PREFECTURE_TO_REGION: Record<string, string> = {
   '大分': '九州・沖縄', '宮崎': '九州・沖縄', '鹿児島': '九州・沖縄', '沖縄': '九州・沖縄',
 };
 
+function calcAge(birthday: string): number | null {
+  if (!birthday) return null;
+  // Google Sheets serial number (numeric string)
+  const serial = Number(birthday);
+  let birth: Date;
+  if (!isNaN(serial) && serial > 10000) {
+    birth = new Date((serial - 25569) * 86400 * 1000);
+  } else {
+    birth = new Date(birthday.replace(/\//g, '-'));
+  }
+  if (isNaN(birth.getTime())) return null;
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+  const m = today.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+  return age > 0 && age < 100 ? age : null;
+}
+
+function ageBracket(age: number): string {
+  const low = Math.floor(age / 5) * 5;
+  return `${low}-${low + 4}`;
+}
+
 export async function GET() {
   const session = await auth();
   if (!session) {
@@ -25,50 +48,72 @@ export async function GET() {
   }
 
   try {
-    const rows = await getSheetData(SHEET_NAME);
+    const [rows, genders] = await Promise.all([
+      getSheetData(SHEET_NAME),
+      getStaffGenders(),
+    ]);
 
     const prefectures: Record<string, number> = {};
     const regions: Record<string, number> = {};
     const bloodTypes: Record<string, number> = {};
     const roleCounts: Record<string, number> = { 社員: 0, アルバイト: 0, 業務委託: 0 };
+    const animalTypes: Record<string, number> = {};
+    const ageBrackets: Record<string, number> = {};
+    let genderMale = 0, genderFemale = 0;
     let total = 0;
 
-    // 1行目はヘッダーとしてスキップ
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
-      const name = row[19]?.trim(); // T列: 名前
+      const name   = row[19]?.trim();
       if (!name) continue;
+
+      const active = row[23]?.trim();
+      if (active?.toUpperCase() !== 'TRUE') continue;
 
       total++;
 
-      const role = row[22]?.trim(); // W列: ロール
-      if (role === '社員' || role === '幹部' || role === '管理者') {
-        roleCounts['社員']++;
-      } else if (role === 'アルバイト') {
-        roleCounts['アルバイト']++;
-      } else {
-        roleCounts['業務委託']++;
-      }
+      // ロール
+      const role = row[22]?.trim();
+      if (role === '社員' || role === '幹部' || role === '管理者') roleCounts['社員']++;
+      else if (role === 'アルバイト') roleCounts['アルバイト']++;
+      else roleCounts['業務委託']++;
 
-      // 都/道/府/県 を除いた名前でマッピング
-      const rawPref = row[7]?.trim(); // H列: 出身地
+      // 出身地
+      const rawPref = row[7]?.trim();
       const prefecture = rawPref ? rawPref.replace(/[都道府県]$/, '') : '';
-      // 「型」をつけて統一（A→A型、A型→A型）
-      const rawBlood = row[8]?.trim(); // I列: 血液型
-      const bloodType = rawBlood ? (rawBlood.endsWith('型') ? rawBlood : rawBlood + '型') : '';
-
       if (prefecture) {
         prefectures[prefecture] = (prefectures[prefecture] || 0) + 1;
         const region = PREFECTURE_TO_REGION[prefecture] || '海外';
         regions[region] = (regions[region] || 0) + 1;
       }
 
-      if (bloodType) {
-        bloodTypes[bloodType] = (bloodTypes[bloodType] || 0) + 1;
+      // 血液型
+      const rawBlood = row[8]?.trim();
+      const bloodType = rawBlood ? (rawBlood.endsWith('型') ? rawBlood : rawBlood + '型') : '';
+      if (bloodType) bloodTypes[bloodType] = (bloodTypes[bloodType] || 0) + 1;
+
+      // 動物占い（K列 = index 10）
+      const animal = row[10]?.trim();
+      if (animal) animalTypes[animal] = (animalTypes[animal] || 0) + 1;
+
+      // 年齢（E列 = index 4）
+      const age = calcAge(row[4]?.trim() ?? '');
+      if (age !== null) {
+        const bracket = ageBracket(age);
+        ageBrackets[bracket] = (ageBrackets[bracket] || 0) + 1;
       }
+
+      // 性別（T列背景色 = genders[i]）
+      const g = genders[i];
+      if (g === 'male') genderMale++;
+      else if (g === 'female') genderFemale++;
     }
 
-    return NextResponse.json({ prefectures, regions, bloodTypes, total, roleCounts });
+    return NextResponse.json({
+      prefectures, regions, bloodTypes, total, roleCounts,
+      animalTypes, ageBrackets,
+      genders: { male: genderMale, female: genderFemale },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 500 });

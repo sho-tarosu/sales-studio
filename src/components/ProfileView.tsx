@@ -9,6 +9,9 @@ interface ProfileData {
   bloodTypes: Record<string, number>;
   total: number;
   roleCounts: Record<string, number>;
+  animalTypes: Record<string, number>;
+  ageBrackets: Record<string, number>;
+  genders: { male: number; female: number };
 }
 
 
@@ -111,6 +114,138 @@ function BloodTypeDonut({ bloodTypes }: { bloodTypes: Record<string, number> }) 
       <text x={cx} y={cy + 14} textAnchor="middle" dominantBaseline="middle"
         fill="var(--text-main)" fontSize="26" fontWeight="bold">{total}名</text>
     </svg>
+  );
+}
+
+// 動物占いのカラーパレット（最大12種）
+const ANIMAL_PALETTE = [
+  '#60a5fa','#f97316','#4ade80','#facc15','#a78bfa',
+  '#f472b6','#34d399','#fb923c','#818cf8','#94a3b8',
+  '#e879f9','#2dd4bf',
+];
+
+function AnimalChart({ animalTypes }: { animalTypes: Record<string, number> }) {
+  const total = Object.values(animalTypes).reduce((a, b) => a + b, 0);
+  if (total === 0) return <div style={{ color: 'var(--text-sub)', fontSize: 13 }}>データなし</div>;
+
+  const entries = Object.entries(animalTypes)
+    .sort((a, b) => b[1] - a[1]);
+  const max = entries[0][1];
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {entries.map(([animal, count], i) => {
+        const pct = Math.round((count / total) * 100);
+        const barPct = (count / max) * 100;
+        const color = ANIMAL_PALETTE[i % ANIMAL_PALETTE.length];
+        return (
+          <div key={animal} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 72, fontSize: 12, color: 'var(--text-main)', textAlign: 'right', flexShrink: 0 }}>
+              {animal}
+            </div>
+            <div style={{ flex: 1, background: 'rgba(255,255,255,0.06)', borderRadius: 4, height: 20, overflow: 'hidden' }}>
+              <div style={{
+                width: `${barPct}%`, height: '100%',
+                background: color, borderRadius: 4,
+                transition: 'width 0.6s ease',
+                opacity: 0.85,
+              }} />
+            </div>
+            <div style={{ width: 52, fontSize: 12, color, fontWeight: 700, flexShrink: 0 }}>
+              {count}名 <span style={{ color: 'var(--text-sub)', fontWeight: 400 }}>{pct}%</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function GenderBar({ genders }: { genders: { male: number; female: number } }) {
+  const { male, female } = genders;
+  const total = male + female;
+  if (total === 0) return <div style={{ color: 'var(--text-sub)', fontSize: 13 }}>データなし</div>;
+
+  const malePct = Math.round((male / total) * 100);
+  const femalePct = 100 - malePct;
+
+  return (
+    <div>
+      {/* 数値表示 */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 28, fontWeight: 800, color: '#60a5fa', lineHeight: 1 }}>{malePct}%</div>
+          <div style={{ fontSize: 12, color: 'var(--text-sub)', marginTop: 3 }}>男性 {male}名</div>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 28, fontWeight: 800, color: '#f472b6', lineHeight: 1 }}>{femalePct}%</div>
+          <div style={{ fontSize: 12, color: 'var(--text-sub)', marginTop: 3 }}>女性 {female}名</div>
+        </div>
+      </div>
+      {/* スプリットバー */}
+      <div style={{ display: 'flex', borderRadius: 8, overflow: 'hidden', height: 28 }}>
+        <div style={{
+          width: `${malePct}%`, background: 'linear-gradient(90deg, #3b82f6, #60a5fa)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 11, fontWeight: 700, color: '#fff', transition: 'width 0.6s ease',
+        }}>
+          {malePct > 15 ? '男' : ''}
+        </div>
+        <div style={{
+          flex: 1, background: 'linear-gradient(90deg, #ec4899, #f472b6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 11, fontWeight: 700, color: '#fff',
+        }}>
+          {femalePct > 15 ? '女' : ''}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AgeHistogram({ ageBrackets }: { ageBrackets: Record<string, number> }) {
+  const entries = Object.entries(ageBrackets).sort((a, b) => {
+    const aLow = parseInt(a[0].split('-')[0]);
+    const bLow = parseInt(b[0].split('-')[0]);
+    return aLow - bLow;
+  });
+  if (entries.length === 0) return <div style={{ color: 'var(--text-sub)', fontSize: 13 }}>データなし</div>;
+
+  const maxCount = Math.max(...entries.map(([, c]) => c));
+
+  return (
+    <div>
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 120, paddingBottom: 4 }}>
+        {entries.map(([bracket, count]) => {
+          const heightPct = (count / maxCount) * 100;
+          const low = parseInt(bracket.split('-')[0]);
+          const isYoung = low < 25;
+          const color = isYoung ? '#60a5fa' : low < 35 ? '#4ade80' : '#facc15';
+          return (
+            <div key={bracket} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+              <div style={{ fontSize: 10, color: 'var(--text-sub)', fontWeight: 600 }}>{count}</div>
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: 90 }}>
+                <div style={{
+                  width: '100%', height: `${heightPct}%`,
+                  background: `linear-gradient(180deg, ${color}, ${color}88)`,
+                  borderRadius: '4px 4px 2px 2px',
+                  transition: 'height 0.6s ease',
+                  minHeight: count > 0 ? 4 : 0,
+                }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {/* X軸ラベル */}
+      <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
+        {entries.map(([bracket]) => (
+          <div key={bracket} style={{ flex: 1, textAlign: 'center', fontSize: 9, color: 'var(--text-sub)' }}>
+            {bracket}
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -232,9 +367,27 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
       </div>
 
       {/* 血液型 */}
-      <div className="chart-card">
+      <div className="chart-card" style={{ marginBottom: 12 }}>
         <h3 style={{ fontSize: 14, fontWeight: 'bold', marginBottom: 8, color: 'var(--text-main)' }}>血液型</h3>
         <BloodTypeDonut bloodTypes={data.bloodTypes} />
+      </div>
+
+      {/* 男女比率 */}
+      <div className="chart-card" style={{ marginBottom: 12 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 'bold', marginBottom: 14, color: 'var(--text-main)' }}>男女比率</h3>
+        <GenderBar genders={data.genders} />
+      </div>
+
+      {/* 動物占い */}
+      <div className="chart-card" style={{ marginBottom: 12 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 'bold', marginBottom: 14, color: 'var(--text-main)' }}>動物占い</h3>
+        <AnimalChart animalTypes={data.animalTypes} />
+      </div>
+
+      {/* 年齢分布 */}
+      <div className="chart-card">
+        <h3 style={{ fontSize: 14, fontWeight: 'bold', marginBottom: 14, color: 'var(--text-main)' }}>年齢分布（5歳区切り）</h3>
+        <AgeHistogram ageBrackets={data.ageBrackets} />
       </div>
     </div>
   );
