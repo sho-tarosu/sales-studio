@@ -154,6 +154,11 @@ export default function Home() {
       .catch(() => {});
   }, [drawerOpen, session?.user?.role, allUsers.length]);
 
+  // タブ切り替え時にプロフィールパネルを閉じる
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [activeTab]);
+
   const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSelectedMonth(e.target.value);
   };
