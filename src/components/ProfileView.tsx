@@ -27,11 +27,11 @@ const BLOOD_TYPE_COLORS: Record<string, string> = {
 const OVERLAY_POS: Record<string, { top: string; left: string; push: 'up' | 'down' | 'left' | 'right' }> = {
   '海外':       { top: '20%', left: '19%', push: 'left'  },
   '北海道':     { top: '19%', left: '57%', push: 'up'    },
-  '東北':       { top: '49%', left: '83%', push: 'right' },
-  '関東':       { top: '65%', left: '82%', push: 'right' },
+  '東北':       { top: '44%', left: '83%', push: 'right' },
+  '関東':       { top: '70%', left: '82%', push: 'right' },
   '中部':       { top: '79%', left: '55%', push: 'down'  },
   '関西':       { top: '50%', left: '45%', push: 'up'    },
-  '中国':       { top: '50%', left: '35%', push: 'up'    },
+  '中国':       { top: '50%', left: '30%', push: 'up'    },
   '四国':       { top: '76%', left: '30%', push: 'down'  },
   '九州・沖縄': { top: '50%', left: '12%', push: 'left'  },
 };
@@ -300,7 +300,7 @@ function JapanRegionMap({ regions }: { regions: Record<string, number> }) {
             >
               {/* 地方名 */}
               <div style={{
-                fontSize: isMobile ? 'clamp(11px, 3vw, 20px)' : 'clamp(13px, 3vw, 20px)',
+                fontSize: isMobile ? 'clamp(9px, 2.2vw, 15px)' : 'clamp(11px, 2.2vw, 15px)',
                 fontWeight: '700',
                 color: '#2a1a00',
                 letterSpacing: '0.02em',
@@ -310,7 +310,7 @@ function JapanRegionMap({ regions }: { regions: Record<string, number> }) {
               </div>
               {/* % */}
               <div style={{
-                fontSize: isMobile ? 'clamp(36px, 7vw, 76px)' : 'clamp(38px, 7vw, 76px)',
+                fontSize: isMobile ? 'clamp(26px, 5.5vw, 58px)' : 'clamp(28px, 5.5vw, 58px)',
                 fontWeight: '900',
                 color: '#e06e10',
                 letterSpacing: '-1px',
