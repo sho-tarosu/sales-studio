@@ -142,7 +142,7 @@ export default function IncentiveBar({ total, selfClose }: { total: number; self
                       pointerEvents: 'none',
                     }}>
                       <div style={{ width: 1, height: GAP, background: 'rgba(255,255,255,0.18)' }} />
-                      <span style={{ fontSize: 20, color: 'rgba(255,255,255,0.4)', lineHeight: 1, whiteSpace: 'nowrap' }}>
+                      <span className="incentive-tick-num" style={{ fontSize: 20, color: 'rgba(255,255,255,0.4)', lineHeight: 1, whiteSpace: 'nowrap' }}>
                         {pt}
                       </span>
                     </div>
