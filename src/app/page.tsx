@@ -41,6 +41,8 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState<TabName>('dashboard');
   const [rankingView, setRankingView] = useState<'default' | 'total' | 'selfclose' | 'mnp' | 'table'>('default');
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [contactsOpen, setContactsOpen] = useState(false);
+  const [contacts, setContacts] = useState<{ name: string; role: string; contact: string }[]>([]);
   const [meData, setMeData] = useState<{ birthday: string; bloodType: string; animal: string; zodiac: string } | null>(null);
   const [myStats, setMyStats] = useState<{ total: number; selfClose: number } | null>(null);
   const [impersonated, setImpersonated] = useState<{ name: string; role: string } | null>(null);
@@ -559,6 +561,33 @@ export default function Home() {
               </div>
             )}
 
+            {/* 社員連絡先メニュー */}
+            <button
+              onClick={() => {
+                if (contacts.length === 0) {
+                  fetch('/api/contacts').then(r => r.json()).then(setContacts).catch(() => {});
+                }
+                setContactsOpen(true);
+              }}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '14px 0',
+                background: 'none',
+                border: 'none',
+                borderBottom: '1px solid var(--border-color)',
+                color: 'var(--text-main)',
+                fontSize: 15,
+                cursor: 'pointer',
+                marginBottom: 16,
+              }}
+            >
+              <span>社員連絡先</span>
+              <ChevronLeft size={18} strokeWidth={1.75} style={{ transform: 'rotate(180deg)', color: 'var(--text-sub)' }} />
+            </button>
+
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
               style={{
@@ -574,6 +603,65 @@ export default function Home() {
             >
               ログアウト
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 社員連絡先 フルスクリーン */}
+      {contactsOpen && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 300,
+          background: 'var(--bg-color)',
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            padding: '10px 8px',
+            borderBottom: '1px solid var(--border-color)',
+          }}>
+            <button
+              onClick={() => setContactsOpen(false)}
+              style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px 8px' }}
+            >
+              <ChevronLeft size={24} strokeWidth={1.75} />
+            </button>
+            <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-main)', marginLeft: 4 }}>社員連絡先</span>
+          </div>
+          <div style={{ padding: '8px 0' }}>
+            {contacts.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-sub)', fontSize: 14 }}>読み込み中...</div>
+            ) : (
+              contacts.map((c) => (
+                <div key={c.name} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '14px 24px',
+                  borderBottom: '1px solid var(--border-color)',
+                }}>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-main)' }}>{c.name}</div>
+                    <div style={{ fontSize: 12, color: 'var(--text-sub)', marginTop: 2 }}>{c.role}</div>
+                  </div>
+                  <a
+                    href={`tel:${c.contact.replace(/[-\s]/g, '')}`}
+                    style={{
+                      fontSize: 14,
+                      color: '#60a5fa',
+                      textDecoration: 'none',
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    {c.contact}
+                  </a>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
