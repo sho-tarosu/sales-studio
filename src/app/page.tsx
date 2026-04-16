@@ -180,7 +180,7 @@ export default function Home() {
           <div className="header-brand-row">
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Image src="/icon-512.png" alt="logo" width={56} height={56} style={{ borderRadius: 12, flexShrink: 0 }} />
-              <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-main)', letterSpacing: '0.01em', whiteSpace: 'nowrap' }}>
+              <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-main)', letterSpacing: '0.01em', whiteSpace: 'nowrap' }}>
                 Sales Studio
               </span>
             </div>
