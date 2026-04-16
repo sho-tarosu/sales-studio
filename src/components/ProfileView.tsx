@@ -12,6 +12,11 @@ interface ProfileData {
   animalTypes: Record<string, number>;
   ageBrackets: Record<string, number>;
   genders: { male: number; female: number };
+  genderStaff: { male: string[]; female: string[] };
+  bloodStaff: Record<string, string[]>;
+  animalStaff: Record<string, string[]>;
+  ageBracketStaff: Record<string, string[]>;
+  regionStaff: Record<string, string[]>;
 }
 
 
@@ -44,7 +49,7 @@ const PUSH_TRANSFORM: Record<string, string> = {
   right: 'translate(-35%, -50%)',
 };
 
-function BloodTypeDonut({ bloodTypes }: { bloodTypes: Record<string, number> }) {
+function BloodTypeDonut({ bloodTypes, staffMap, onSelect }: { bloodTypes: Record<string, number>; staffMap?: Record<string, string[]>; onSelect?: (title: string, names: string[]) => void }) {
   const total = Object.values(bloodTypes).reduce((a, b) => a + b, 0);
   if (total === 0) return null;
 
@@ -85,7 +90,8 @@ function BloodTypeDonut({ bloodTypes }: { bloodTypes: Record<string, number> }) 
         const anchor = right ? 'start' : 'end';
 
         return (
-          <g key={type}>
+          <g key={type} style={{ cursor: onSelect ? 'pointer' : 'default' }}
+            onClick={() => onSelect && staffMap?.[type] && onSelect(type, staffMap[type])}>
             <path d={arc(start, end)} fill={color} />
             {/* セグメント内: 人数 */}
             <text x={inside.x} y={inside.y} textAnchor="middle" dominantBaseline="middle"
@@ -114,6 +120,95 @@ function BloodTypeDonut({ bloodTypes }: { bloodTypes: Record<string, number> }) 
       <text x={cx} y={cy + 14} textAnchor="middle" dominantBaseline="middle"
         fill="var(--text-main)" fontSize="26" fontWeight="bold">{total}名</text>
     </svg>
+  );
+}
+
+// BottomSheet（男女比率・年齢層・動物占い・血液型）
+function BottomSheet({ title, names, onClose }: { title: string; names: string[]; onClose: () => void }) {
+  return (
+    <>
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+          zIndex: 1000, animation: 'fadeIn 0.2s ease',
+        }}
+      />
+      <div style={{
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        background: 'var(--card-bg, #1a1a2e)',
+        borderRadius: '16px 16px 0 0',
+        zIndex: 1001,
+        maxHeight: '60vh',
+        display: 'flex', flexDirection: 'column',
+        animation: 'slideUp 0.25s ease',
+        boxShadow: '0 -4px 24px rgba(0,0,0,0.4)',
+      }}>
+        {/* ハンドル */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
+          <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.2)' }} />
+        </div>
+        {/* タイトル */}
+        <div style={{ padding: '8px 20px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-main)' }}>{title}</span>
+          <span style={{ fontSize: 13, color: 'var(--text-sub)' }}>{names.length}名</span>
+        </div>
+        {/* スタッフ一覧 */}
+        <div style={{ overflowY: 'auto', padding: '0 20px 32px', flex: 1 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {names.map((name, i) => (
+              <span key={i} style={{
+                background: 'rgba(255,255,255,0.07)',
+                borderRadius: 20, padding: '5px 12px',
+                fontSize: 13, color: 'var(--text-main)',
+              }}>{name}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// StaffModal（出身地用）
+function StaffModal({ title, names, onClose }: { title: string; names: string[]; onClose: () => void }) {
+  return (
+    <>
+      <div onClick={onClose} style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+        zIndex: 1000, animation: 'fadeIn 0.2s ease',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <div onClick={e => e.stopPropagation()} style={{
+          background: 'var(--card-bg, #1a1a2e)',
+          borderRadius: 16, padding: '20px',
+          minWidth: 260, maxWidth: '80vw',
+          maxHeight: '70vh', display: 'flex', flexDirection: 'column',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-main)' }}>{title}</span>
+            <span style={{ fontSize: 13, color: 'var(--text-sub)' }}>{names.length}名</span>
+          </div>
+          <div style={{ overflowY: 'auto', flex: 1 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+              {names.map((name, i) => (
+                <span key={i} style={{
+                  background: 'rgba(255,255,255,0.07)',
+                  borderRadius: 20, padding: '5px 12px',
+                  fontSize: 13, color: 'var(--text-main)',
+                }}>{name}</span>
+              ))}
+            </div>
+          </div>
+          <button onClick={onClose} style={{
+            marginTop: 16, padding: '8px', borderRadius: 8,
+            background: 'rgba(255,255,255,0.08)', border: 'none',
+            color: 'var(--text-sub)', fontSize: 13, cursor: 'pointer', width: '100%',
+          }}>閉じる</button>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -146,12 +241,11 @@ function getAnimalColor(name: string, fallbackIndex: number): string {
   return FALLBACK[fallbackIndex % FALLBACK.length];
 }
 
-function AnimalChart({ animalTypes }: { animalTypes: Record<string, number> }) {
+function AnimalChart({ animalTypes, staffMap, onSelect }: { animalTypes: Record<string, number>; staffMap?: Record<string, string[]>; onSelect?: (title: string, names: string[]) => void }) {
   const total = Object.values(animalTypes).reduce((a, b) => a + b, 0);
   if (total === 0) return <div style={{ color: 'var(--text-sub)', fontSize: 13 }}>データなし</div>;
 
-  const entries = Object.entries(animalTypes)
-    .sort((a, b) => b[1] - a[1]);
+  const entries = Object.entries(animalTypes).sort((a, b) => b[1] - a[1]);
   const max = entries[0][1];
 
   return (
@@ -161,7 +255,8 @@ function AnimalChart({ animalTypes }: { animalTypes: Record<string, number> }) {
         const barPct = (count / max) * 100;
         const color = getAnimalColor(animal, i);
         return (
-          <div key={animal} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div key={animal} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: onSelect ? 'pointer' : 'default' }}
+            onClick={() => onSelect && staffMap?.[animal] && onSelect(animal, staffMap[animal])}>
             <div style={{ width: 72, fontSize: 12, color: 'var(--text-main)', textAlign: 'right', flexShrink: 0 }}>
               {animal}
             </div>
@@ -183,7 +278,7 @@ function AnimalChart({ animalTypes }: { animalTypes: Record<string, number> }) {
   );
 }
 
-function GenderBar({ genders }: { genders: { male: number; female: number } }) {
+function GenderBar({ genders, staffMap, onSelect }: { genders: { male: number; female: number }; staffMap?: { male: string[]; female: string[] }; onSelect?: (title: string, names: string[]) => void }) {
   const { male, female } = genders;
   const total = male + female;
   if (total === 0) return <div style={{ color: 'var(--text-sub)', fontSize: 13 }}>データなし</div>;
@@ -195,11 +290,13 @@ function GenderBar({ genders }: { genders: { male: number; female: number } }) {
     <div>
       {/* 数値表示 */}
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-        <div style={{ textAlign: 'center' }}>
+        <div style={{ textAlign: 'center', cursor: onSelect ? 'pointer' : 'default' }}
+          onClick={() => onSelect && staffMap && onSelect('男性', staffMap.male)}>
           <div style={{ fontSize: 28, fontWeight: 800, color: '#60a5fa', lineHeight: 1 }}>{malePct}%</div>
           <div style={{ fontSize: 12, color: 'var(--text-sub)', marginTop: 3 }}>男性 {male}名</div>
         </div>
-        <div style={{ textAlign: 'center' }}>
+        <div style={{ textAlign: 'center', cursor: onSelect ? 'pointer' : 'default' }}
+          onClick={() => onSelect && staffMap && onSelect('女性', staffMap.female)}>
           <div style={{ fontSize: 28, fontWeight: 800, color: '#f472b6', lineHeight: 1 }}>{femalePct}%</div>
           <div style={{ fontSize: 12, color: 'var(--text-sub)', marginTop: 3 }}>女性 {female}名</div>
         </div>
@@ -210,14 +307,16 @@ function GenderBar({ genders }: { genders: { male: number; female: number } }) {
           width: `${malePct}%`, background: 'linear-gradient(90deg, #3b82f6, #60a5fa)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 11, fontWeight: 700, color: '#fff', transition: 'width 0.6s ease',
-        }}>
+          cursor: onSelect ? 'pointer' : 'default',
+        }} onClick={() => onSelect && staffMap && onSelect('男性', staffMap.male)}>
           {malePct > 15 ? '男' : ''}
         </div>
         <div style={{
           flex: 1, background: 'linear-gradient(90deg, #ec4899, #f472b6)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           fontSize: 11, fontWeight: 700, color: '#fff',
-        }}>
+          cursor: onSelect ? 'pointer' : 'default',
+        }} onClick={() => onSelect && staffMap && onSelect('女性', staffMap.female)}>
           {femalePct > 15 ? '女' : ''}
         </div>
       </div>
@@ -227,7 +326,7 @@ function GenderBar({ genders }: { genders: { male: number; female: number } }) {
 
 const AGE_COLORS = ['#60a5fa', '#34d399', '#a78bfa', '#fb923c', '#f472b6', '#facc15', '#2dd4bf'];
 
-function AgePieChart({ ageBrackets }: { ageBrackets: Record<string, number> }) {
+function AgePieChart({ ageBrackets, staffMap, onSelect }: { ageBrackets: Record<string, number>; staffMap?: Record<string, string[]>; onSelect?: (title: string, names: string[]) => void }) {
   const entries = Object.entries(ageBrackets)
     .sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
   if (entries.length === 0) return <div style={{ color: 'var(--text-sub)', fontSize: 13 }}>データなし</div>;
@@ -256,7 +355,9 @@ function AgePieChart({ ageBrackets }: { ageBrackets: Record<string, number> }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
       <svg width={220} height={220} viewBox="0 0 220 220" style={{ flexShrink: 0 }}>
         {slices.map(({ d, bracket, color }) => (
-          <path key={bracket} d={d} fill={color} opacity={0.9} />
+          <path key={bracket} d={d} fill={color} opacity={0.9}
+            style={{ cursor: onSelect ? 'pointer' : 'default' }}
+            onClick={() => onSelect && staffMap?.[bracket] && onSelect(`${bracket}歳`, staffMap[bracket])} />
         ))}
         <text x={cx} y={cy - 8} textAnchor="middle" dominantBaseline="middle"
           fill="var(--text-sub)" fontSize="13">総勢</text>
@@ -268,7 +369,8 @@ function AgePieChart({ ageBrackets }: { ageBrackets: Record<string, number> }) {
         {slices.map(({ bracket, count, color }) => {
           const pct = Math.round((count / total) * 100);
           return (
-            <div key={bracket} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div key={bracket} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: onSelect ? 'pointer' : 'default' }}
+              onClick={() => onSelect && staffMap?.[bracket] && onSelect(`${bracket}歳`, staffMap[bracket])}>
               <div style={{ width: 10, height: 10, borderRadius: 2, background: color, flexShrink: 0 }} />
               <span style={{ fontSize: 12, color: 'var(--text-sub)', minWidth: 36 }}>{bracket}</span>
               <span style={{ fontSize: 12, color: 'var(--text-main)', fontWeight: 600 }}>{count}名</span>
@@ -281,7 +383,7 @@ function AgePieChart({ ageBrackets }: { ageBrackets: Record<string, number> }) {
   );
 }
 
-function JapanRegionMap({ regions }: { regions: Record<string, number> }) {
+function JapanRegionMap({ regions, staffMap, onSelect }: { regions: Record<string, number>; staffMap?: Record<string, string[]>; onSelect?: (title: string, names: string[]) => void }) {
   const total = Object.values(regions).reduce((a, b) => a + b, 0);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -307,15 +409,17 @@ function JapanRegionMap({ regions }: { regions: Record<string, number> }) {
           return (
             <div
               key={region}
+              onClick={() => onSelect && staffMap?.[region] && onSelect(region, staffMap[region])}
               style={{
                 position: 'absolute',
                 top: isMobile && pos.mobileTop ? pos.mobileTop : pos.top,
                 left: isMobile && pos.mobileLeft ? pos.mobileLeft : pos.left,
                 transform: isMobile ? PUSH_TRANSFORM[pos.push] : 'translate(-50%, -50%)',
                 textAlign: 'center',
-                pointerEvents: 'none',
+                pointerEvents: onSelect ? 'auto' : 'none',
                 lineHeight: 1.1,
                 whiteSpace: 'nowrap',
+                cursor: onSelect ? 'pointer' : 'default',
               }}
             >
               {/* 地方名 */}
@@ -354,6 +458,11 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
   const [data, setData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sheet, setSheet] = useState<{ title: string; names: string[] } | null>(null);
+  const [modal, setModal] = useState<{ title: string; names: string[] } | null>(null);
+
+  const openSheet = (title: string, names: string[]) => setSheet({ title, names });
+  const openModal = (title: string, names: string[]) => setModal({ title, names });
 
   useEffect(() => {
     fetch('/api/profile')
@@ -376,6 +485,8 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
 
   return (
     <div style={{ padding: '0 0 80px' }}>
+      {sheet && <BottomSheet title={sheet.title} names={sheet.names} onClose={() => setSheet(null)} />}
+      {modal && <StaffModal title={modal.title} names={modal.names} onClose={() => setModal(null)} />}
       {/* 総勢 */}
       <div className="chart-card" style={{ marginBottom: 12, minHeight: 'unset' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 16 }}>
@@ -407,31 +518,31 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
       {/* 男女比率 */}
       <div className="chart-card" style={{ marginBottom: 12, minHeight: 'unset' }}>
         <h3 style={{ fontSize: 14, fontWeight: 'bold', marginBottom: 14, color: 'var(--text-main)' }}>男女比率</h3>
-        <GenderBar genders={data.genders} />
+        <GenderBar genders={data.genders} staffMap={data.genderStaff} onSelect={openSheet} />
       </div>
 
       {/* 年齢層 */}
       <div className="chart-card" style={{ marginBottom: 12, minHeight: 'unset' }}>
         <h3 style={{ fontSize: 14, fontWeight: 'bold', marginBottom: 14, color: 'var(--text-main)' }}>年齢層</h3>
-        <AgePieChart ageBrackets={data.ageBrackets} />
+        <AgePieChart ageBrackets={data.ageBrackets} staffMap={data.ageBracketStaff} onSelect={openSheet} />
       </div>
 
-      {/* 出身地 — 日本地図スタイル */}
+      {/* 出身地 — 日本地図スタイル（モーダル） */}
       <div className="chart-card" style={{ marginBottom: 12 }}>
         <h3 style={{ fontSize: 14, fontWeight: 'bold', marginBottom: 8, color: 'var(--text-main)' }}>出身地</h3>
-        <JapanRegionMap regions={data.regions} />
+        <JapanRegionMap regions={data.regions} staffMap={data.regionStaff} onSelect={openModal} />
       </div>
 
       {/* 血液型 */}
       <div className="chart-card" style={{ marginBottom: 12 }}>
         <h3 style={{ fontSize: 14, fontWeight: 'bold', marginBottom: 8, color: 'var(--text-main)' }}>血液型</h3>
-        <BloodTypeDonut bloodTypes={data.bloodTypes} />
+        <BloodTypeDonut bloodTypes={data.bloodTypes} staffMap={data.bloodStaff} onSelect={openSheet} />
       </div>
 
       {/* 動物占い */}
       <div className="chart-card">
         <h3 style={{ fontSize: 14, fontWeight: 'bold', marginBottom: 14, color: 'var(--text-main)' }}>動物占い</h3>
-        <AnimalChart animalTypes={data.animalTypes} />
+        <AnimalChart animalTypes={data.animalTypes} staffMap={data.animalStaff} onSelect={openSheet} />
       </div>
     </div>
   );

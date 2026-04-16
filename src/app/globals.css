@@ -557,6 +557,8 @@ input[type="password"]:focus {
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
 .shift-loading-spinner {
   width: 32px;
@@ -1300,4 +1302,5 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
   .shift-scroll { max-height: calc(100vh - 260px); }
   .shift-controls { gap: 8px; }
   .shift-region-btn { padding: 5px 10px; font-size: 12px; }
+  .incentive-tick-num { font-size: 11px !important; }
 }
