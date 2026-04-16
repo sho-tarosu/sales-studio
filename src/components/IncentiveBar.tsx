@@ -21,13 +21,10 @@ const TIERS: Tier[] = [
 ];
 
 const ZONES = [
-  { label: 'グリーン〜ブロンズ',    min: 0,  max: 15,  color: '#4ade80', trackColor: 'rgba(74,222,128,0.15)' },
-  { label: 'クローザー〜レジェンド', min: 15, max: 30,  color: '#60a5fa', trackColor: 'rgba(96,165,250,0.15)' },
-  { label: 'ゼウス',                min: 30, max: 100, color: '#f87171', trackColor: 'rgba(248,113,113,0.15)' },
+  { label: 'グリーン〜ブロンズ',    min: 0,  max: 15,  color: '#4ade80', trackColor: 'rgba(74,222,128,0.15)',  step: 5  },
+  { label: 'クローザー〜レジェンド', min: 15, max: 30,  color: '#60a5fa', trackColor: 'rgba(96,165,250,0.15)',  step: 5  },
+  { label: 'ゼウス',                min: 30, max: 100, color: '#f87171', trackColor: 'rgba(248,113,113,0.15)', step: 10 },
 ];
-
-const MAX_PT = 60;
-const p = (pt: number) => `${Math.min((pt / MAX_PT) * 100, 100)}%`;
 
 function getCurrentTier(total: number, selfClose: number): number {
   let idx = 0;
@@ -43,24 +40,18 @@ function getCurrentTier(total: number, selfClose: number): number {
 function zoneProgress(total: number, min: number, max: number): number {
   if (total <= min) return 0;
   if (total >= max) return 100;
-  return Math.min(((total - min) / (max - min)) * 100, 100);
+  return ((total - min) / (max - min)) * 100;
 }
-
-const MAJOR_TICKS = [0, 10, 20, 30, 40, 50, 60];
-const MINOR_TICKS = [5, 15, 25, 35, 45, 55];
-// グリーン(0pt)は左端なので除外、交互2段配置
-const TIER_LABELS = TIERS.filter(t => t.pt > 0).map((t, i) => ({ ...t, level: i % 2 }));
 
 export default function IncentiveBar({ total, selfClose }: { total: number; selfClose: number }) {
   const currentIdx = getCurrentTier(total, selfClose);
   const current = TIERS[currentIdx];
   const next = TIERS[currentIdx + 1] ?? null;
-  const clamped = Math.min(total, MAX_PT);
 
   return (
     <div className="chart-card" style={{ marginBottom: 12 }}>
       {/* ヘッダー */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
           <span style={{ fontSize: 11, color: 'var(--text-sub)', marginRight: 6 }}>現在クラス</span>
           <span style={{ fontSize: 18, fontWeight: 'bold', color: 'var(--text-main)' }}>{current.name}</span>
@@ -73,104 +64,20 @@ export default function IncentiveBar({ total, selfClose }: { total: number; self
         </div>
       </div>
 
-      {/* 数直線ルーラー */}
-      <div style={{ position: 'relative', paddingTop: 42, paddingBottom: 28, marginBottom: 16 }}>
-        {/* クラス名ラベル（2段交互） */}
-        {TIER_LABELS.map((t) => {
-          const isCurrent = t.name === current.name;
-          const isPassed = total >= t.pt;
-          return (
-            <div key={t.name} style={{
-              position: 'absolute',
-              left: p(t.pt),
-              top: t.level === 0 ? 22 : 4,
-              transform: 'translateX(-50%)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              pointerEvents: 'none',
-            }}>
-              <span style={{
-                fontSize: 9,
-                whiteSpace: 'nowrap',
-                fontWeight: isCurrent ? 700 : 400,
-                color: isCurrent
-                  ? 'var(--text-main)'
-                  : isPassed
-                    ? 'rgba(255,255,255,0.35)'
-                    : 'rgba(255,255,255,0.2)',
-              }}>
-                {t.name}
-              </span>
-              <div style={{
-                width: 1,
-                height: t.level === 0 ? 12 : 30,
-                background: isCurrent ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.08)',
-              }} />
-            </div>
-          );
-        })}
-
-        {/* ルーラー本体（細いライン） */}
-        <div style={{ height: 2, background: 'rgba(255,255,255,0.12)', borderRadius: 1, position: 'relative' }}>
-          {/* 現在地までのフィル */}
-          <div style={{
-            position: 'absolute', top: 0, left: 0, bottom: 0,
-            width: p(clamped),
-            background: 'rgba(255,255,255,0.4)',
-            borderRadius: 1,
-            transition: 'width 0.6s ease',
-          }} />
-          {/* 現在地マーカー */}
-          <div style={{
-            position: 'absolute',
-            left: p(clamped),
-            top: -5,
-            transform: 'translateX(-50%)',
-            width: 2,
-            height: 12,
-            background: '#fff',
-            borderRadius: 1,
-            boxShadow: '0 0 6px rgba(255,255,255,0.7)',
-          }} />
-        </div>
-
-        {/* 大目盛り（10pt）＋ラベル */}
-        {MAJOR_TICKS.map(pt => (
-          <div key={pt} style={{
-            position: 'absolute',
-            left: p(pt),
-            top: 44,
-            transform: 'translateX(-50%)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 2,
-          }}>
-            <div style={{ width: 1, height: 6, background: 'rgba(255,255,255,0.3)' }} />
-            <span style={{ fontSize: 10, color: 'var(--text-sub)', lineHeight: 1 }}>{pt}</span>
-          </div>
-        ))}
-
-        {/* 小目盛り（5pt） */}
-        {MINOR_TICKS.map(pt => (
-          <div key={pt} style={{
-            position: 'absolute',
-            left: p(pt),
-            top: 44,
-            transform: 'translateX(-50%)',
-            width: 1,
-            height: 4,
-            background: 'rgba(255,255,255,0.15)',
-          }} />
-        ))}
-      </div>
-
-      {/* 3本ゾーンバー */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+      {/* 3本ゾーンバー（各バーに目盛り付き） */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 16 }}>
         {ZONES.map((zone) => {
           const pct = zoneProgress(total, zone.min, zone.max);
           const isActive = total >= zone.min && total < zone.max;
+          const range = zone.max - zone.min;
+
+          // zone内の目盛りpt（両端は別途表示）
+          const ticks: number[] = [];
+          for (let pt = zone.min + zone.step; pt < zone.max; pt += zone.step) {
+            ticks.push(pt);
+          }
+          const tickPct = (pt: number) => ((pt - zone.min) / range) * 100;
+
           return (
             <div key={zone.label}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
@@ -179,15 +86,54 @@ export default function IncentiveBar({ total, selfClose }: { total: number; self
                 </span>
                 <span style={{ color: 'var(--text-sub)' }}>{zone.min}〜{zone.max}pt</span>
               </div>
-              <div style={{ background: zone.trackColor, borderRadius: 6, height: 8, overflow: 'hidden' }}>
-                <div style={{
-                  width: `${pct}%`,
-                  height: '100%',
-                  background: zone.color,
-                  borderRadius: 6,
-                  transition: 'width 0.6s ease',
-                  opacity: pct === 0 ? 0.3 : 1,
-                }} />
+
+              {/* バー＋目盛りコンテナ */}
+              <div style={{ position: 'relative', paddingBottom: 16 }}>
+                {/* バー本体 */}
+                <div style={{ background: zone.trackColor, borderRadius: 6, height: 8, overflow: 'hidden' }}>
+                  <div style={{
+                    width: `${pct}%`,
+                    height: '100%',
+                    background: zone.color,
+                    borderRadius: 6,
+                    transition: 'width 0.6s ease',
+                    opacity: pct === 0 ? 0.3 : 1,
+                  }} />
+                </div>
+
+                {/* 左端ラベル */}
+                <div style={{ position: 'absolute', left: 0, top: 9 }}>
+                  <div style={{ width: 1, height: 4, background: 'rgba(255,255,255,0.2)' }} />
+                  <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', lineHeight: 1, display: 'block' }}>
+                    {zone.min}
+                  </span>
+                </div>
+
+                {/* 中間目盛り */}
+                {ticks.map(pt => (
+                  <div key={pt} style={{
+                    position: 'absolute',
+                    left: `${tickPct(pt)}%`,
+                    top: 9,
+                    transform: 'translateX(-50%)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                  }}>
+                    <div style={{ width: 1, height: 4, background: 'rgba(255,255,255,0.2)' }} />
+                    <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', lineHeight: 1, whiteSpace: 'nowrap' }}>
+                      {pt}
+                    </span>
+                  </div>
+                ))}
+
+                {/* 右端ラベル */}
+                <div style={{ position: 'absolute', right: 0, top: 9, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                  <div style={{ width: 1, height: 4, background: 'rgba(255,255,255,0.2)', alignSelf: 'center' }} />
+                  <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', lineHeight: 1, display: 'block' }}>
+                    {zone.max}
+                  </span>
+                </div>
               </div>
             </div>
           );
