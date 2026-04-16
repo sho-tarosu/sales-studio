@@ -36,12 +36,14 @@ export default function AnalyticsView({ data, selectedMonth, loginName, userRole
       </div>
 
       {innerTab === 'attendance' && (
-        <AttendanceTable
-          data={data}
-          selectedMonth={selectedMonth}
-          loginName={loginName}
-          userRole={userRole}
-        />
+        <div style={{ marginBottom: 28 }}>
+          <AttendanceTable
+            data={data}
+            selectedMonth={selectedMonth}
+            loginName={loginName}
+            userRole={userRole}
+          />
+        </div>
       )}
       {innerTab === 'analysis' && (
         <AnalysisView data={data} />

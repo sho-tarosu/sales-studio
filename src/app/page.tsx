@@ -441,7 +441,9 @@ export default function Home() {
             )}
 
             {activeTab === 'attendance' && (
-              <AttendanceTable data={data} selectedMonth={selectedMonth} loginName={effectiveName} userRole={effectiveRole} />
+              <div style={{ marginBottom: 28 }}>
+                <AttendanceTable data={data} selectedMonth={selectedMonth} loginName={effectiveName} userRole={effectiveRole} />
+              </div>
             )}
 
             {activeTab === 'analytics' && (
