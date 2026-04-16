@@ -71,8 +71,8 @@ export async function GET() {
 
       // ロール
       const role = row[22]?.trim();
-      if (role === '社員' || role === '幹部' || role === '管理者') roleCounts['社員']++;
-      else if (role === 'アルバイト') roleCounts['アルバイト']++;
+      if (role === 'アルバイト') roleCounts['アルバイト']++;
+      else if (role === '社員' || role === '管理者') roleCounts['社員']++;
       else roleCounts['業務委託']++;
 
       // 出身地

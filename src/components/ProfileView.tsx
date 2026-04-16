@@ -357,16 +357,26 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
   return (
     <div style={{ padding: '0 0 80px' }}>
       {/* 総勢 */}
-      <div className="chart-card" style={{ marginBottom: 12, minHeight: 'unset', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-          <span style={{ fontSize: 32, fontWeight: 'bold', color: 'var(--accent-color)', lineHeight: 1 }}>{data.total}</span>
-          <span style={{ fontSize: 14, color: 'var(--text-sub)' }}>名のスタッフ</span>
+      <div className="chart-card" style={{ marginBottom: 12, minHeight: 'unset' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 16 }}>
+          <span style={{ fontSize: 48, fontWeight: 'bold', color: 'var(--text-main)', lineHeight: 1, letterSpacing: '-2px' }}>{data.total}</span>
+          <span style={{ fontSize: 13, color: 'var(--text-sub)', fontWeight: 500 }}>名</span>
         </div>
-        <div style={{ display: 'flex', gap: 16 }}>
-          {[['社員', '#3ea6ff'], ['アルバイト', '#facc15'], ['業務委託', '#a3a3a3']].map(([label, color]) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
-              <span style={{ fontSize: 18, fontWeight: 'bold', color }}>{data.roleCounts?.[label] ?? 0}</span>
-              <span style={{ fontSize: 12, color: 'var(--text-sub)' }}>{label}</span>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {([['社員', '#3ea6ff', '#1a3a5c'], ['アルバイト', '#facc15', '#3d3000'], ['業務委託', '#a3a3a3', '#2a2a2a']] as [string, string, string][]).map(([label, color, bg]) => (
+            <div key={label} style={{
+              flex: 1,
+              background: bg,
+              border: `1px solid ${color}30`,
+              borderRadius: 10,
+              padding: '10px 12px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+            }}>
+              <span style={{ fontSize: 11, color: color, fontWeight: 600, letterSpacing: '0.05em' }}>{label}</span>
+              <span style={{ fontSize: 28, fontWeight: 'bold', color: color, lineHeight: 1, letterSpacing: '-1px' }}>{data.roleCounts?.[label] ?? 0}</span>
+              <span style={{ fontSize: 10, color: 'var(--text-sub)' }}>名</span>
             </div>
           ))}
         </div>
