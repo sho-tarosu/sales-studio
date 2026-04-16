@@ -11,8 +11,7 @@ export default function StackedBarChart({ ranking }: StackedBarChartProps) {
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 style={{ fontSize: '14px', color: 'var(--text-sub)' }}>獲得内訳 (MNP・新規・SU)</h3>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
         <div className="stacked-legend">
           <div className="legend-box">
             <div className="color-box" style={{ background: '#3ea6ff' }} />

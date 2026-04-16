@@ -376,7 +376,7 @@ export default function Home() {
                   <div className="shift-controls" style={{ marginBottom: 12 }}>
                     <div className="shift-region-toggle">
                       <button
-                        className={`shift-region-btn${rankingView !== 'selfclose' ? ' active' : ''}`}
+                        className={`shift-region-btn${rankingView === 'total' ? ' active' : ''}`}
                         onClick={() => setRankingView('total')}
                       >
                         獲得
