@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import IncentiveBar from '@/components/IncentiveBar';
 
 
 interface ProfileData {
@@ -177,12 +179,20 @@ function JapanRegionMap({ regions }: { regions: Record<string, number> }) {
   );
 }
 
+interface MyStats { total: number; selfClose: number; }
+
 export default function ProfileView() {
+  const { data: session } = useSession();
+  const role = session?.user?.role ?? '';
+  const [myStats, setMyStats] = useState<MyStats | null>(null);
   const [data, setData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (role === 'アルバイト') {
+      fetch('/api/me/stats').then(r => r.json()).then(setMyStats).catch(() => {});
+    }
     fetch('/api/profile')
       .then((r) => {
         if (!r.ok) return r.json().then((e: { error?: string }) => { throw new Error(e.error || 'エラー'); });
@@ -203,6 +213,11 @@ export default function ProfileView() {
 
   return (
     <div style={{ padding: '0 0 80px' }}>
+      {/* アルバイト向けインセンティブバー */}
+      {role === 'アルバイト' && myStats && (
+        <IncentiveBar total={myStats.total} selfClose={myStats.selfClose} />
+      )}
+
       {/* 総勢 */}
       <div className="chart-card" style={{ marginBottom: 12, display: 'flex', alignItems: 'baseline', gap: 6 }}>
         <span style={{ fontSize: 32, fontWeight: 'bold', color: 'var(--accent-color)', lineHeight: 1 }}>{data.total}</span>
