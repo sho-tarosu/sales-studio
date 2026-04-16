@@ -19,6 +19,7 @@ interface ProfileData {
   regionStaff: Record<string, string[]>;
   roleStaff: Record<string, string[]>;
   genderMap: Record<string, 'male' | 'female'>;
+  prefectureStaff: Record<string, string[]>;
 }
 
 
@@ -27,6 +28,18 @@ const BLOOD_TYPE_COLORS: Record<string, string> = {
   'B型':  '#7dd3fc', // 水色
   'O型':  '#fbbf24', // イエロー
   'AB型': '#a3e635', // 黄緑
+};
+
+// 地方→都道府県リスト
+const REGION_TO_PREFECTURES: Record<string, string[]> = {
+  '北海道':     ['北海道'],
+  '東北':       ['青森','岩手','宮城','秋田','山形','福島'],
+  '関東':       ['茨城','栃木','群馬','埼玉','千葉','東京','神奈川'],
+  '中部':       ['新潟','富山','石川','福井','山梨','長野','岐阜','静岡','愛知'],
+  '関西':       ['三重','滋賀','京都','大阪','兵庫','奈良','和歌山'],
+  '中国':       ['鳥取','島根','岡山','広島','山口'],
+  '四国':       ['徳島','香川','愛媛','高知'],
+  '九州・沖縄': ['福岡','佐賀','長崎','熊本','大分','宮崎','鹿児島','沖縄'],
 };
 
 // ブロックの端から約2mm外側にラベル配置
@@ -169,8 +182,14 @@ function BottomSheet({ title, names, genderMap, onClose }: { title: string; name
   );
 }
 
-// StaffModal（出身地用）
-function StaffModal({ title, names, genderMap, onClose }: { title: string; names: string[]; genderMap?: Record<string, 'male' | 'female'>; onClose: () => void }) {
+// StaffModal（出身地用・都道府県グループ対応）
+function StaffModal({ title, names, genderMap, grouped, onClose }: {
+  title: string;
+  names: string[];
+  genderMap?: Record<string, 'male' | 'female'>;
+  grouped?: { pref: string; names: string[] }[];
+  onClose: () => void;
+}) {
   return (
     <>
       <div onClick={onClose} style={{
@@ -183,8 +202,8 @@ function StaffModal({ title, names, genderMap, onClose }: { title: string; names
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
           borderRadius: 16, padding: '20px',
-          minWidth: 260, maxWidth: '80vw',
-          maxHeight: '70vh', display: 'flex', flexDirection: 'column',
+          minWidth: 260, maxWidth: '85vw', width: 340,
+          maxHeight: '75vh', display: 'flex', flexDirection: 'column',
           boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
@@ -192,11 +211,28 @@ function StaffModal({ title, names, genderMap, onClose }: { title: string; names
             <span style={{ fontSize: 13, color: 'var(--text-sub)' }}>{names.length}名</span>
           </div>
           <div style={{ overflowY: 'auto', flex: 1 }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {names.map((name, i) => (
-                <span key={i} style={{ borderRadius: 20, padding: '5px 12px', fontSize: 13, ...nameBadgeStyle(name, genderMap) }}>{name}</span>
-              ))}
-            </div>
+            {grouped ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {grouped.map(({ pref, names: pNames }) => (
+                  <div key={pref}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-sub)', marginBottom: 6, letterSpacing: '0.05em' }}>
+                      {pref} <span style={{ fontWeight: 400 }}>{pNames.length}名</span>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {pNames.map((name, i) => (
+                        <span key={i} style={{ borderRadius: 20, padding: '4px 10px', fontSize: 13, ...nameBadgeStyle(name, genderMap) }}>{name}</span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {names.map((name, i) => (
+                  <span key={i} style={{ borderRadius: 20, padding: '5px 12px', fontSize: 13, ...nameBadgeStyle(name, genderMap) }}>{name}</span>
+                ))}
+              </div>
+            )}
           </div>
           <button onClick={onClose} style={{
             marginTop: 16, padding: '8px', borderRadius: 8,
@@ -457,11 +493,22 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sheet, setSheet] = useState<{ title: string; names: string[] } | null>(null);
-  const [modal, setModal] = useState<{ title: string; names: string[] } | null>(null);
+  const [modal, setModal] = useState<{ title: string; names: string[]; grouped?: { pref: string; names: string[] }[] } | null>(null);
   const [region, setRegion] = useState<Region>('全国');
 
   const openSheet = (title: string, names: string[]) => setSheet({ title, names });
-  const openModal = (title: string, names: string[]) => setModal({ title, names });
+  const openModal = (title: string, names: string[]) => {
+    const prefList = REGION_TO_PREFECTURES[title];
+    const prefStaff = data?.prefectureStaff;
+    if (prefList && prefStaff) {
+      const grouped = prefList
+        .map(pref => ({ pref, names: prefStaff[pref] ?? [] }))
+        .filter(g => g.names.length > 0);
+      setModal({ title, names, grouped });
+    } else {
+      setModal({ title, names });
+    }
+  };
   const gm = data?.genderMap;
 
   useEffect(() => {
@@ -488,7 +535,7 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
   return (
     <div style={{ padding: '0 0 80px' }}>
       {sheet && <BottomSheet title={sheet.title} names={sheet.names} genderMap={gm} onClose={() => setSheet(null)} />}
-      {modal && <StaffModal title={modal.title} names={modal.names} genderMap={gm} onClose={() => setModal(null)} />}
+      {modal && <StaffModal title={modal.title} names={modal.names} genderMap={gm} grouped={modal.grouped} onClose={() => setModal(null)} />}
 
       {/* 拠点トグル */}
       <div className="shift-controls" style={{ marginBottom: 16 }}>

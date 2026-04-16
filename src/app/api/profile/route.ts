@@ -69,6 +69,7 @@ export async function GET(request: Request) {
     const regionStaff: Record<string, string[]> = {};
     const roleStaff: Record<string, string[]> = { 社員: [], アルバイト: [], 業務委託: [] };
     const genderMap: Record<string, 'male' | 'female'> = {};
+    const prefectureStaff: Record<string, string[]> = {};
 
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
@@ -103,6 +104,8 @@ export async function GET(request: Request) {
         regions[region] = (regions[region] || 0) + 1;
         if (!regionStaff[region]) regionStaff[region] = [];
         regionStaff[region].push(name);
+        if (!prefectureStaff[prefecture]) prefectureStaff[prefecture] = [];
+        prefectureStaff[prefecture].push(name);
       }
 
       // 血液型
@@ -141,7 +144,7 @@ export async function GET(request: Request) {
       prefectures, regions, bloodTypes, total, roleCounts,
       animalTypes, ageBrackets,
       genders: { male: genderMale, female: genderFemale },
-      genderStaff, bloodStaff, animalStaff, ageBracketStaff, regionStaff, roleStaff, genderMap,
+      genderStaff, bloodStaff, animalStaff, ageBracketStaff, regionStaff, roleStaff, genderMap, prefectureStaff,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
