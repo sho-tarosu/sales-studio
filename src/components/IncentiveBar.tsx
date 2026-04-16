@@ -16,8 +16,11 @@ const TIERS: Tier[] = [
   { name: 'トップクローザー', pt: 25, incentive:  5000, selfClosePt: 20 },
   { name: 'レジェンド',       pt: 30, incentive:  8000, selfClosePt: 30 },
   { name: 'ゼウス',           pt: 40, incentive:  9000, selfClosePt: 40 },
-  { name: 'ゼウス+',          pt: 50, incentive: 10000, selfClosePt: 50 },
-  { name: 'ゼウス++',         pt: 60, incentive: 11000, selfClosePt: 60 },
+  { name: 'ゼウスⅡ',         pt: 50, incentive: 10000, selfClosePt: 50 },
+  { name: 'ゼウスⅢ',         pt: 60, incentive: 11000, selfClosePt: 60 },
+  { name: 'ゼウスⅣ',         pt: 70, incentive: 12000, selfClosePt: 70 },
+  { name: 'ゼウスⅤ',         pt: 80, incentive: 13000, selfClosePt: 80 },
+  { name: 'ゼウスⅥ',         pt: 90, incentive: 14000, selfClosePt: 90 },
 ];
 
 const ZONES = [
@@ -179,10 +182,10 @@ export default function IncentiveBar({ total, selfClose }: { total: number; self
         </div>
       )}
 
-      {/* 最高クラス達成時 */}
+      {/* ゼウス達成時 */}
       {!next && (
         <div style={{ textAlign: 'center', color: '#facc15', fontWeight: 700, fontSize: 14 }}>
-          最高クラス達成！
+          ゼウス達成！
         </div>
       )}
     </div>
