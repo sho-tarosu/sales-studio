@@ -407,10 +407,10 @@ export default function Home() {
 
             {activeTab === 'analytics' && (
               <>
+                <AnalyticsView data={data} selectedMonth={selectedMonth} loginName={effectiveName} userRole={effectiveRole} />
                 {effectiveRole === 'アルバイト' && myStats && (
                   <IncentiveBar total={myStats.total} selfClose={myStats.selfClose} />
                 )}
-                <AnalyticsView data={data} selectedMonth={selectedMonth} loginName={effectiveName} userRole={effectiveRole} />
               </>
             )}
           </>

@@ -77,7 +77,7 @@ export default function IncentiveBar({ total, selfClose }: { total: number; self
 
           {/* 次のクラスの条件 */}
           <div style={{ fontSize: 12, color: 'var(--text-sub)', marginBottom: 4 }}>
-            <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{next.name}</span> の条件
+            <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{next.name}</span> まで
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {/* 獲得pt条件 */}
