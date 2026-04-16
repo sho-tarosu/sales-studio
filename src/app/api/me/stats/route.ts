@@ -14,10 +14,11 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const nameParam = searchParams.get('name');
+  const monthParam = searchParams.get('month');
   const targetName = nameParam ?? session.user.name;
 
   const now = new Date();
-  const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const yearMonth = monthParam ?? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
   const rows = await db
     .select({

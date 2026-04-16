@@ -56,14 +56,13 @@ export default function Home() {
 
   useEffect(() => {
     if (effectiveRole === 'アルバイト') {
-      const url = effectiveName
-        ? `/api/me/stats?name=${encodeURIComponent(effectiveName)}`
-        : '/api/me/stats';
-      fetch(url).then(r => r.json()).then(setMyStats).catch(() => {});
+      const params = new URLSearchParams({ month: selectedMonth });
+      if (effectiveName) params.set('name', effectiveName);
+      fetch(`/api/me/stats?${params}`).then(r => r.json()).then(setMyStats).catch(() => {});
     } else {
       setMyStats(null);
     }
-  }, [effectiveRole, effectiveName]);
+  }, [effectiveRole, effectiveName, selectedMonth]);
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
