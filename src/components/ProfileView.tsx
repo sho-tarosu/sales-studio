@@ -18,6 +18,7 @@ interface ProfileData {
   ageBracketStaff: Record<string, string[]>;
   regionStaff: Record<string, string[]>;
   roleStaff: Record<string, string[]>;
+  genderMap: Record<string, 'male' | 'female'>;
 }
 
 
@@ -124,17 +125,21 @@ function BloodTypeDonut({ bloodTypes, staffMap, onSelect }: { bloodTypes: Record
   );
 }
 
+function nameBadgeStyle(name: string, genderMap?: Record<string, 'male' | 'female'>) {
+  const g = genderMap?.[name];
+  if (g === 'male')   return { background: 'rgba(125,211,252,0.18)', color: '#7dd3fc' };
+  if (g === 'female') return { background: 'rgba(249,168,212,0.18)', color: '#f9a8d4' };
+  return { background: 'rgba(255,255,255,0.07)', color: 'var(--text-main)' as string };
+}
+
 // BottomSheet（男女比率・年齢層・動物占い・血液型）
-function BottomSheet({ title, names, onClose }: { title: string; names: string[]; onClose: () => void }) {
+function BottomSheet({ title, names, genderMap, onClose }: { title: string; names: string[]; genderMap?: Record<string, 'male' | 'female'>; onClose: () => void }) {
   return (
     <>
-      <div
-        onClick={onClose}
-        style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-          zIndex: 1000, animation: 'fadeIn 0.2s ease',
-        }}
-      />
+      <div onClick={onClose} style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+        zIndex: 1000, animation: 'fadeIn 0.2s ease',
+      }} />
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         background: 'var(--card-bg, #1a1a2e)',
@@ -145,24 +150,17 @@ function BottomSheet({ title, names, onClose }: { title: string; names: string[]
         animation: 'slideUp 0.25s ease',
         boxShadow: '0 -4px 24px rgba(0,0,0,0.4)',
       }}>
-        {/* ハンドル */}
         <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0 4px' }}>
           <div style={{ width: 36, height: 4, borderRadius: 2, background: 'rgba(255,255,255,0.2)' }} />
         </div>
-        {/* タイトル */}
         <div style={{ padding: '8px 20px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-main)' }}>{title}</span>
           <span style={{ fontSize: 13, color: 'var(--text-sub)' }}>{names.length}名</span>
         </div>
-        {/* スタッフ一覧 */}
         <div style={{ overflowY: 'auto', padding: '0 20px 32px', flex: 1 }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {names.map((name, i) => (
-              <span key={i} style={{
-                background: 'rgba(255,255,255,0.07)',
-                borderRadius: 20, padding: '5px 12px',
-                fontSize: 13, color: 'var(--text-main)',
-              }}>{name}</span>
+              <span key={i} style={{ borderRadius: 20, padding: '5px 12px', fontSize: 13, ...nameBadgeStyle(name, genderMap) }}>{name}</span>
             ))}
           </div>
         </div>
@@ -172,7 +170,7 @@ function BottomSheet({ title, names, onClose }: { title: string; names: string[]
 }
 
 // StaffModal（出身地用）
-function StaffModal({ title, names, onClose }: { title: string; names: string[]; onClose: () => void }) {
+function StaffModal({ title, names, genderMap, onClose }: { title: string; names: string[]; genderMap?: Record<string, 'male' | 'female'>; onClose: () => void }) {
   return (
     <>
       <div onClick={onClose} style={{
@@ -196,11 +194,7 @@ function StaffModal({ title, names, onClose }: { title: string; names: string[];
           <div style={{ overflowY: 'auto', flex: 1 }}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {names.map((name, i) => (
-                <span key={i} style={{
-                  background: 'rgba(255,255,255,0.07)',
-                  borderRadius: 20, padding: '5px 12px',
-                  fontSize: 13, color: 'var(--text-main)',
-                }}>{name}</span>
+                <span key={i} style={{ borderRadius: 20, padding: '5px 12px', fontSize: 13, ...nameBadgeStyle(name, genderMap) }}>{name}</span>
               ))}
             </div>
           </div>
@@ -468,6 +462,7 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
 
   const openSheet = (title: string, names: string[]) => setSheet({ title, names });
   const openModal = (title: string, names: string[]) => setModal({ title, names });
+  const gm = data?.genderMap;
 
   useEffect(() => {
     setLoading(true);
@@ -492,8 +487,8 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
 
   return (
     <div style={{ padding: '0 0 80px' }}>
-      {sheet && <BottomSheet title={sheet.title} names={sheet.names} onClose={() => setSheet(null)} />}
-      {modal && <StaffModal title={modal.title} names={modal.names} onClose={() => setModal(null)} />}
+      {sheet && <BottomSheet title={sheet.title} names={sheet.names} genderMap={gm} onClose={() => setSheet(null)} />}
+      {modal && <StaffModal title={modal.title} names={modal.names} genderMap={gm} onClose={() => setModal(null)} />}
 
       {/* 拠点トグル */}
       <div className="shift-controls" style={{ marginBottom: 16 }}>

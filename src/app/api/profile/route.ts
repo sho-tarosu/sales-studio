@@ -68,6 +68,7 @@ export async function GET(request: Request) {
     const ageBracketStaff: Record<string, string[]> = {};
     const regionStaff: Record<string, string[]> = {};
     const roleStaff: Record<string, string[]> = { 社員: [], アルバイト: [], 業務委託: [] };
+    const genderMap: Record<string, 'male' | 'female'> = {};
 
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
@@ -132,15 +133,15 @@ export async function GET(request: Request) {
 
       // 性別（AB列 = index 27）
       const gender = row[27]?.trim();
-      if (gender === '男') { genderMale++; genderStaff.male.push(name); }
-      else if (gender === '女') { genderFemale++; genderStaff.female.push(name); }
+      if (gender === '男') { genderMale++; genderStaff.male.push(name); genderMap[name] = 'male'; }
+      else if (gender === '女') { genderFemale++; genderStaff.female.push(name); genderMap[name] = 'female'; }
     }
 
     return NextResponse.json({
       prefectures, regions, bloodTypes, total, roleCounts,
       animalTypes, ageBrackets,
       genders: { male: genderMale, female: genderFemale },
-      genderStaff, bloodStaff, animalStaff, ageBracketStaff, regionStaff, roleStaff,
+      genderStaff, bloodStaff, animalStaff, ageBracketStaff, regionStaff, roleStaff, genderMap,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
