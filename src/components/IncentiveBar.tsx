@@ -152,32 +152,12 @@ export default function IncentiveBar({ total, selfClose }: { total: number; self
 
               {/* 次のランク条件（このゾーンに次ランクがある場合） */}
               {nextInZone && next && (
-                <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                  <div style={{ fontSize: 12, color: 'var(--text-sub)', marginBottom: 6 }}>
-                    <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{next.name}</span> まで
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
-                      <span style={{ color: 'var(--text-sub)' }}>獲得</span>
-                      <span style={{ color: 'var(--text-main)' }}>{next.pt}pt以上</span>
-                      {total >= next.pt ? (
-                        <span style={{ color: '#4ade80', fontWeight: 700, fontSize: 12 }}>clear</span>
-                      ) : (
-                        <span style={{ color: 'var(--text-sub)', fontSize: 12 }}>あと {Math.ceil((next.pt - total) * 10) / 10}pt</span>
-                      )}
-                    </div>
-                    {next.selfClosePt !== null && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
-                        <span style={{ color: 'var(--text-sub)' }}>自己クロ</span>
-                        <span style={{ color: 'var(--text-main)' }}>{next.selfClosePt}pt以上</span>
-                        {selfClose >= next.selfClosePt ? (
-                          <span style={{ color: '#4ade80', fontWeight: 700, fontSize: 12 }}>clear</span>
-                        ) : (
-                          <span style={{ color: 'var(--text-sub)', fontSize: 12 }}>あと {Math.ceil((next.selfClosePt - selfClose) * 10) / 10}pt</span>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                <div style={{ marginTop: 10, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.06)', fontSize: 13 }}>
+                  <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>{next.name}</span>
+                  <span style={{ color: 'var(--text-sub)' }}> まであと </span>
+                  <span style={{ color: 'var(--text-main)', fontWeight: 600 }}>
+                    {Math.ceil((next.pt - total) * 10) / 10}pt
+                  </span>
                 </div>
               )}
             </div>
