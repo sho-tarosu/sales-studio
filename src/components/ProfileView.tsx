@@ -24,14 +24,14 @@ const BLOOD_TYPE_COLORS: Record<string, string> = {
 
 // ブロックの端から約2mm外側にラベル配置
 // push: モバイル時にラベルをさらに外側へ動かす方向
-const OVERLAY_POS: Record<string, { top: string; left: string; push: 'up' | 'down' | 'left' | 'right' }> = {
+const OVERLAY_POS: Record<string, { top: string; left: string; push: 'up' | 'down' | 'left' | 'right'; mobileTop?: string; mobileLeft?: string }> = {
   '海外':       { top: '20%', left: '19%', push: 'left'  },
   '北海道':     { top: '19%', left: '57%', push: 'up'    },
-  '東北':       { top: '44%', left: '83%', push: 'right' },
-  '関東':       { top: '70%', left: '82%', push: 'right' },
+  '東北':       { top: '49%', left: '83%', push: 'right', mobileTop: '44%' },
+  '関東':       { top: '65%', left: '82%', push: 'right', mobileTop: '70%' },
   '中部':       { top: '79%', left: '55%', push: 'down'  },
   '関西':       { top: '50%', left: '45%', push: 'up'    },
-  '中国':       { top: '50%', left: '30%', push: 'up'    },
+  '中国':       { top: '50%', left: '35%', push: 'up',    mobileLeft: '30%' },
   '四国':       { top: '76%', left: '30%', push: 'down'  },
   '九州・沖縄': { top: '50%', left: '12%', push: 'left'  },
 };
@@ -299,8 +299,8 @@ function JapanRegionMap({ regions }: { regions: Record<string, number> }) {
               key={region}
               style={{
                 position: 'absolute',
-                top: pos.top,
-                left: pos.left,
+                top: isMobile && pos.mobileTop ? pos.mobileTop : pos.top,
+                left: isMobile && pos.mobileLeft ? pos.mobileLeft : pos.left,
                 transform: isMobile ? PUSH_TRANSFORM[pos.push] : 'translate(-50%, -50%)',
                 textAlign: 'center',
                 pointerEvents: 'none',
