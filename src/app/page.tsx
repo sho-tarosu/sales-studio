@@ -447,14 +447,7 @@ export default function Home() {
             )}
 
             {activeTab === 'analytics' && (
-              <>
-                <AnalyticsView data={data} selectedMonth={selectedMonth} loginName={effectiveName} userRole={effectiveRole} />
-                {effectiveRole === 'アルバイト' && myStats && (
-                  <div style={{ marginTop: 16 }}>
-                    <IncentiveBar total={myStats.total} selfClose={myStats.selfClose} />
-                  </div>
-                )}
-              </>
+              <AnalyticsView data={data} selectedMonth={selectedMonth} loginName={effectiveName} userRole={effectiveRole} myStats={myStats} />
             )}
           </>
         )}

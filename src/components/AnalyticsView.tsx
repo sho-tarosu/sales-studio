@@ -4,15 +4,17 @@ import { useState } from 'react';
 import { DashboardData } from '@/types';
 import AttendanceTable from './AttendanceTable';
 import AnalysisView from './AnalysisView';
+import IncentiveBar from './IncentiveBar';
 
 interface AnalyticsViewProps {
   data: DashboardData;
   selectedMonth: string;
   loginName?: string;
   userRole?: string;
+  myStats?: { total: number; selfClose: number } | null;
 }
 
-export default function AnalyticsView({ data, selectedMonth, loginName, userRole }: AnalyticsViewProps) {
+export default function AnalyticsView({ data, selectedMonth, loginName, userRole, myStats }: AnalyticsViewProps) {
   const [innerTab, setInnerTab] = useState<'attendance' | 'analysis'>('attendance');
 
   return (
@@ -36,14 +38,19 @@ export default function AnalyticsView({ data, selectedMonth, loginName, userRole
       </div>
 
       {innerTab === 'attendance' && (
-        <div style={{ marginBottom: 28 }}>
-          <AttendanceTable
-            data={data}
-            selectedMonth={selectedMonth}
-            loginName={loginName}
-            userRole={userRole}
-          />
-        </div>
+        <>
+          <div style={{ marginBottom: 28 }}>
+            <AttendanceTable
+              data={data}
+              selectedMonth={selectedMonth}
+              loginName={loginName}
+              userRole={userRole}
+            />
+          </div>
+          {userRole === 'アルバイト' && myStats && (
+            <IncentiveBar total={myStats.total} selfClose={myStats.selfClose} />
+          )}
+        </>
       )}
       {innerTab === 'analysis' && (
         <AnalysisView data={data} />
