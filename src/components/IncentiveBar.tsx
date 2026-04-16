@@ -82,7 +82,7 @@ export default function IncentiveBar({ total, selfClose }: { total: number; self
           const RANK_H = 14;
           const BAR_H = 8;
           const GAP = 5;
-          const TOTAL_H = RANK_H + BAR_H + GAP + 14;
+          const TOTAL_H = RANK_H + BAR_H + GAP + 24;
 
           // このゾーンに次のランクが含まれるか
           const nextInZone = next && next.pt > zone.min && next.pt <= zone.max;
@@ -142,7 +142,7 @@ export default function IncentiveBar({ total, selfClose }: { total: number; self
                       pointerEvents: 'none',
                     }}>
                       <div style={{ width: 1, height: GAP, background: 'rgba(255,255,255,0.18)' }} />
-                      <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', lineHeight: 1, whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: 20, color: 'rgba(255,255,255,0.4)', lineHeight: 1, whiteSpace: 'nowrap' }}>
                         {pt}
                       </span>
                     </div>
