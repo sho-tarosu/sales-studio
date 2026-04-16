@@ -443,7 +443,14 @@ export default function Home() {
         <div className="profile-panel-backdrop" onClick={() => setDrawerOpen(false)} style={{ zIndex: 199 }} />
       )}
       {drawerOpen && session?.user?.name && (
-        <div className="profile-panel">
+        <div
+          className="profile-panel"
+          onTouchStart={(e) => { (e.currentTarget as HTMLDivElement).dataset.touchX = String(e.touches[0].clientX); }}
+          onTouchEnd={(e) => {
+            const startX = Number((e.currentTarget as HTMLDivElement).dataset.touchX ?? 0);
+            if (e.changedTouches[0].clientX - startX > 80) setDrawerOpen(false);
+          }}
+        >
           {/* 戻るヘッダー（スマホのみ表示） */}
           <div className="profile-panel-header">
             <button
@@ -599,7 +606,13 @@ export default function Home() {
 
       {/* 社員連絡先 フルスクリーン */}
       {contactsOpen && (
-        <div style={{
+        <div
+          onTouchStart={(e) => { (e.currentTarget as HTMLDivElement).dataset.touchX = String(e.touches[0].clientX); }}
+          onTouchEnd={(e) => {
+            const startX = Number((e.currentTarget as HTMLDivElement).dataset.touchX ?? 0);
+            if (e.changedTouches[0].clientX - startX > 80) setContactsOpen(false);
+          }}
+          style={{
           position: 'fixed',
           inset: 0,
           zIndex: 300,
