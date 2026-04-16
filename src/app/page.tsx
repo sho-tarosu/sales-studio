@@ -42,7 +42,7 @@ export default function Home() {
   const [rankingView, setRankingView] = useState<'default' | 'total' | 'selfclose' | 'mnp' | 'table'>('default');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [contactsOpen, setContactsOpen] = useState(false);
-  const [contacts, setContacts] = useState<{ name: string; role: string; contact: string }[]>([]);
+  const [contacts, setContacts] = useState<{ name: string; contact: string; mentees: string[] }[]>([]);
   const [meData, setMeData] = useState<{ birthday: string; bloodType: string; animal: string; zodiac: string } | null>(null);
   const [myStats, setMyStats] = useState<{ total: number; selfClose: number } | null>(null);
   const [impersonated, setImpersonated] = useState<{ name: string; role: string } | null>(null);
@@ -646,26 +646,23 @@ export default function Home() {
             ) : (
               contacts.map((c) => (
                 <div key={c.name} style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '14px 24px',
+                  padding: '12px 24px',
                   borderBottom: '1px solid var(--border-color)',
                 }}>
-                  <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-main)' }}>{c.name}</div>
+                    <a
+                      href={`tel:${c.contact.replace(/[-\s]/g, '')}`}
+                      style={{ fontSize: 14, color: '#60a5fa', textDecoration: 'none', fontVariantNumeric: 'tabular-nums' }}
+                    >
+                      {c.contact}
+                    </a>
                   </div>
-                  <a
-                    href={`tel:${c.contact.replace(/[-\s]/g, '')}`}
-                    style={{
-                      fontSize: 14,
-                      color: '#60a5fa',
-                      textDecoration: 'none',
-                      fontVariantNumeric: 'tabular-nums',
-                    }}
-                  >
-                    {c.contact}
-                  </a>
+                  {c.mentees.length > 0 && (
+                    <div style={{ marginTop: 4, fontSize: 12, color: 'var(--text-sub)' }}>
+                      担当: {c.mentees.join('・')}
+                    </div>
+                  )}
                 </div>
               ))
             )}
