@@ -266,8 +266,8 @@ export default function Home() {
 
             {activeTab === 'visual-ranking' && (
               <>
-                {/* 共通タブ */}
-                <div className="shift-controls" style={{ marginBottom: 16 }}>
+                {/* PC用タブ */}
+                <div className="ranking-charts-pc" style={{ marginBottom: 16 }}>
                   <div className="shift-region-toggle">
                     <button
                       className={`shift-region-btn${rankingView === 'mnp' ? ' active' : ''}`}
