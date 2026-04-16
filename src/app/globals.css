@@ -200,6 +200,42 @@ body {
 }
 .user-drawer.open { transform: translateX(0); }
 
+/* ─── Profile Panel ─────────────────────────────── */
+
+.profile-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: var(--bg-color);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-panel-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+@media (min-width: 768px) {
+  .profile-panel {
+    inset: auto;
+    top: 56px;
+    right: 16px;
+    width: 320px;
+    max-height: 80vh;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  }
+
+  .profile-panel-header {
+    display: none;
+  }
+}
+
 /* ─── Main Content ─────────────────────────────── */
 
 .main-content {
@@ -443,9 +479,6 @@ input[type="password"]:focus {
 .full-ranking-table td:nth-child(2) { position: sticky; z-index: 2; background: var(--card-bg); text-align: left; padding: 8px 8px 8px 4px; width: 1%; white-space: nowrap; }
 .full-ranking-table th:not(:first-child):not(:nth-child(2)) { width: 36px; text-align: center; padding: 8px 2px; }
 .full-ranking-table td:not(:first-child):not(:nth-child(2)) { text-align: center; padding: 7px 2px; }
-.full-ranking-table tr:hover td { background: rgba(255, 255, 255, 0.02); }
-.full-ranking-table tr:hover td:first-child,
-.full-ranking-table tr:hover td:nth-child(2) { background: color-mix(in srgb, var(--card-bg) 85%, white 15%); }
 
 /* ─── Shift View ───────────────────────────────── */
 

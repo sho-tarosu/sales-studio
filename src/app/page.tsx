@@ -438,24 +438,14 @@ export default function Home() {
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} userRole={effectiveRole} />
 
-      {/* プロフィール フルスクリーン */}
+      {/* プロフィール フルスクリーン / PC ドロップダウン */}
+      {drawerOpen && (
+        <div className="profile-panel-backdrop" onClick={() => setDrawerOpen(false)} style={{ zIndex: 199 }} />
+      )}
       {drawerOpen && session?.user?.name && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 200,
-          background: 'var(--bg-color)',
-          overflowY: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-        }}>
-          {/* 戻るヘッダー */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            padding: '10px 8px',
-            borderBottom: '1px solid var(--border-color)',
-          }}>
+        <div className="profile-panel">
+          {/* 戻るヘッダー（スマホのみ表示） */}
+          <div className="profile-panel-header">
             <button
               onClick={() => setDrawerOpen(false)}
               style={{
