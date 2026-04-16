@@ -89,8 +89,8 @@ export async function GET() {
       const bloodType = rawBlood ? (rawBlood.endsWith('型') ? rawBlood : rawBlood + '型') : '';
       if (bloodType) bloodTypes[bloodType] = (bloodTypes[bloodType] || 0) + 1;
 
-      // 動物占い（K列 = index 10）
-      const animal = row[10]?.trim();
+      // 動物占い（N列 = index 13）
+      const animal = row[13]?.trim();
       if (animal) animalTypes[animal] = (animalTypes[animal] || 0) + 1;
 
       // 年齢（E列 = index 4）

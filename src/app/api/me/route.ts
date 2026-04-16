@@ -21,7 +21,7 @@ export async function GET() {
       return NextResponse.json({
         birthday: row[4]?.trim() ?? '',   // E列: 生年月日
         bloodType: row[8]?.trim() ?? '',  // I列: 血液型
-        animal: row[10]?.trim() ?? '',    // K列: 動物占い
+        animal: row[13]?.trim() ?? '',    // N列: 動物占い
         zodiac: row[17]?.trim() ?? '',    // R列: 星座
       });
     }
