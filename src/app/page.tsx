@@ -445,7 +445,7 @@ export default function Home() {
 
       {/* プロフィール フルスクリーン / PC ドロップダウン */}
       {drawerOpen && (
-        <div className="profile-panel-backdrop" onClick={() => setDrawerOpen(false)} style={{ zIndex: 199 }} />
+        <div onClick={() => setDrawerOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 199 }} />
       )}
       {drawerOpen && session?.user?.name && (
         <div
