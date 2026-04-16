@@ -110,7 +110,9 @@ function DetailPanel({ staff, onClose }: { staff: StaffEvaluation; onClose: () =
   const knowledgeCount = staff.knowledgeItems.filter((k) => staff.knowledge[k]).length;
   const knowledgeTotal = staff.knowledgeItems.length;
   const knowledgeGroups = groupKnowledgeItems(staff.knowledgeItems);
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [collapsed, setCollapsed] = useState<Set<string>>(
+    () => new Set(KNOWLEDGE_GROUPS.map((g) => g.label).concat(['その他']))
+  );
   const scorePercent = Math.round((staff.totalScore / 42) * 100);
 
   return (
