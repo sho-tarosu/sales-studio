@@ -408,7 +408,9 @@ export default function Home() {
               <>
                 <AnalyticsView data={data} selectedMonth={selectedMonth} loginName={effectiveName} userRole={effectiveRole} />
                 {effectiveRole === 'アルバイト' && myStats && (
-                  <IncentiveBar total={myStats.total} selfClose={myStats.selfClose} />
+                  <div style={{ marginTop: 16 }}>
+                    <IncentiveBar total={myStats.total} selfClose={myStats.selfClose} />
+                  </div>
                 )}
               </>
             )}
