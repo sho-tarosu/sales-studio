@@ -181,7 +181,9 @@ function StaffModal({ title, names, onClose }: { title: string; names: string[];
         display: 'flex', alignItems: 'center', justifyContent: 'center',
       }}>
         <div onClick={e => e.stopPropagation()} style={{
-          background: 'var(--card-bg, #1a1a2e)',
+          background: 'rgba(30, 30, 50, 0.6)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
           borderRadius: 16, padding: '20px',
           minWidth: 260, maxWidth: '80vw',
           maxHeight: '70vh', display: 'flex', flexDirection: 'column',
