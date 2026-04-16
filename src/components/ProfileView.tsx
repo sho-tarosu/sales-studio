@@ -117,11 +117,23 @@ function BloodTypeDonut({ bloodTypes }: { bloodTypes: Record<string, number> }) 
   );
 }
 
-// 動物占いのカラーパレット（最大12種）
-const ANIMAL_PALETTE = [
-  '#60a5fa','#f97316','#4ade80','#facc15','#a78bfa',
-  '#f472b6','#34d399','#fb923c','#818cf8','#94a3b8',
-  '#e879f9','#2dd4bf',
+// 動物占い：動物から連想できる色
+const ANIMAL_COLORS: Record<string, string> = {
+  'オオカミ':   '#94a3b8', // 狼→クールなグレー
+  'コアラ':     '#a8a29e', // コアラ→グレーブラウン
+  'ひつじ':     '#e9d5a0', // 羊→ウールのクリーム
+  'トラ':       '#f97316', // 虎→オレンジ
+  'たぬき':     '#b45309', // たぬき→アースブラウン
+  'サル':       '#ef4444', // 猿→赤い顔
+  'こじか':     '#d97706', // 子鹿→アンバー
+  'ゾウ':       '#6b7280', // 象→ゾウグレー
+  'ライオン':   '#fbbf24', // ライオン→ゴールデン
+  'ペガサス':   '#a78bfa', // ペガサス→神秘的な紫
+  'クロヒョウ': '#7c3aed', // 黒豹→ダークパープル
+  'チータ':     '#ca8a04', // チーター→金茶
+};
+const ANIMAL_FALLBACK_PALETTE = [
+  '#60a5fa','#34d399','#f472b6','#2dd4bf','#818cf8','#e879f9',
 ];
 
 function AnimalChart({ animalTypes }: { animalTypes: Record<string, number> }) {
@@ -137,7 +149,7 @@ function AnimalChart({ animalTypes }: { animalTypes: Record<string, number> }) {
       {entries.map(([animal, count], i) => {
         const pct = Math.round((count / total) * 100);
         const barPct = (count / max) * 100;
-        const color = ANIMAL_PALETTE[i % ANIMAL_PALETTE.length];
+        const color = ANIMAL_COLORS[animal] ?? ANIMAL_FALLBACK_PALETTE[i % ANIMAL_FALLBACK_PALETTE.length];
         return (
           <div key={animal} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 72, fontSize: 12, color: 'var(--text-main)', textAlign: 'right', flexShrink: 0 }}>
