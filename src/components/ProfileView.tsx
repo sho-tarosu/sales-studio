@@ -230,7 +230,7 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
       )}
 
       {/* 総勢 */}
-      <div className="chart-card" style={{ marginBottom: 12, display: 'flex', alignItems: 'baseline', gap: 6 }}>
+      <div className="chart-card" style={{ marginBottom: 12, display: 'flex', alignItems: 'baseline', gap: 6, minHeight: 'unset' }}>
         <span style={{ fontSize: 32, fontWeight: 'bold', color: 'var(--accent-color)', lineHeight: 1 }}>{data.total}</span>
         <span style={{ fontSize: 14, color: 'var(--text-sub)' }}>名のスタッフ</span>
       </div>
