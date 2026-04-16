@@ -609,23 +609,19 @@ export default function Home() {
         </div>
       )}
 
-      {/* 社員連絡先 フルスクリーン */}
+      {/* 社員連絡先パネル */}
+      {contactsOpen && (
+        <div onClick={() => setContactsOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 299 }} />
+      )}
       {contactsOpen && (
         <div
+          className="contacts-panel"
           onTouchStart={(e) => { (e.currentTarget as HTMLDivElement).dataset.touchX = String(e.touches[0].clientX); }}
           onTouchEnd={(e) => {
             const startX = Number((e.currentTarget as HTMLDivElement).dataset.touchX ?? 0);
             if (e.changedTouches[0].clientX - startX > 80) setContactsOpen(false);
           }}
-          style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 300,
-          background: 'var(--bg-color)',
-          overflowY: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-        }}>
+        >
           <div style={{
             display: 'flex',
             alignItems: 'center',
