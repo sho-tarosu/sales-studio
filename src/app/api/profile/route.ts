@@ -41,11 +41,14 @@ function ageBracket(age: number): string {
   return `${low}-${low + 4}`;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth();
   if (!session) {
     return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
   }
+
+  const { searchParams } = new URL(request.url);
+  const regionFilter = searchParams.get('region') ?? '全国';
 
   try {
     const rows = await getSheetData(SHEET_NAME);
@@ -73,6 +76,12 @@ export async function GET() {
 
       const active = row[23]?.trim();
       if (active?.toUpperCase() !== 'TRUE') continue;
+
+      // 拠点フィルター（B列 = index 1）
+      if (regionFilter !== '全国') {
+        const base = row[1]?.trim();
+        if (base !== regionFilter) continue;
+      }
 
       total++;
 

@@ -453,18 +453,24 @@ interface ProfileViewProps {
   effectiveName?: string;
 }
 
+const REGIONS = ['全国', '関東', '九州'] as const;
+type Region = typeof REGIONS[number];
+
 export default function ProfileView({ effectiveRole = '', effectiveName = '' }: ProfileViewProps) {
   const [data, setData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sheet, setSheet] = useState<{ title: string; names: string[] } | null>(null);
   const [modal, setModal] = useState<{ title: string; names: string[] } | null>(null);
+  const [region, setRegion] = useState<Region>('全国');
 
   const openSheet = (title: string, names: string[]) => setSheet({ title, names });
   const openModal = (title: string, names: string[]) => setModal({ title, names });
 
   useEffect(() => {
-    fetch('/api/profile')
+    setLoading(true);
+    setData(null);
+    fetch(`/api/profile?region=${encodeURIComponent(region)}`)
       .then((r) => {
         if (!r.ok) return r.json().then((e: { error?: string }) => { throw new Error(e.error || 'エラー'); });
         return r.json();
@@ -472,7 +478,7 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
       .then(setData)
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [region]);
 
   if (loading) {
     return <div style={{ textAlign: 'center', padding: 40, color: '#aaa' }}>データを読み込んでいます...</div>;
@@ -486,6 +492,19 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
     <div style={{ padding: '0 0 80px' }}>
       {sheet && <BottomSheet title={sheet.title} names={sheet.names} onClose={() => setSheet(null)} />}
       {modal && <StaffModal title={modal.title} names={modal.names} onClose={() => setModal(null)} />}
+
+      {/* 拠点トグル */}
+      <div className="shift-controls" style={{ marginBottom: 16 }}>
+        <div className="shift-region-toggle">
+          {REGIONS.map((r) => (
+            <button
+              key={r}
+              className={`shift-region-btn${region === r ? ' active' : ''}`}
+              onClick={() => setRegion(r)}
+            >{r}</button>
+          ))}
+        </div>
+      </div>
       {/* 総勢 */}
       <div className="chart-card" style={{ marginBottom: 12, minHeight: 'unset' }}>
         <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 16 }}>
