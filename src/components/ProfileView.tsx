@@ -17,6 +17,7 @@ interface ProfileData {
   animalStaff: Record<string, string[]>;
   ageBracketStaff: Record<string, string[]>;
   regionStaff: Record<string, string[]>;
+  roleStaff: Record<string, string[]>;
 }
 
 
@@ -327,59 +328,57 @@ function GenderBar({ genders, staffMap, onSelect }: { genders: { male: number; f
 const AGE_COLORS = ['#60a5fa', '#34d399', '#a78bfa', '#fb923c', '#f472b6', '#facc15', '#2dd4bf'];
 
 function AgePieChart({ ageBrackets, staffMap, onSelect }: { ageBrackets: Record<string, number>; staffMap?: Record<string, string[]>; onSelect?: (title: string, names: string[]) => void }) {
-  const entries = Object.entries(ageBrackets)
-    .sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+  const entries = Object.entries(ageBrackets).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
   if (entries.length === 0) return <div style={{ color: 'var(--text-sub)', fontSize: 13 }}>データなし</div>;
 
   const total = entries.reduce((s, [, c]) => s + c, 0);
-  const cx = 110, cy = 110, R = 80, r = 48;
+  const cx = 210, cy = 195, outerR = 130, innerR = 72;
 
   let angle = -Math.PI / 2;
-  const slices = entries.map(([bracket, count], i) => {
+  const segments = entries.map(([bracket, count], i) => {
     const span = (count / total) * 2 * Math.PI;
-    const midA = angle + span / 2;
-    const x1 = cx + R * Math.cos(angle), y1 = cy + R * Math.sin(angle);
+    const start = angle;
     angle += span;
-    const x2 = cx + R * Math.cos(angle), y2 = cy + R * Math.sin(angle);
-    const large = span > Math.PI ? 1 : 0;
-    const ix1 = cx + r * Math.cos(angle - span), iy1 = cy + r * Math.sin(angle - span);
-    const ix2 = cx + r * Math.cos(angle), iy2 = cy + r * Math.sin(angle);
-    const d = `M${x1},${y1} A${R},${R},0,${large},1,${x2},${y2} L${ix2},${iy2} A${r},${r},0,${large},0,${ix1},${iy1} Z`;
-    const labelR = R + 16;
-    const lx = cx + labelR * Math.cos(midA);
-    const ly = cy + labelR * Math.sin(midA);
-    return { d, bracket, count, color: AGE_COLORS[i % AGE_COLORS.length], lx, ly, midA };
+    return { bracket, count, start, end: angle, mid: start + span / 2, color: AGE_COLORS[i % AGE_COLORS.length] };
   });
 
+  const pt = (a: number, r: number) => ({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) });
+  const arc = (s: number, e: number) => {
+    const o0 = pt(s, outerR), o1 = pt(e, outerR);
+    const i0 = pt(s, innerR), i1 = pt(e, innerR);
+    const lg = e - s > Math.PI ? 1 : 0;
+    return `M${o0.x} ${o0.y} A${outerR} ${outerR} 0 ${lg} 1 ${o1.x} ${o1.y} L${i1.x} ${i1.y} A${innerR} ${innerR} 0 ${lg} 0 ${i0.x} ${i0.y}Z`;
+  };
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-      <svg width={220} height={220} viewBox="0 0 220 220" style={{ flexShrink: 0 }}>
-        {slices.map(({ d, bracket, color }) => (
-          <path key={bracket} d={d} fill={color} opacity={0.9}
-            style={{ cursor: onSelect ? 'pointer' : 'default' }}
-            onClick={() => onSelect && staffMap?.[bracket] && onSelect(`${bracket}歳`, staffMap[bracket])} />
-        ))}
-        <text x={cx} y={cy - 8} textAnchor="middle" dominantBaseline="middle"
-          fill="var(--text-sub)" fontSize="13">総勢</text>
-        <text x={cx} y={cy + 12} textAnchor="middle" dominantBaseline="middle"
-          fill="var(--text-main)" fontSize="22" fontWeight="bold">{total}名</text>
-      </svg>
-      {/* 凡例 */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {slices.map(({ bracket, count, color }) => {
-          const pct = Math.round((count / total) * 100);
-          return (
-            <div key={bracket} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: onSelect ? 'pointer' : 'default' }}
-              onClick={() => onSelect && staffMap?.[bracket] && onSelect(`${bracket}歳`, staffMap[bracket])}>
-              <div style={{ width: 10, height: 10, borderRadius: 2, background: color, flexShrink: 0 }} />
-              <span style={{ fontSize: 12, color: 'var(--text-sub)', minWidth: 36 }}>{bracket}</span>
-              <span style={{ fontSize: 12, color: 'var(--text-main)', fontWeight: 600 }}>{count}名</span>
-              <span style={{ fontSize: 11, color: 'var(--text-sub)' }}>{pct}%</span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    <svg viewBox="0 0 420 390" style={{ width: '100%', height: 'auto' }}>
+      {segments.map(({ bracket, count, start, end, mid, color }) => {
+        const inside = pt(mid, (outerR + innerR) / 2);
+        const lineStart = pt(mid, outerR + 6);
+        const lineEnd = pt(mid, outerR + 28);
+        const label = pt(mid, outerR + 34);
+        const anchor = Math.cos(mid) >= 0 ? 'start' : 'end';
+        const pct = Math.round((count / total) * 100);
+        return (
+          <g key={bracket} style={{ cursor: onSelect ? 'pointer' : 'default' }}
+            onClick={() => onSelect && staffMap?.[bracket] && onSelect(`${bracket}歳`, staffMap[bracket])}>
+            <path d={arc(start, end)} fill={color} />
+            <text x={inside.x} y={inside.y} textAnchor="middle" dominantBaseline="middle"
+              fill="white" fontSize="15" fontWeight="bold">{count}名</text>
+            <line x1={lineStart.x} y1={lineStart.y} x2={lineEnd.x} y2={lineEnd.y}
+              stroke={color} strokeWidth="1.5" />
+            <text x={label.x} y={label.y - 8} textAnchor={anchor} dominantBaseline="middle"
+              fill="var(--text-sub)" fontSize="12" fontWeight="600">{bracket}</text>
+            <text x={label.x} y={label.y + 9} textAnchor={anchor} dominantBaseline="middle"
+              fill={color} fontSize="14" fontWeight="800">{pct}%</text>
+          </g>
+        );
+      })}
+      <text x={cx} y={cy - 12} textAnchor="middle" dominantBaseline="middle"
+        fill="var(--text-sub)" fontSize="15">総勢</text>
+      <text x={cx} y={cy + 14} textAnchor="middle" dominantBaseline="middle"
+        fill="var(--text-main)" fontSize="26" fontWeight="bold">{total}名</text>
+    </svg>
   );
 }
 
@@ -495,16 +494,19 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           {([['社員', '#3ea6ff', '#1a3a5c'], ['アルバイト', '#facc15', '#3d3000'], ['業務委託', '#a3a3a3', '#2a2a2a']] as [string, string, string][]).map(([label, color, bg]) => (
-            <div key={label} style={{
-              flex: 1,
-              background: bg,
-              border: `1px solid ${color}30`,
-              borderRadius: 10,
-              padding: '10px 12px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 4,
-            }}>
+            <div key={label}
+              onClick={() => { const names = data.roleStaff?.[label]; if (names?.length) openSheet(label, names); }}
+              style={{
+                flex: 1,
+                background: bg,
+                border: `1px solid ${color}30`,
+                borderRadius: 10,
+                padding: '10px 12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 4,
+                cursor: 'pointer',
+              }}>
               <span style={{ fontSize: 11, color: color, fontWeight: 600, letterSpacing: '0.05em' }}>{label}</span>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 3 }}>
                 <span style={{ fontSize: 28, fontWeight: 'bold', color: color, lineHeight: 1, letterSpacing: '-1px' }}>{data.roleCounts?.[label] ?? 0}</span>

@@ -64,6 +64,7 @@ export async function GET() {
     const animalStaff: Record<string, string[]> = {};
     const ageBracketStaff: Record<string, string[]> = {};
     const regionStaff: Record<string, string[]> = {};
+    const roleStaff: Record<string, string[]> = { 社員: [], アルバイト: [], 業務委託: [] };
 
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
@@ -77,9 +78,11 @@ export async function GET() {
 
       // ロール
       const role = row[22]?.trim();
-      if (role === 'アルバイト') roleCounts['アルバイト']++;
-      else if (role === '社員' || role === '管理者') roleCounts['社員']++;
-      else roleCounts['業務委託']++;
+      let roleKey: string;
+      if (role === 'アルバイト') { roleKey = 'アルバイト'; roleCounts['アルバイト']++; }
+      else if (role === '社員' || role === '管理者') { roleKey = '社員'; roleCounts['社員']++; }
+      else { roleKey = '業務委託'; roleCounts['業務委託']++; }
+      roleStaff[roleKey].push(name);
 
       // 出身地
       const rawPref = row[7]?.trim();
@@ -128,7 +131,7 @@ export async function GET() {
       prefectures, regions, bloodTypes, total, roleCounts,
       animalTypes, ageBrackets,
       genders: { male: genderMale, female: genderFemale },
-      genderStaff, bloodStaff, animalStaff, ageBracketStaff, regionStaff,
+      genderStaff, bloodStaff, animalStaff, ageBracketStaff, regionStaff, roleStaff,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
