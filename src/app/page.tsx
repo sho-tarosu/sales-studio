@@ -187,15 +187,20 @@ export default function Home() {
                 />
               )}
             </div>
-            {session?.user?.name && (
-              <button
-                onClick={() => setDrawerOpen(true)}
-                className="header-avatar-btn"
-                title={session.user.name}
-              >
-                {session.user.name.slice(0, 2)}
-              </button>
-            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-sub)', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
+                Sales Studio
+              </span>
+              {session?.user?.name && (
+                <button
+                  onClick={() => setDrawerOpen(true)}
+                  className="header-avatar-btn"
+                  title={session.user.name}
+                >
+                  {session.user.name.slice(0, 2)}
+                </button>
+              )}
+            </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <div style={{ fontSize: '12px', color: '#aaa' }}>{lastUpdate}</div>
