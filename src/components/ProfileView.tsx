@@ -495,8 +495,18 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
   const [sheet, setSheet] = useState<{ title: string; names: string[] } | null>(null);
   const [modal, setModal] = useState<{ title: string; names: string[]; grouped?: { pref: string; names: string[] }[] } | null>(null);
   const [region, setRegion] = useState<Region>('全国');
+  const [isPC, setIsPC] = useState(false);
+  useEffect(() => {
+    const check = () => setIsPC(window.innerWidth >= 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
 
-  const openSheet = (title: string, names: string[]) => setSheet({ title, names });
+  const openSheet = (title: string, names: string[]) => {
+    if (isPC) setModal({ title, names });
+    else setSheet({ title, names });
+  };
   const openModal = (title: string, names: string[]) => {
     const prefList = REGION_TO_PREFECTURES[title];
     const prefStaff = data?.prefectureStaff;
