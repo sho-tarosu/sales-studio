@@ -23,10 +23,10 @@ interface ProfileData {
 
 
 const BLOOD_TYPE_COLORS: Record<string, string> = {
-  'A型': '#4285F4',
-  'B型': '#EA4335',
-  'O型': '#34A853',
-  'AB型': '#9c27b0',
+  'A型':  '#f9a8d4', // ピンク
+  'B型':  '#7dd3fc', // 水色
+  'O型':  '#fbbf24', // イエロー
+  'AB型': '#a3e635', // 黄緑
 };
 
 // ブロックの端から約2mm外側にラベル配置
