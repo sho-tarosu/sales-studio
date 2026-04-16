@@ -38,7 +38,7 @@ export default function Home() {
   const { data: session } = useSession();
   useActivityTracker();
   const [activeTab, setActiveTab] = useState<TabName>('dashboard');
-  const [rankingView, setRankingView] = useState<'total' | 'selfclose' | 'table'>('total');
+  const [rankingView, setRankingView] = useState<'default' | 'total' | 'selfclose' | 'mnp' | 'table'>('default');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [meData, setMeData] = useState<{ birthday: string; bloodType: string; animal: string; zodiac: string } | null>(null);
   const [impersonated, setImpersonated] = useState<{ name: string; role: string } | null>(null);
@@ -266,113 +266,93 @@ export default function Home() {
 
             {activeTab === 'visual-ranking' && (
               <>
-                {/* PC: 詳細タブ + 横並びチャート */}
-                <div className="ranking-charts-pc">
-                  {rankingView !== 'table' ? (
-                    <>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12, width: '100%' }}>
+                {/* 共通タブ */}
+                <div className="shift-controls" style={{ marginBottom: 16 }}>
+                  <div className="shift-region-toggle">
+                    <button
+                      className={`shift-region-btn${rankingView === 'mnp' ? ' active' : ''}`}
+                      onClick={() => setRankingView(rankingView === 'mnp' ? 'default' : 'mnp')}
+                    >
+                      MNP・新規・SU
+                    </button>
+                    <button
+                      className={`shift-region-btn${rankingView === 'table' ? ' active' : ''}`}
+                      onClick={() => setRankingView(rankingView === 'table' ? 'default' : 'table')}
+                    >
+                      詳細
+                    </button>
+                  </div>
+                </div>
+
+                {/* MNP・新規・SU */}
+                {rankingView === 'mnp' && (
+                  <div className="chart-card">
+                    <StackedBarChart ranking={data.ranking} />
+                  </div>
+                )}
+
+                {/* 詳細テーブル */}
+                {rankingView === 'table' && (
+                  <RankingTable ranking={data.ranking} />
+                )}
+
+                {/* デフォルト: 獲得・自己クロ */}
+                {(rankingView === 'default' || rankingView === 'total' || rankingView === 'selfclose') && (
+                  <>
+                    {/* PC: 横並び */}
+                    <div className="ranking-charts-pc" style={{ gap: 16 }}>
+                      <div className="chart-card" style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 8 }}>獲得</div>
+                        <BarChart ranking={data.ranking} />
+                      </div>
+                      <div className="chart-card" style={{ flex: 1 }}>
+                        <div style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 8 }}>自己クロ</div>
+                        <BarChart
+                          ranking={[...data.ranking].sort((a, b) => b.selfClose - a.selfClose)}
+                          getValue={(s) => s.selfClose}
+                          color="#f97316"
+                        />
+                      </div>
+                    </div>
+                    {/* SP: タブ切り替え */}
+                    <div className="ranking-charts-sp">
+                      <div className="shift-controls" style={{ marginBottom: 16 }}>
                         <div className="shift-region-toggle">
                           <button
-                            className={`shift-region-btn active`}
-                            onClick={() => {}}
-                            style={{ pointerEvents: 'none' }}
+                            className={`shift-region-btn${rankingView !== 'selfclose' ? ' active' : ''}`}
+                            onClick={() => setRankingView('total')}
                           >
-                            グラフ
+                            獲得
                           </button>
                           <button
-                            className="shift-region-btn"
-                            onClick={() => setRankingView('table')}
+                            className={`shift-region-btn${rankingView === 'selfclose' ? ' active' : ''}`}
+                            onClick={() => setRankingView('selfclose')}
                           >
-                            詳細
+                            自己クロ
                           </button>
                         </div>
                       </div>
-                      <div style={{ display: 'flex', gap: 16, width: '100%' }}>
-                        <div className="chart-card" style={{ flex: 1 }}>
-                          <div style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 8 }}>獲得</div>
+                      {rankingView !== 'selfclose' ? (
+                        <div className="chart-card">
                           <BarChart ranking={data.ranking} />
                         </div>
-                        <div className="chart-card" style={{ flex: 1 }}>
-                          <div style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 8 }}>自己クロ</div>
+                      ) : (
+                        <div className="chart-card">
                           <BarChart
                             ranking={[...data.ranking].sort((a, b) => b.selfClose - a.selfClose)}
                             getValue={(s) => s.selfClose}
                             color="#f97316"
                           />
                         </div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12, width: '100%' }}>
-                        <div className="shift-region-toggle">
-                          <button
-                            className="shift-region-btn"
-                            onClick={() => setRankingView('total')}
-                          >
-                            グラフ
-                          </button>
-                          <button
-                            className="shift-region-btn active"
-                            onClick={() => {}}
-                            style={{ pointerEvents: 'none' }}
-                          >
-                            詳細
-                          </button>
-                        </div>
-                      </div>
-                      <RankingTable ranking={data.ranking} />
-                    </>
-                  )}
-                </div>
-
-                {/* スマホ: タブ切り替え */}
-                <div className="ranking-charts-sp">
-                  <div className="shift-controls" style={{ marginBottom: '16px' }}>
-                    <div className="shift-region-toggle">
-                      <button
-                        className={`shift-region-btn${rankingView === 'total' ? ' active' : ''}`}
-                        onClick={() => setRankingView('total')}
-                      >
-                        獲得
-                      </button>
-                      <button
-                        className={`shift-region-btn${rankingView === 'selfclose' ? ' active' : ''}`}
-                        onClick={() => setRankingView('selfclose')}
-                      >
-                        自己クロ
-                      </button>
-                      <button
-                        className={`shift-region-btn${rankingView === 'table' ? ' active' : ''}`}
-                        onClick={() => setRankingView('table')}
-                      >
-                        詳細
-                      </button>
+                      )}
                     </div>
-                  </div>
-                  {rankingView === 'total' && (
-                    <div className="chart-card">
-                      <BarChart ranking={data.ranking} />
-                    </div>
-                  )}
-                  {rankingView === 'selfclose' && (
-                    <div className="chart-card">
-                      <BarChart
-                        ranking={[...data.ranking].sort((a, b) => b.selfClose - a.selfClose)}
-                        getValue={(s) => s.selfClose}
-                        color="#f97316"
-                      />
-                    </div>
-                  )}
-                  {rankingView === 'table' && (
-                    <RankingTable ranking={data.ranking} />
-                  )}
-                </div>
+                  </>
+                )}
               </>
             )}
 
             {activeTab === 'stacked-chart' && (
-              <div className="chart-card" style={{ height: 'calc(100vh - 150px)' }}>
+              <div className="chart-card">
                 <StackedBarChart ranking={data.ranking} />
               </div>
             )}

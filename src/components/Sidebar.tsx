@@ -18,7 +18,6 @@ const ICON_PROPS = { size: 18, strokeWidth: 1.75 } as const;
 const ALL_MENU_ITEMS: { id: TabName; label: string; icon: React.ReactNode; minRole?: string }[] = [
   { id: 'dashboard',      label: 'ダッシュボード', icon: <LayoutDashboard {...ICON_PROPS} /> },
   { id: 'visual-ranking', label: 'ランキング',     icon: <BarChart2       {...ICON_PROPS} /> },
-  { id: 'stacked-chart',  label: 'MNP・新規・SU',  icon: <Layers          {...ICON_PROPS} /> },
   { id: 'analytics',      label: '実績・分析',     icon: <PieChart        {...ICON_PROPS} /> },
   { id: 'shift',          label: 'シフト',         icon: <Calendar        {...ICON_PROPS} /> },
   { id: 'growth',         label: '育成管理',       icon: <GraduationCap   {...ICON_PROPS} />, minRole: '社員' },
