@@ -179,7 +179,7 @@ export default function Home() {
           {/* ブランドバー: スマホのみ表示 */}
           <div className="header-brand-row">
             <div className="header-logo">
-              <Image src="/icon-512.png" alt="logo" width={56} height={56} style={{ borderRadius: 12, flexShrink: 0 }} />
+              <Image src="/icon-512.png" alt="logo" width={45} height={45} style={{ borderRadius: 10, flexShrink: 0 }} />
               <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-main)', letterSpacing: '0.01em', whiteSpace: 'nowrap' }}>
                 Sales Studio
               </span>
