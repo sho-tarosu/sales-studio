@@ -225,47 +225,57 @@ function GenderBar({ genders }: { genders: { male: number; female: number } }) {
   );
 }
 
-function AgeHistogram({ ageBrackets }: { ageBrackets: Record<string, number> }) {
-  const entries = Object.entries(ageBrackets).sort((a, b) => {
-    const aLow = parseInt(a[0].split('-')[0]);
-    const bLow = parseInt(b[0].split('-')[0]);
-    return aLow - bLow;
-  });
+const AGE_COLORS = ['#60a5fa', '#34d399', '#a78bfa', '#fb923c', '#f472b6', '#facc15', '#2dd4bf'];
+
+function AgePieChart({ ageBrackets }: { ageBrackets: Record<string, number> }) {
+  const entries = Object.entries(ageBrackets)
+    .sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
   if (entries.length === 0) return <div style={{ color: 'var(--text-sub)', fontSize: 13 }}>データなし</div>;
 
-  const maxCount = Math.max(...entries.map(([, c]) => c));
+  const total = entries.reduce((s, [, c]) => s + c, 0);
+  const cx = 110, cy = 110, R = 80, r = 48;
+
+  let angle = -Math.PI / 2;
+  const slices = entries.map(([bracket, count], i) => {
+    const span = (count / total) * 2 * Math.PI;
+    const midA = angle + span / 2;
+    const x1 = cx + R * Math.cos(angle), y1 = cy + R * Math.sin(angle);
+    angle += span;
+    const x2 = cx + R * Math.cos(angle), y2 = cy + R * Math.sin(angle);
+    const large = span > Math.PI ? 1 : 0;
+    const ix1 = cx + r * Math.cos(angle - span), iy1 = cy + r * Math.sin(angle - span);
+    const ix2 = cx + r * Math.cos(angle), iy2 = cy + r * Math.sin(angle);
+    const d = `M${x1},${y1} A${R},${R},0,${large},1,${x2},${y2} L${ix2},${iy2} A${r},${r},0,${large},0,${ix1},${iy1} Z`;
+    const labelR = R + 16;
+    const lx = cx + labelR * Math.cos(midA);
+    const ly = cy + labelR * Math.sin(midA);
+    return { d, bracket, count, color: AGE_COLORS[i % AGE_COLORS.length], lx, ly, midA };
+  });
 
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 120, paddingBottom: 4 }}>
-        {entries.map(([bracket, count]) => {
-          const heightPct = (count / maxCount) * 100;
-          const low = parseInt(bracket.split('-')[0]);
-          const isYoung = low < 25;
-          const color = isYoung ? '#60a5fa' : low < 35 ? '#4ade80' : '#facc15';
+    <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+      <svg width={220} height={220} viewBox="0 0 220 220" style={{ flexShrink: 0 }}>
+        {slices.map(({ d, bracket, color }) => (
+          <path key={bracket} d={d} fill={color} opacity={0.9} />
+        ))}
+        <text x={cx} y={cy - 8} textAnchor="middle" dominantBaseline="middle"
+          fill="var(--text-sub)" fontSize="13">総勢</text>
+        <text x={cx} y={cy + 12} textAnchor="middle" dominantBaseline="middle"
+          fill="var(--text-main)" fontSize="22" fontWeight="bold">{total}名</text>
+      </svg>
+      {/* 凡例 */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {slices.map(({ bracket, count, color }) => {
+          const pct = Math.round((count / total) * 100);
           return (
-            <div key={bracket} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-              <div style={{ fontSize: 10, color: 'var(--text-sub)', fontWeight: 600 }}>{count}</div>
-              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: 90 }}>
-                <div style={{
-                  width: '100%', height: `${heightPct}%`,
-                  background: `linear-gradient(180deg, ${color}, ${color}88)`,
-                  borderRadius: '4px 4px 2px 2px',
-                  transition: 'height 0.6s ease',
-                  minHeight: count > 0 ? 4 : 0,
-                }} />
-              </div>
+            <div key={bracket} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 10, height: 10, borderRadius: 2, background: color, flexShrink: 0 }} />
+              <span style={{ fontSize: 12, color: 'var(--text-sub)', minWidth: 36 }}>{bracket}</span>
+              <span style={{ fontSize: 12, color: 'var(--text-main)', fontWeight: 600 }}>{count}名</span>
+              <span style={{ fontSize: 11, color: 'var(--text-sub)' }}>{pct}%</span>
             </div>
           );
         })}
-      </div>
-      {/* X軸ラベル */}
-      <div style={{ display: 'flex', gap: 6, marginTop: 4 }}>
-        {entries.map(([bracket]) => (
-          <div key={bracket} style={{ flex: 1, textAlign: 'center', fontSize: 9, color: 'var(--text-sub)' }}>
-            {bracket}
-          </div>
-        ))}
       </div>
     </div>
   );
@@ -395,15 +405,15 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
       </div>
 
       {/* 男女比率 */}
-      <div className="chart-card" style={{ marginBottom: 12 }}>
+      <div className="chart-card" style={{ marginBottom: 12, minHeight: 'unset' }}>
         <h3 style={{ fontSize: 14, fontWeight: 'bold', marginBottom: 14, color: 'var(--text-main)' }}>男女比率</h3>
         <GenderBar genders={data.genders} />
       </div>
 
-      {/* 年齢分布 */}
-      <div className="chart-card" style={{ marginBottom: 12 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 'bold', marginBottom: 14, color: 'var(--text-main)' }}>年齢分布（5歳区切り）</h3>
-        <AgeHistogram ageBrackets={data.ageBrackets} />
+      {/* 年齢層 */}
+      <div className="chart-card" style={{ marginBottom: 12, minHeight: 'unset' }}>
+        <h3 style={{ fontSize: 14, fontWeight: 'bold', marginBottom: 14, color: 'var(--text-main)' }}>年齢層</h3>
+        <AgePieChart ageBrackets={data.ageBrackets} />
       </div>
 
       {/* 出身地 — 日本地図スタイル */}
