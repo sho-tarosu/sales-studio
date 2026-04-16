@@ -64,31 +64,31 @@ export default function IncentiveBar({ total, selfClose }: { total: number; self
         </div>
       </div>
 
-      {/* 3本ゾーンバー（各バーに目盛り付き） */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 16 }}>
+      {/* 3本ゾーンバー */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 16 }}>
         {ZONES.map((zone) => {
           const pct = zoneProgress(total, zone.min, zone.max);
           const isActive = total >= zone.min && total < zone.max;
           const range = zone.max - zone.min;
 
-          // zone内の目盛りpt（両端は別途表示）
-          const ticks: number[] = [];
-          for (let pt = zone.min + zone.step; pt < zone.max; pt += zone.step) {
-            ticks.push(pt);
+          // zone内のすべての目盛りpt（両端含む）
+          const allTicks: number[] = [];
+          for (let pt = zone.min; pt <= zone.max; pt += zone.step) {
+            allTicks.push(pt);
           }
           const tickPct = (pt: number) => ((pt - zone.min) / range) * 100;
 
           return (
             <div key={zone.label}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
+              {/* ゾーンラベル（右の範囲表示は削除） */}
+              <div style={{ fontSize: 11, marginBottom: 4 }}>
                 <span style={{ color: isActive ? zone.color : 'var(--text-sub)', fontWeight: isActive ? 600 : 400 }}>
                   {zone.label}
                 </span>
-                <span style={{ color: 'var(--text-sub)' }}>{zone.min}〜{zone.max}pt</span>
               </div>
 
-              {/* バー＋目盛りコンテナ */}
-              <div style={{ position: 'relative', paddingBottom: 16 }}>
+              {/* バー＋目盛りコンテナ（上にランク名の余白） */}
+              <div style={{ position: 'relative', paddingTop: 18, paddingBottom: 16 }}>
                 {/* バー本体 */}
                 <div style={{ background: zone.trackColor, borderRadius: 6, height: 8, overflow: 'hidden' }}>
                   <div style={{
@@ -101,39 +101,45 @@ export default function IncentiveBar({ total, selfClose }: { total: number; self
                   }} />
                 </div>
 
-                {/* 左端ラベル */}
-                <div style={{ position: 'absolute', left: 0, top: 9 }}>
-                  <div style={{ width: 1, height: 4, background: 'rgba(255,255,255,0.2)' }} />
-                  <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', lineHeight: 1, display: 'block' }}>
-                    {zone.min}
-                  </span>
-                </div>
-
-                {/* 中間目盛り */}
-                {ticks.map(pt => (
-                  <div key={pt} style={{
-                    position: 'absolute',
-                    left: `${tickPct(pt)}%`,
-                    top: 9,
-                    transform: 'translateX(-50%)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                  }}>
-                    <div style={{ width: 1, height: 4, background: 'rgba(255,255,255,0.2)' }} />
-                    <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', lineHeight: 1, whiteSpace: 'nowrap' }}>
-                      {pt}
-                    </span>
-                  </div>
-                ))}
-
-                {/* 右端ラベル */}
-                <div style={{ position: 'absolute', right: 0, top: 9, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                  <div style={{ width: 1, height: 4, background: 'rgba(255,255,255,0.2)', alignSelf: 'center' }} />
-                  <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', lineHeight: 1, display: 'block' }}>
-                    {zone.max}
-                  </span>
-                </div>
+                {/* 目盛り＋ランク名 */}
+                {allTicks.map((pt, i) => {
+                  const tierName = TIERS.find(t => t.pt === pt)?.name ?? null;
+                  const left = i === 0 ? '0%' : i === allTicks.length - 1 ? '100%' : `${tickPct(pt)}%`;
+                  const isLast = i === allTicks.length - 1;
+                  return (
+                    <div key={pt} style={{
+                      position: 'absolute',
+                      left,
+                      top: 0,
+                      transform: isLast ? 'translateX(-100%)' : i === 0 ? 'none' : 'translateX(-50%)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: isLast ? 'flex-end' : i === 0 ? 'flex-start' : 'center',
+                      pointerEvents: 'none',
+                    }}>
+                      {/* ランク名（上） */}
+                      {tierName && (
+                        <span style={{
+                          fontSize: 9,
+                          color: total >= pt ? zone.color : 'rgba(255,255,255,0.25)',
+                          fontWeight: total >= pt ? 600 : 400,
+                          whiteSpace: 'nowrap',
+                          lineHeight: 1,
+                          marginBottom: 2,
+                        }}>
+                          {tierName}
+                        </span>
+                      )}
+                      {!tierName && <span style={{ height: 11, display: 'block' }} />}
+                      {/* 目盛り線 */}
+                      <div style={{ width: 1, height: 4, background: 'rgba(255,255,255,0.2)', marginTop: 8 }} />
+                      {/* pt数字（下） */}
+                      <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', lineHeight: 1, marginTop: 2 }}>
+                        {pt}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           );
