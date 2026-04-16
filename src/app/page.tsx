@@ -176,16 +176,16 @@ export default function Home() {
 
       <main className="main-content">
         <header className="header-area">
-          {/* ブランドバー: YouTube Studio風 */}
+          {/* ブランドバー: スマホのみ表示 */}
           <div className="header-brand-row">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div className="header-logo">
               <Image src="/icon-512.png" alt="logo" width={56} height={56} style={{ borderRadius: 12, flexShrink: 0 }} />
               <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-main)', letterSpacing: '0.01em', whiteSpace: 'nowrap' }}>
                 Sales Studio
               </span>
             </div>
-            {/* 右側: アバター＋最終更新 */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+            {/* 右側: アバター＋最終更新（スマホのみ） */}
+            <div className="header-brand-right">
               {session?.user?.name && (
                 <button
                   onClick={() => setDrawerOpen(true)}
@@ -212,7 +212,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-          {/* ページタイトル＋月選択 */}
+          {/* ページタイトル＋月選択、PC時はアバター＋最終更新も表示 */}
           <div className="header-top-row">
             <div className="header-left">
               <h1 className="page-title">{TAB_TITLES[activeTab]}</h1>
@@ -224,6 +224,33 @@ export default function Home() {
                   aria-label="表示月を選択"
                 />
               )}
+            </div>
+            {/* PC時のみ表示 */}
+            <div className="header-pc-right">
+              {session?.user?.name && (
+                <button
+                  onClick={() => setDrawerOpen(true)}
+                  className="header-avatar-btn"
+                  title={session.user.name}
+                >
+                  {session.user.name.slice(0, 2)}
+                </button>
+              )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: 11, color: '#aaa' }}>{lastUpdate}</span>
+                <button
+                  onClick={() => {
+                    fetchData(selectedMonth);
+                    if (activeTab === 'shift') fetchShift(selectedMonth);
+                  }}
+                  title="更新"
+                  style={{ background: 'none', border: 'none', padding: 2, cursor: 'pointer', color: '#aaa', display: 'flex', alignItems: 'center', opacity: 0.55 }}
+                  onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                  onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.55')}
+                >
+                  <RefreshCw size={13} strokeWidth={1.75} />
+                </button>
+              </div>
             </div>
           </div>
         </header>

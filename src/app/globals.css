@@ -288,6 +288,36 @@ body {
   margin-bottom: 8px;
 }
 
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-brand-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+/* PC時はブランドバーを非表示、アバター+最終更新はheader-top-rowに表示 */
+.header-pc-right {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .header-brand-row {
+    display: none;
+  }
+  .header-pc-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+}
+
 .header-top-row {
   display: flex;
   align-items: center;
