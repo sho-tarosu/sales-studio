@@ -384,6 +384,18 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
         </div>
       </div>
 
+      {/* 男女比率 */}
+      <div className="chart-card" style={{ marginBottom: 12 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 'bold', marginBottom: 14, color: 'var(--text-main)' }}>男女比率</h3>
+        <GenderBar genders={data.genders} />
+      </div>
+
+      {/* 年齢分布 */}
+      <div className="chart-card" style={{ marginBottom: 12 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 'bold', marginBottom: 14, color: 'var(--text-main)' }}>年齢分布（5歳区切り）</h3>
+        <AgeHistogram ageBrackets={data.ageBrackets} />
+      </div>
+
       {/* 出身地 — 日本地図スタイル */}
       <div className="chart-card" style={{ marginBottom: 12 }}>
         <h3 style={{ fontSize: 14, fontWeight: 'bold', marginBottom: 8, color: 'var(--text-main)' }}>出身地</h3>
@@ -396,22 +408,10 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
         <BloodTypeDonut bloodTypes={data.bloodTypes} />
       </div>
 
-      {/* 男女比率 */}
-      <div className="chart-card" style={{ marginBottom: 12 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 'bold', marginBottom: 14, color: 'var(--text-main)' }}>男女比率</h3>
-        <GenderBar genders={data.genders} />
-      </div>
-
       {/* 動物占い */}
-      <div className="chart-card" style={{ marginBottom: 12 }}>
+      <div className="chart-card">
         <h3 style={{ fontSize: 14, fontWeight: 'bold', marginBottom: 14, color: 'var(--text-main)' }}>動物占い</h3>
         <AnimalChart animalTypes={data.animalTypes} />
-      </div>
-
-      {/* 年齢分布 */}
-      <div className="chart-card">
-        <h3 style={{ fontSize: 14, fontWeight: 'bold', marginBottom: 14, color: 'var(--text-main)' }}>年齢分布（5歳区切り）</h3>
-        <AgeHistogram ageBrackets={data.ageBrackets} />
       </div>
     </div>
   );
