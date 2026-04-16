@@ -70,6 +70,30 @@ function countWorkPosts(postsByStaff: SiteMap[string]): number {
   );
 }
 
+function countMnpNew(postsByStaff: SiteMap[string]): { mnp: number; shin: number } {
+  let mnp = 0, shin = 0;
+  for (const posts of Object.values(postsByStaff)) {
+    for (const post of posts) {
+      const msg = post.message;
+      // MNP○台: "MNP2" → 2台、"MNP" alone → 1台
+      const mnpMatches = [...msg.matchAll(/MNP(\d+)/gi)];
+      if (mnpMatches.length > 0) {
+        mnp += mnpMatches.reduce((s, m) => s + parseInt(m[1]), 0);
+      } else if (/MNP/i.test(msg)) {
+        mnp += 1;
+      }
+      // 新規○台: "新規2" → 2台、"新規" alone → 1台
+      const shinMatches = [...msg.matchAll(/新規(\d+)/g)];
+      if (shinMatches.length > 0) {
+        shin += shinMatches.reduce((s, m) => s + parseInt(m[1]), 0);
+      } else if (/新規/.test(msg)) {
+        shin += 1;
+      }
+    }
+  }
+  return { mnp, shin };
+}
+
 function todayString() {
   const now = new Date();
   const y = now.getFullYear();
@@ -87,6 +111,7 @@ function SiteCard({ site, staffList, agency, siteMap }: {
   const postsByStaff = siteMap[site] ?? {};
   const workCount = countWorkPosts(postsByStaff);
   const hasReport = workCount > 0;
+  const { mnp, shin } = countMnpNew(postsByStaff);
 
   return (
     <div style={{
@@ -142,21 +167,32 @@ function SiteCard({ site, staffList, agency, siteMap }: {
           ))}
         </div>
 
-        {/* 件数バッジ */}
-        {hasReport && (
-          <span style={{
-            fontSize: 11,
-            fontWeight: 700,
-            color: 'var(--accent-color)',
-            background: 'rgba(229,62,62,0.12)',
-            border: '1px solid rgba(229,62,62,0.25)',
-            borderRadius: 20,
-            padding: '2px 9px',
-            marginLeft: 'auto',
-            flexShrink: 0,
-          }}>
-            {workCount}件
-          </span>
+        {/* MNP・新規バッジ */}
+        {hasReport && (mnp > 0 || shin > 0) && (
+          <div style={{ display: 'flex', gap: 6, marginLeft: 'auto', flexShrink: 0 }}>
+            {mnp > 0 && (
+              <span style={{
+                fontSize: 11, fontWeight: 700,
+                color: '#60a5fa',
+                background: 'rgba(96,165,250,0.12)',
+                border: '1px solid rgba(96,165,250,0.25)',
+                borderRadius: 20, padding: '2px 9px',
+              }}>
+                MNP {mnp}台
+              </span>
+            )}
+            {shin > 0 && (
+              <span style={{
+                fontSize: 11, fontWeight: 700,
+                color: '#4ade80',
+                background: 'rgba(74,222,128,0.12)',
+                border: '1px solid rgba(74,222,128,0.25)',
+                borderRadius: 20, padding: '2px 9px',
+              }}>
+                新規 {shin}台
+              </span>
+            )}
+          </div>
         )}
       </div>
 
