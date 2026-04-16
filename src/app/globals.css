@@ -281,6 +281,13 @@ body {
   margin-bottom: 28px;
 }
 
+.header-brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
 .header-top-row {
   display: flex;
   align-items: center;

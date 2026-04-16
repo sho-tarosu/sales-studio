@@ -176,6 +176,25 @@ export default function Home() {
 
       <main className="main-content">
         <header className="header-area">
+          {/* ブランドバー: YouTube Studio風 */}
+          <div className="header-brand-row">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Image src="/icon-512.png" alt="logo" width={28} height={28} style={{ borderRadius: 8, flexShrink: 0 }} />
+              <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-main)', letterSpacing: '0.01em', whiteSpace: 'nowrap' }}>
+                Sales Studio
+              </span>
+            </div>
+            {session?.user?.name && (
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className="header-avatar-btn"
+                title={session.user.name}
+              >
+                {session.user.name.slice(0, 2)}
+              </button>
+            )}
+          </div>
+          {/* ページタイトル＋月選択 */}
           <div className="header-top-row">
             <div className="header-left">
               <h1 className="page-title">{TAB_TITLES[activeTab]}</h1>
@@ -186,23 +205,6 @@ export default function Home() {
                   onChange={handleMonthChange}
                   aria-label="表示月を選択"
                 />
-              )}
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Image src="/logo-w.png" alt="logo" width={24} height={24} style={{ borderRadius: 6, flexShrink: 0 }} />
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main)', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
-                  Sales Studio
-                </span>
-              </div>
-              {session?.user?.name && (
-                <button
-                  onClick={() => setDrawerOpen(true)}
-                  className="header-avatar-btn"
-                  title={session.user.name}
-                >
-                  {session.user.name.slice(0, 2)}
-                </button>
               )}
             </div>
           </div>
