@@ -266,20 +266,64 @@ export default function Home() {
 
             {activeTab === 'visual-ranking' && (
               <>
-                {/* PC: 獲得・自己クロを横並び表示 */}
+                {/* PC: 詳細タブ + 横並びチャート */}
                 <div className="ranking-charts-pc">
-                  <div className="chart-card" style={{ flex: 1, height: 'calc(100vh - 160px)' }}>
-                    <div style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 8 }}>獲得</div>
-                    <BarChart ranking={data.ranking} />
-                  </div>
-                  <div className="chart-card" style={{ flex: 1, height: 'calc(100vh - 160px)' }}>
-                    <div style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 8 }}>自己クロ</div>
-                    <BarChart
-                      ranking={[...data.ranking].sort((a, b) => b.selfClose - a.selfClose)}
-                      getValue={(s) => s.selfClose}
-                      color="#f97316"
-                    />
-                  </div>
+                  {rankingView !== 'table' ? (
+                    <>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12, width: '100%' }}>
+                        <div className="shift-region-toggle">
+                          <button
+                            className={`shift-region-btn active`}
+                            onClick={() => {}}
+                            style={{ pointerEvents: 'none' }}
+                          >
+                            グラフ
+                          </button>
+                          <button
+                            className="shift-region-btn"
+                            onClick={() => setRankingView('table')}
+                          >
+                            詳細
+                          </button>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 16, width: '100%' }}>
+                        <div className="chart-card" style={{ flex: 1 }}>
+                          <div style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 8 }}>獲得</div>
+                          <BarChart ranking={data.ranking} />
+                        </div>
+                        <div className="chart-card" style={{ flex: 1 }}>
+                          <div style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 8 }}>自己クロ</div>
+                          <BarChart
+                            ranking={[...data.ranking].sort((a, b) => b.selfClose - a.selfClose)}
+                            getValue={(s) => s.selfClose}
+                            color="#f97316"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12, width: '100%' }}>
+                        <div className="shift-region-toggle">
+                          <button
+                            className="shift-region-btn"
+                            onClick={() => setRankingView('total')}
+                          >
+                            グラフ
+                          </button>
+                          <button
+                            className="shift-region-btn active"
+                            onClick={() => {}}
+                            style={{ pointerEvents: 'none' }}
+                          >
+                            詳細
+                          </button>
+                        </div>
+                      </div>
+                      <RankingTable ranking={data.ranking} />
+                    </>
+                  )}
                 </div>
 
                 {/* スマホ: タブ切り替え */}
@@ -307,12 +351,12 @@ export default function Home() {
                     </div>
                   </div>
                   {rankingView === 'total' && (
-                    <div className="chart-card" style={{ height: 'calc(100vh - 200px)' }}>
+                    <div className="chart-card">
                       <BarChart ranking={data.ranking} />
                     </div>
                   )}
                   {rankingView === 'selfclose' && (
-                    <div className="chart-card" style={{ height: 'calc(100vh - 200px)' }}>
+                    <div className="chart-card">
                       <BarChart
                         ranking={[...data.ranking].sort((a, b) => b.selfClose - a.selfClose)}
                         getValue={(s) => s.selfClose}
