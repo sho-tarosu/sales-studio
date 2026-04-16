@@ -53,6 +53,8 @@ export default function Home() {
   const now = new Date();
   const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const [selectedMonth, setSelectedMonth] = useState(defaultMonth);
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (effectiveRole === 'アルバイト') {
@@ -63,8 +65,6 @@ export default function Home() {
       setMyStats(null);
     }
   }, [effectiveRole, effectiveName, selectedMonth, data]);
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState('更新中...');
 

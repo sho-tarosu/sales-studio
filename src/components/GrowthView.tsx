@@ -81,11 +81,36 @@ function AttributeBadge({ label }: { label: string }) {
 }
 
 // ────────────────────────────────────────────
+//  知識グループ定義
+// ────────────────────────────────────────────
+const KNOWLEDGE_GROUPS: { label: string; color: string; match: (n: string) => boolean }[] = [
+  { label: 'au,UQ',  color: '#60a5fa', match: (n) => n.startsWith('UQ') || n.startsWith('au') },
+  { label: '固定',   color: '#a78bfa', match: (n) => n.includes('光') || n.startsWith('BIGLOBE') || n.startsWith('J.com') },
+  { label: '新規',   color: '#34d399', match: (n) => ['エリア検索', '固定情報照会', '実質端末', '付帯新規'].some((k) => n.startsWith(k)) },
+  { label: 'docomo', color: '#f87171', match: (n) => ['ギガライト', 'ギガホ', 'ahamo', 'eximo', 'irumo'].includes(n) },
+  { label: 'SB',     color: '#fb923c', match: (n) => ['ミニフィット', 'メリハリ', 'LINEMO', 'YM'].some((k) => n.startsWith(k)) },
+];
+
+function groupKnowledgeItems(items: string[]): { label: string; color: string; items: string[] }[] {
+  const groups = KNOWLEDGE_GROUPS.map((g) => ({ label: g.label, color: g.color, items: [] as string[] }));
+  const other: string[] = [];
+  for (const item of items) {
+    const gi = KNOWLEDGE_GROUPS.findIndex((g) => g.match(item));
+    if (gi >= 0) groups[gi].items.push(item);
+    else other.push(item);
+  }
+  if (other.length > 0) groups.push({ label: 'その他', color: '#94a3b8', items: other });
+  return groups.filter((g) => g.items.length > 0);
+}
+
+// ────────────────────────────────────────────
 //  詳細パネル
 // ────────────────────────────────────────────
 function DetailPanel({ staff, onClose }: { staff: StaffEvaluation; onClose: () => void }) {
   const knowledgeCount = staff.knowledgeItems.filter((k) => staff.knowledge[k]).length;
   const knowledgeTotal = staff.knowledgeItems.length;
+  const knowledgeGroups = groupKnowledgeItems(staff.knowledgeItems);
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const scorePercent = Math.round((staff.totalScore / 42) * 100);
 
   return (
@@ -182,27 +207,65 @@ function DetailPanel({ staff, onClose }: { staff: StaffEvaluation; onClose: () =
 
       {/* 知識チェック */}
       <div style={{ padding: '14px 16px' }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-sub)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-sub)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           知識チェック
           <span style={{ marginLeft: 8, fontSize: 12, color: knowledgeCount === knowledgeTotal ? '#4ade80' : 'var(--text-sub)', fontWeight: 400, textTransform: 'none' }}>
             {knowledgeCount}/{knowledgeTotal}
           </span>
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {staff.knowledgeItems.map((item) => {
-            const ok = staff.knowledge[item];
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {knowledgeGroups.map((group) => {
+            const isCollapsed = collapsed.has(group.label);
+            const groupOk = group.items.filter((i) => staff.knowledge[i]).length;
+            const groupTotal = group.items.length;
             return (
-              <div key={item} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 12, color: ok ? 'var(--text-main)' : 'var(--text-sub)' }}>{item}</span>
-                <span style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: ok ? '#4ade80' : '#f87171',
-                  minWidth: 16,
-                  textAlign: 'right',
-                }}>
-                  {ok ? '○' : '×'}
-                </span>
+              <div key={group.label} style={{ borderRadius: 6, overflow: 'hidden', border: `1px solid ${group.color}33` }}>
+                {/* グループヘッダー */}
+                <button
+                  onClick={() => {
+                    setCollapsed((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(group.label)) next.delete(group.label);
+                      else next.add(group.label);
+                      return next;
+                    });
+                  }}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '6px 10px',
+                    background: `${group.color}18`,
+                    border: 'none',
+                    cursor: 'pointer',
+                    gap: 6,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontSize: 10, color: group.color, transition: 'transform 0.2s', display: 'inline-block', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>▼</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: group.color }}>{group.label}</span>
+                  </div>
+                  <span style={{ fontSize: 11, color: groupOk === groupTotal ? '#4ade80' : 'var(--text-sub)' }}>
+                    {groupOk}/{groupTotal}
+                  </span>
+                </button>
+                {/* アイテム一覧 */}
+                {!isCollapsed && (
+                  <div style={{ padding: '6px 10px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {group.items.map((item) => {
+                      const ok = staff.knowledge[item];
+                      return (
+                        <div key={item} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: 12, color: ok ? 'var(--text-main)' : 'var(--text-sub)' }}>{item}</span>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: ok ? '#4ade80' : '#f87171', minWidth: 16, textAlign: 'right' }}>
+                            {ok ? '○' : '×'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
