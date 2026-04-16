@@ -299,8 +299,8 @@ export default function ShiftView({
       {/* Controls */}
       <div className="shift-controls">
         <div className="shift-controls-left">
-          {/* ページモードトグル（社員モード以外） */}
-          {viewMode !== 'employee' && (
+          {/* ページモードトグル（社員モード以外・管理者/社員のみ分析タブ表示） */}
+          {viewMode !== 'employee' && (userRole === '管理者' || userRole === '社員') && (
             <div className="shift-region-toggle">
               <button
                 className={`shift-region-btn${pageMode === 'shift' ? ' active' : ''}`}
