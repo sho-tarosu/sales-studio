@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, ChevronLeft } from 'lucide-react';
 import { TabName, DashboardData, ShiftRow } from '@/types';
 import AuthGuard from '@/components/AuthGuard';
 import Sidebar from '@/components/Sidebar';
@@ -436,64 +436,97 @@ export default function Home() {
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} userRole={effectiveRole} />
 
-      {/* ユーザードロワー */}
-      {drawerOpen && (
-        <div className="drawer-overlay" onClick={() => setDrawerOpen(false)} />
-      )}
-      <div className={`user-drawer${drawerOpen ? ' open' : ''}`}>
-        {session?.user?.name && (
-          <>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-              <div className="header-avatar-btn" style={{ cursor: 'default', fontSize: 16, width: 48, height: 48 }}>
+      {/* プロフィール フルスクリーン */}
+      {drawerOpen && session?.user?.name && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 200,
+          background: 'var(--bg-color)',
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+        }}>
+          {/* 戻るヘッダー */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            padding: '10px 8px',
+            borderBottom: '1px solid var(--border-color)',
+          }}>
+            <button
+              onClick={() => setDrawerOpen(false)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-main)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                padding: '4px 8px',
+              }}
+            >
+              <ChevronLeft size={24} strokeWidth={1.75} />
+            </button>
+          </div>
+
+          {/* コンテンツ */}
+          <div style={{ padding: '28px 24px', flex: 1 }}>
+            {/* アバター + 名前 */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 28 }}>
+              <div className="header-avatar-btn" style={{ cursor: 'default', fontSize: 18, width: 56, height: 56, flexShrink: 0 }}>
                 {session.user.name.slice(0, 2)}
               </div>
               <div>
-                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-main)' }}>{session.user.name}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-sub)', marginTop: 2 }}>{session.user.role}</div>
+                <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-main)' }}>{session.user.name}</div>
+                <div style={{ fontSize: 13, color: 'var(--text-sub)', marginTop: 3 }}>{session.user.role}</div>
               </div>
             </div>
+
+            {/* プロフィール情報 */}
             {meData && (meData.birthday || meData.bloodType || meData.animal || meData.zodiac) && (
-              <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ marginBottom: 28, display: 'flex', flexDirection: 'column', gap: 14 }}>
                 {meData.birthday && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
                     <span style={{ color: 'var(--text-sub)' }}>生年月日</span>
                     <span style={{ color: 'var(--text-main)' }}>{meData.birthday}</span>
                   </div>
                 )}
                 {meData.bloodType && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
                     <span style={{ color: 'var(--text-sub)' }}>血液型</span>
                     <span style={{ color: 'var(--text-main)' }}>{meData.bloodType}</span>
                   </div>
                 )}
                 {meData.animal && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
                     <span style={{ color: 'var(--text-sub)' }}>動物占い</span>
                     <span style={{ color: 'var(--text-main)' }}>{meData.animal}</span>
                   </div>
                 )}
                 {meData.zodiac && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
                     <span style={{ color: 'var(--text-sub)' }}>星座</span>
                     <span style={{ color: 'var(--text-main)' }}>{meData.zodiac}</span>
                   </div>
                 )}
               </div>
             )}
+
             {/* 管理者向けスタッフ切り替え */}
             {(session.user.role as string) === '管理者' && allUsers.length > 0 && (
-              <div style={{ marginBottom: 12 }}>
-                <div style={{ fontSize: 11, color: 'var(--text-sub)', marginBottom: 6 }}>スタッフとして表示</div>
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 12, color: 'var(--text-sub)', marginBottom: 8 }}>スタッフとして表示</div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <select
                     style={{
                       flex: 1,
                       background: 'var(--card-bg)',
                       border: '1px solid var(--border-color)',
-                      borderRadius: 6,
+                      borderRadius: 8,
                       color: 'var(--text-main)',
-                      fontSize: 13,
-                      padding: '6px 8px',
+                      fontSize: 14,
+                      padding: '8px 10px',
                     }}
                     value={impersonated?.name ?? ''}
                     onChange={(e) => {
@@ -512,10 +545,10 @@ export default function Home() {
                       style={{
                         background: 'none',
                         border: '1px solid var(--border-color)',
-                        borderRadius: 6,
+                        borderRadius: 8,
                         color: 'var(--text-sub)',
-                        fontSize: 12,
-                        padding: '6px 10px',
+                        fontSize: 13,
+                        padding: '8px 12px',
                         cursor: 'pointer',
                       }}
                     >
@@ -530,20 +563,20 @@ export default function Home() {
               onClick={() => signOut({ callbackUrl: '/login' })}
               style={{
                 width: '100%',
-                padding: '10px',
+                padding: '12px',
                 background: 'transparent',
                 color: 'var(--text-sub)',
                 border: '1px solid var(--border-color)',
-                borderRadius: 8,
-                fontSize: 14,
+                borderRadius: 10,
+                fontSize: 15,
                 cursor: 'pointer',
               }}
             >
               ログアウト
             </button>
-          </>
-        )}
-      </div>
+          </div>
+        </div>
+      )}
     </AuthGuard>
   );
 }
