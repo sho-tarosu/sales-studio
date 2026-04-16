@@ -636,7 +636,6 @@ export default function Home() {
                 }}>
                   <div>
                     <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-main)' }}>{c.name}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-sub)', marginTop: 2 }}>{c.role}</div>
                   </div>
                   <a
                     href={`tel:${c.contact.replace(/[-\s]/g, '')}`}
