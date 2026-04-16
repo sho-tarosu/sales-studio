@@ -5,6 +5,15 @@ import Providers from "@/components/Providers";
 export const metadata: Metadata = {
   title: "Sales Studio",
   description: "営業成績ダッシュボード",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Sales Studio",
+  },
+  icons: {
+    apple: "/icon-180.png",
+  },
 };
 
 export default function RootLayout({
