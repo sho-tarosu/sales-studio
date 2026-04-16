@@ -340,7 +340,7 @@ export default function Home() {
           />
         )}
 
-        {activeTab === 'profile' && <ProfileView />}
+        {activeTab === 'profile' && <ProfileView effectiveRole={effectiveRole} effectiveName={effectiveName} />}
 
         {activeTab === 'growth' && ['社員', '幹部', '管理者'].includes(effectiveRole ?? '') && <GrowthView />}
       </main>

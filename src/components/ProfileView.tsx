@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
 import IncentiveBar from '@/components/IncentiveBar';
 
 
@@ -181,9 +180,13 @@ function JapanRegionMap({ regions }: { regions: Record<string, number> }) {
 
 interface MyStats { total: number; selfClose: number; }
 
-export default function ProfileView() {
-  const { data: session } = useSession();
-  const role = session?.user?.role ?? '';
+interface ProfileViewProps {
+  effectiveRole?: string;
+  effectiveName?: string;
+}
+
+export default function ProfileView({ effectiveRole = '', effectiveName = '' }: ProfileViewProps) {
+  const role = effectiveRole;
   const [myStats, setMyStats] = useState<MyStats | null>(null);
   const [data, setData] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -191,7 +194,10 @@ export default function ProfileView() {
 
   useEffect(() => {
     if (role === 'アルバイト') {
-      fetch('/api/me/stats').then(r => r.json()).then(setMyStats).catch(() => {});
+      const url = effectiveName
+        ? `/api/me/stats?name=${encodeURIComponent(effectiveName)}`
+        : '/api/me/stats';
+      fetch(url).then(r => r.json()).then(setMyStats).catch(() => {});
     }
     fetch('/api/profile')
       .then((r) => {

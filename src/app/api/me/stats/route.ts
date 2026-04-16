@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { salesRecords } from '@/lib/schema';
@@ -6,11 +6,15 @@ import { sql, and, like } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const session = await auth();
   if (!session?.user?.name) {
     return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
   }
+
+  const { searchParams } = new URL(request.url);
+  const nameParam = searchParams.get('name');
+  const targetName = nameParam ?? session.user.name;
 
   const now = new Date();
   const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -29,7 +33,7 @@ export async function GET() {
     .from(salesRecords)
     .where(
       and(
-        sql`staff_name = ${session.user.name}`,
+        sql`staff_name = ${targetName}`,
         like(salesRecords.date, `${yearMonth}%`)
       )
     );
