@@ -48,10 +48,7 @@ export async function GET() {
   }
 
   try {
-    const [rows, genders] = await Promise.all([
-      getSheetData(SHEET_NAME),
-      getStaffGenders(),
-    ]);
+    const rows = await getSheetData(SHEET_NAME);
 
     const prefectures: Record<string, number> = {};
     const regions: Record<string, number> = {};
@@ -103,10 +100,10 @@ export async function GET() {
         ageBrackets[bracket] = (ageBrackets[bracket] || 0) + 1;
       }
 
-      // 性別（T列背景色 = genders[i]）
-      const g = genders[i];
-      if (g === 'male') genderMale++;
-      else if (g === 'female') genderFemale++;
+      // 性別（AB列 = index 27）
+      const gender = row[27]?.trim();
+      if (gender === '男') genderMale++;
+      else if (gender === '女') genderFemale++;
     }
 
     return NextResponse.json({
