@@ -9,6 +9,7 @@ interface ProfileData {
   regions: Record<string, number>;
   bloodTypes: Record<string, number>;
   total: number;
+  roleCounts: Record<string, number>;
 }
 
 
@@ -230,9 +231,19 @@ export default function ProfileView({ effectiveRole = '', effectiveName = '' }: 
       )}
 
       {/* 総勢 */}
-      <div className="chart-card" style={{ marginBottom: 12, display: 'flex', alignItems: 'baseline', gap: 6, minHeight: 'unset' }}>
-        <span style={{ fontSize: 32, fontWeight: 'bold', color: 'var(--accent-color)', lineHeight: 1 }}>{data.total}</span>
-        <span style={{ fontSize: 14, color: 'var(--text-sub)' }}>名のスタッフ</span>
+      <div className="chart-card" style={{ marginBottom: 12, minHeight: 'unset', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+          <span style={{ fontSize: 32, fontWeight: 'bold', color: 'var(--accent-color)', lineHeight: 1 }}>{data.total}</span>
+          <span style={{ fontSize: 14, color: 'var(--text-sub)' }}>名のスタッフ</span>
+        </div>
+        <div style={{ display: 'flex', gap: 16 }}>
+          {[['社員', '#3ea6ff'], ['アルバイト', '#facc15'], ['業務委託', '#a3a3a3']].map(([label, color]) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+              <span style={{ fontSize: 18, fontWeight: 'bold', color }}>{data.roleCounts?.[label] ?? 0}</span>
+              <span style={{ fontSize: 12, color: 'var(--text-sub)' }}>{label}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* 出身地 — 日本地図スタイル */}

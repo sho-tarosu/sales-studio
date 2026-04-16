@@ -30,6 +30,7 @@ export async function GET() {
     const prefectures: Record<string, number> = {};
     const regions: Record<string, number> = {};
     const bloodTypes: Record<string, number> = {};
+    const roleCounts: Record<string, number> = { 社員: 0, アルバイト: 0, 業務委託: 0 };
     let total = 0;
 
     // 1行目はヘッダーとしてスキップ
@@ -39,6 +40,15 @@ export async function GET() {
       if (!name) continue;
 
       total++;
+
+      const role = row[22]?.trim(); // W列: ロール
+      if (role === '社員' || role === '幹部' || role === '管理者') {
+        roleCounts['社員']++;
+      } else if (role === 'アルバイト') {
+        roleCounts['アルバイト']++;
+      } else {
+        roleCounts['業務委託']++;
+      }
 
       // 都/道/府/県 を除いた名前でマッピング
       const rawPref = row[7]?.trim(); // H列: 出身地
@@ -58,7 +68,7 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json({ prefectures, regions, bloodTypes, total });
+    return NextResponse.json({ prefectures, regions, bloodTypes, total, roleCounts });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({ error: message }, { status: 500 });
