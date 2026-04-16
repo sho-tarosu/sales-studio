@@ -91,17 +91,15 @@ export default function IncentiveBar({ total, selfClose }: { total: number; self
             <div key={zone.label}>
               <div style={{ position: 'relative', height: TOTAL_H }}>
                 {/* ランク名（バー上段） */}
-                {allTicks.map((pt, i) => {
+                {allTicks.map((pt) => {
                   const tierName = TIERS.find(t => t.pt === pt)?.name ?? null;
                   if (!tierName) return null;
-                  const isFirst = i === 0;
-                  const isLast = i === allTicks.length - 1;
                   return (
                     <span key={`name-${pt}`} style={{
                       position: 'absolute',
                       top: 0,
-                      left: isFirst ? '0%' : isLast ? '100%' : `${tickPct(pt)}%`,
-                      transform: isFirst ? 'none' : isLast ? 'translateX(-100%)' : 'translateX(-50%)',
+                      left: `${tickPct(pt)}%`,
+                      transform: 'translateX(-50%)',
                       fontSize: 9,
                       color: total >= pt ? zone.color : 'rgba(255,255,255,0.22)',
                       fontWeight: total >= pt ? 600 : 400,
@@ -126,19 +124,16 @@ export default function IncentiveBar({ total, selfClose }: { total: number; self
                 </div>
 
                 {/* 目盛り線＋pt数字（バー下段） */}
-                {allTicks.map((pt, i) => {
-                  const isFirst = i === 0;
-                  const isLast = i === allTicks.length - 1;
+                {allTicks.map((pt) => {
                   return (
                     <div key={`tick-${pt}`} style={{
                       position: 'absolute',
                       top: RANK_H + BAR_H,
-                      left: isFirst ? '0%' : isLast ? 'auto' : `${tickPct(pt)}%`,
-                      right: isLast ? 0 : 'auto',
+                      left: `${tickPct(pt)}%`,
                       display: 'flex',
                       flexDirection: 'column',
-                      alignItems: isFirst ? 'flex-start' : isLast ? 'flex-end' : 'center',
-                      transform: (!isFirst && !isLast) ? 'translateX(-50%)' : 'none',
+                      alignItems: 'center',
+                      transform: 'translateX(-50%)',
                       pointerEvents: 'none',
                     }}>
                       <div style={{ width: 1, height: GAP, background: 'rgba(255,255,255,0.18)' }} />
