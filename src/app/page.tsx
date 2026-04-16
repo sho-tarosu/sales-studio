@@ -463,7 +463,7 @@ export default function Home() {
                 {meData.bloodType && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
                     <span style={{ color: 'var(--text-sub)' }}>血液型</span>
-                    <span style={{ color: 'var(--text-main)' }}>{meData.bloodType}型</span>
+                    <span style={{ color: 'var(--text-main)' }}>{meData.bloodType}</span>
                   </div>
                 )}
                 {meData.animal && (
