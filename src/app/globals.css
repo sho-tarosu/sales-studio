@@ -209,18 +209,18 @@ body {
   inset: 0;
   z-index: 200;
   background: var(--bg-color);
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding-top: env(safe-area-inset-top);
 }
 
 .profile-panel-header {
   display: flex;
   align-items: center;
   padding: 10px 8px;
+  padding-top: calc(10px + env(safe-area-inset-top));
   border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
 }
 
 @media (min-width: 768px) {
@@ -233,7 +233,8 @@ body {
     border-radius: 12px;
     border: 1px solid var(--border-color);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-    padding-top: 0; /* PC版はdropdownなのでsafe-area不要 */
+    overflow-y: auto; /* PC版はdropdownなのでパネル全体をスクロール */
+    -webkit-overflow-scrolling: touch;
   }
 
   .profile-panel-header {
@@ -248,11 +249,9 @@ body {
   inset: 0;
   z-index: 300;
   background: var(--bg-color);
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding-top: env(safe-area-inset-top);
 }
 
 @media (min-width: 768px) {

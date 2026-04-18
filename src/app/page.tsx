@@ -507,7 +507,7 @@ export default function Home() {
           </div>
 
           {/* コンテンツ */}
-          <div style={{ padding: '28px 24px', flex: 1 }}>
+          <div style={{ padding: '28px 24px', flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
             {/* アバター + 名前 */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 28 }}>
               <div className="header-avatar-btn" style={{ cursor: 'default', fontSize: 18, width: 56, height: 56, flexShrink: 0 }}>
@@ -686,7 +686,9 @@ export default function Home() {
             display: 'flex',
             alignItems: 'center',
             padding: '10px 8px',
+            paddingTop: 'calc(10px + env(safe-area-inset-top))',
             borderBottom: '1px solid var(--border-color)',
+            flexShrink: 0,
           }}>
             <button
               onClick={() => setLoginInfoOpen(false)}
@@ -696,7 +698,7 @@ export default function Home() {
             </button>
             <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-main)', marginLeft: 4 }}>ログイン情報</span>
           </div>
-          <div style={{ padding: '8px 0' }}>
+          <div style={{ padding: '8px 0', flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
             {loginInfoList.length === 0 ? (
               <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-sub)', fontSize: 14 }}>読み込み中...</div>
             ) : (() => {
@@ -765,7 +767,9 @@ export default function Home() {
             display: 'flex',
             alignItems: 'center',
             padding: '10px 8px',
+            paddingTop: 'calc(10px + env(safe-area-inset-top))',
             borderBottom: '1px solid var(--border-color)',
+            flexShrink: 0,
           }}>
             <button
               onClick={() => setContactsOpen(false)}
@@ -775,7 +779,7 @@ export default function Home() {
             </button>
             <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-main)', marginLeft: 4 }}>社員連絡先</span>
           </div>
-          <div style={{ padding: '8px 0' }}>
+          <div style={{ padding: '8px 0', flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
             {contacts.length === 0 ? (
               <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-sub)', fontSize: 14 }}>読み込み中...</div>
             ) : (
