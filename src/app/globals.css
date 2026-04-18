@@ -1288,7 +1288,8 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
     background: var(--bg-color);
     border-top: 1px solid var(--border-color);
     justify-content: space-around;
-    align-items: center;
+    align-items: flex-start;
+    padding-top: 12px;
     z-index: 500;
   }
   .main-content {
