@@ -1283,7 +1283,7 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
     display: flex;
     position: fixed;
     bottom: 0; left: 0; right: 0;
-    height: calc(40px + env(safe-area-inset-bottom));
+    height: calc(50px + env(safe-area-inset-bottom));
     padding-bottom: env(safe-area-inset-bottom);
     background: var(--bg-color);
     border-top: 1px solid var(--border-color);
