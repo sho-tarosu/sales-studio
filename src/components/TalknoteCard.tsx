@@ -149,29 +149,31 @@ function SiteCard({ site, staffList, agency, siteMap }: {
             </span>
           ); })()}
 
-          {hasReport && mnp > 0 && (
+          {hasReport && (mnp > 0 || shin > 0) && (
+            <div style={{ display: 'flex', gap: 6, marginLeft: 'auto', flexShrink: 0 }}>
+          {mnp > 0 && (
             <span style={{
               fontSize: 11, fontWeight: 700,
               color: '#60a5fa',
               background: 'rgba(96,165,250,0.12)',
               border: '1px solid rgba(96,165,250,0.25)',
               borderRadius: 20, padding: '2px 9px',
-              flexShrink: 0,
             }}>
               MNP {mnp}台
             </span>
           )}
-          {hasReport && shin > 0 && (
+          {shin > 0 && (
             <span style={{
               fontSize: 11, fontWeight: 700,
               color: '#4ade80',
               background: 'rgba(74,222,128,0.12)',
               border: '1px solid rgba(74,222,128,0.25)',
               borderRadius: 20, padding: '2px 9px',
-              flexShrink: 0,
             }}>
               新規 {shin}台
             </span>
+          )}
+            </div>
           )}
         </div>
 
