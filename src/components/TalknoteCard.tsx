@@ -305,11 +305,6 @@ export default function TalknoteCard() {
               </button>
             ))}
           </div>
-          {!loading && data && totalReports > 0 && (
-            <span style={{ fontSize: 12, color: 'var(--text-sub)' }}>
-              {totalReports}件
-            </span>
-          )}
         </div>
         <input
           type="date"
