@@ -1289,7 +1289,7 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
     border-top: 1px solid var(--border-color);
     justify-content: space-around;
     align-items: flex-start;
-    padding-top: 8px;
+    padding-top: 5px;
     z-index: 500;
   }
   .main-content {
