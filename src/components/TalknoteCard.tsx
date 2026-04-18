@@ -260,9 +260,10 @@ export default function TalknoteCard() {
       .finally(() => setLoading(false));
   }, [date]);
 
-  // 選択地域 & スタッフがいる現場のみ（シフト順）
+  // 関東→東京、九州→福岡 に変換してフィルター
+  const regionKey = region === '関東' ? '東京' : '福岡';
   const orderedSites = data
-    ? data.siteOrder.filter((s) => s.staff.length > 0 && (s.region === region || s.region === ''))
+    ? data.siteOrder.filter((s) => s.staff.length > 0 && (s.region === regionKey || s.region === ''))
     : [];
 
   const totalReports = orderedSites.reduce((sum, s) => {
@@ -270,7 +271,7 @@ export default function TalknoteCard() {
   }, 0);
 
   return (
-    <div className="chart-card" style={{ marginTop: 16, minHeight: 'unset' }}>
+    <div className="chart-card" style={{ marginTop: 16, marginBottom: 20, minHeight: 'unset' }}>
       {/* カードヘッダー */}
       <div style={{
         display: 'flex',
