@@ -44,6 +44,8 @@ export default function Home() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [contactsOpen, setContactsOpen] = useState(false);
   const [contacts, setContacts] = useState<{ name: string; contact: string; mentees: string[] }[]>([]);
+  const [loginInfoOpen, setLoginInfoOpen] = useState(false);
+  const [loginInfoList, setLoginInfoList] = useState<{ name: string; loginInfo: string }[]>([]);
   const [meData, setMeData] = useState<{ birthday: string; bloodType: string; animal: string; zodiac: string } | null>(null);
   const [myStats, setMyStats] = useState<{ total: number; selfClose: number } | null>(null);
   const [impersonated, setImpersonated] = useState<{ name: string; role: string } | null>(null);
@@ -159,6 +161,7 @@ export default function Home() {
   useEffect(() => {
     setDrawerOpen(false);
     setContactsOpen(false);
+    setLoginInfoOpen(false);
   }, [activeTab]);
 
   const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -618,6 +621,35 @@ export default function Home() {
               <ChevronLeft size={18} strokeWidth={1.75} style={{ transform: 'rotate(180deg)', color: 'var(--text-sub)' }} />
             </button>
 
+            {/* ログイン情報（管理者のみ） */}
+            {(session.user.role as string) === '管理者' && (
+              <button
+                onClick={() => {
+                  if (loginInfoList.length === 0) {
+                    fetch('/api/admin/login-info').then(r => r.json()).then(setLoginInfoList).catch(() => {});
+                  }
+                  setLoginInfoOpen(true);
+                }}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '14px 0',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: '1px solid var(--border-color)',
+                  color: 'var(--text-main)',
+                  fontSize: 15,
+                  cursor: 'pointer',
+                  marginBottom: 16,
+                }}
+              >
+                <span>ログイン情報</span>
+                <ChevronLeft size={18} strokeWidth={1.75} style={{ transform: 'rotate(180deg)', color: 'var(--text-sub)' }} />
+              </button>
+            )}
+
             <button
               onClick={() => signOut({ callbackUrl: '/login' })}
               style={{
@@ -633,6 +665,53 @@ export default function Home() {
             >
               ログアウト
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* ログイン情報パネル（管理者のみ） */}
+      {loginInfoOpen && (
+        <div onClick={() => setLoginInfoOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 299 }} />
+      )}
+      {loginInfoOpen && (
+        <div
+          className="contacts-panel"
+          onTouchStart={(e) => { (e.currentTarget as HTMLDivElement).dataset.touchX = String(e.touches[0].clientX); }}
+          onTouchEnd={(e) => {
+            const startX = Number((e.currentTarget as HTMLDivElement).dataset.touchX ?? 0);
+            if (e.changedTouches[0].clientX - startX > 80) setLoginInfoOpen(false);
+          }}
+        >
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            padding: '10px 8px',
+            borderBottom: '1px solid var(--border-color)',
+          }}>
+            <button
+              onClick={() => setLoginInfoOpen(false)}
+              style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px 8px' }}
+            >
+              <ChevronLeft size={24} strokeWidth={1.75} />
+            </button>
+            <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-main)', marginLeft: 4 }}>ログイン情報</span>
+          </div>
+          <div style={{ padding: '8px 0' }}>
+            {loginInfoList.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-sub)', fontSize: 14 }}>読み込み中...</div>
+            ) : (
+              loginInfoList.map((item) => (
+                <div key={item.name} style={{
+                  padding: '12px 24px',
+                  borderBottom: '1px solid var(--border-color)',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-main)' }}>{item.name}</div>
+                    <div style={{ fontSize: 13, color: 'var(--text-sub)', fontVariantNumeric: 'tabular-nums' }}>{item.loginInfo}</div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}

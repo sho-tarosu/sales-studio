@@ -904,6 +904,12 @@ thead .shift-sticky-col {
 
 /* 土日祝の背景色なし（文字色のみ列ヘッダーで区別） */
 
+/* scroll-margin-top: theadのstickyヘッダー分だけ余白を確保（scrollIntoView対策） */
+.shift-row.today td,
+.loc-date-cell.today {
+  scroll-margin-top: 32px;
+}
+
 /* 当日行 — スタッフ別 */
 .shift-row.today .shift-data-cell  { background: rgba(229, 62, 62, 0.10); }
 .shift-row.today .shift-staff-name {
