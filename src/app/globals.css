@@ -50,6 +50,8 @@ body {
   height: 100vh;
   display: flex;
   overflow: hidden;
+  /* ステータスバーを全ページで死守（PCではenv()=0のため影響なし） */
+  padding-top: env(safe-area-inset-top);
 }
 
 /* ─── Focus Styles ──────────────────────────────── */
@@ -210,6 +212,7 @@ body {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  padding-top: env(safe-area-inset-top);
 }
 
 .profile-panel-header {
@@ -229,6 +232,7 @@ body {
     border-radius: 12px;
     border: 1px solid var(--border-color);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    padding-top: 0; /* PC版はdropdownなのでsafe-area不要 */
   }
 
   .profile-panel-header {
@@ -246,6 +250,7 @@ body {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  padding-top: env(safe-area-inset-top);
 }
 
 @media (min-width: 768px) {
@@ -1309,8 +1314,6 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
     padding: 16px 12px;
     padding-top: 16px;
     padding-bottom: calc(72px + env(safe-area-inset-bottom));
-    /* スクロール領域をステータスバーの下から開始（コンテンツが重ならない） */
-    margin-top: env(safe-area-inset-top);
   }
   .dashboard-split, .compare-grid { grid-template-columns: 1fr; }
   .kpi-grid { grid-template-columns: 1fr 1fr; }
