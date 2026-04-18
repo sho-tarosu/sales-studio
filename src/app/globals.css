@@ -1307,14 +1307,10 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
   }
   .main-content {
     padding: 16px 12px;
-    padding-top: 0;
+    padding-top: 16px;
     padding-bottom: calc(72px + env(safe-area-inset-bottom));
-  }
-  /* ヘッダーブランド行にsafe-area-inset-topを適用
-     → スクロールするとヘッダーごとステータスバー裏に消える（YouTube Studio方式） */
-  .header-brand-row {
-    padding-top: calc(10px + env(safe-area-inset-top));
-    margin-bottom: 4px;
+    /* スクロール領域をステータスバーの下から開始（コンテンツが重ならない） */
+    margin-top: env(safe-area-inset-top);
   }
   .dashboard-split, .compare-grid { grid-template-columns: 1fr; }
   .kpi-grid { grid-template-columns: 1fr 1fr; }
