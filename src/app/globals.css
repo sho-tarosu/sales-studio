@@ -1283,19 +1283,19 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
     display: flex;
     position: fixed;
     bottom: 0; left: 0; right: 0;
-    height: calc(80px + env(safe-area-inset-bottom));
+    height: calc(60px + env(safe-area-inset-bottom));
     padding-bottom: env(safe-area-inset-bottom);
     background: var(--bg-color);
     border-top: 1px solid var(--border-color);
     justify-content: space-around;
     align-items: flex-start;
-    padding-top: 12px;
+    padding-top: 8px;
     z-index: 500;
   }
   .main-content {
     padding: 16px 12px;
     padding-top: calc(16px + env(safe-area-inset-top));
-    padding-bottom: calc(92px + env(safe-area-inset-bottom));
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
   }
   .dashboard-split, .compare-grid { grid-template-columns: 1fr; }
   .kpi-grid { grid-template-columns: 1fr 1fr; }
