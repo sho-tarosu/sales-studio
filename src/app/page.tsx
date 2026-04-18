@@ -157,11 +157,12 @@ export default function Home() {
       .catch(() => {});
   }, [drawerOpen, session?.user?.role, allUsers.length]);
 
-  // タブ切り替え時にすべてのパネルを閉じる
+  // タブ切り替え時にすべてのパネルを閉じ、スクロール位置をリセット
   useEffect(() => {
     setDrawerOpen(false);
     setContactsOpen(false);
     setLoginInfoOpen(false);
+    document.querySelector<HTMLElement>('.main-content')?.scrollTo({ top: 0 });
   }, [activeTab]);
 
   const handleMonthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
