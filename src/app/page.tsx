@@ -713,10 +713,11 @@ export default function Home() {
                 let formattedDate = '';
 
                 if (item.loginInfo) {
-                  // "2026/04/18 19:18:44" → "04/18 19:18:44"
-                  formattedDate = item.loginInfo.slice(5);
-                  // "2026/04/18" → "2026-04-18"
-                  const loginDateStr = item.loginInfo.slice(0, 10).replace(/\//g, '-');
+                  // "2026/4/19 3:38:32" or "2026/04/18 19:18:44" → "4/19 3:38:32"
+                  formattedDate = item.loginInfo.replace(/^\d{4}\//, '');
+                  // パース: ["2026","4","19","3","38","32"] → ゼロ埋めして比較
+                  const p = item.loginInfo.split(/[\/\s:]/);
+                  const loginDateStr = `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
                   if (loginDateStr === todayStr) {
                     badge = { label: '本日', color: '#4ade80', bg: 'rgba(74,222,128,0.12)', border: 'rgba(74,222,128,0.3)' };
                   } else if (loginDateStr === yestStr) {
