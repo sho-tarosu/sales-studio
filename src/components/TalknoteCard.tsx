@@ -6,6 +6,7 @@ interface ShiftSite {
   location: string;
   staff: string[];
   agency: string;
+  region: string;
 }
 
 interface SiteMap {
@@ -242,10 +243,13 @@ function SiteCard({ site, staffList, agency, siteMap }: {
   );
 }
 
+type Region = '関東' | '九州';
+
 export default function TalknoteCard() {
   const [date, setDate] = useState(todayString());
   const [data, setData] = useState<TalknoteData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [region, setRegion] = useState<Region>('関東');
 
   useEffect(() => {
     setLoading(true);
@@ -256,9 +260,9 @@ export default function TalknoteCard() {
       .finally(() => setLoading(false));
   }, [date]);
 
-  // スタッフがいる現場のみ（シフト順）
+  // 選択地域 & スタッフがいる現場のみ（シフト順）
   const orderedSites = data
-    ? data.siteOrder.filter((s) => s.staff.length > 0)
+    ? data.siteOrder.filter((s) => s.staff.length > 0 && (s.region === region || s.region === ''))
     : [];
 
   const totalReports = orderedSites.reduce((sum, s) => {
@@ -278,9 +282,31 @@ export default function TalknoteCard() {
           <h3 style={{ fontSize: 14, fontWeight: 'bold', color: 'var(--text-main)' }}>
             稼働
           </h3>
+          {/* 関東/九州トグル */}
+          <div style={{ display: 'flex', background: 'rgba(255,255,255,0.06)', borderRadius: 6, padding: 2, gap: 2 }}>
+            {(['関東', '九州'] as Region[]).map((r) => (
+              <button
+                key={r}
+                onClick={() => setRegion(r)}
+                style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  padding: '2px 8px',
+                  borderRadius: 4,
+                  border: 'none',
+                  cursor: 'pointer',
+                  background: region === r ? 'rgba(255,255,255,0.12)' : 'transparent',
+                  color: region === r ? 'var(--text-main)' : 'var(--text-muted)',
+                  transition: 'background 0.15s',
+                }}
+              >
+                {r}
+              </button>
+            ))}
+          </div>
           {!loading && data && totalReports > 0 && (
             <span style={{ fontSize: 12, color: 'var(--text-sub)' }}>
-              {totalReports}件の報告
+              {totalReports}件
             </span>
           )}
         </div>

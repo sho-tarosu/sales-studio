@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
       location: shiftRows.location,
       staff: shiftRows.staff,
       agency: shiftRows.agency,
+      sheetRegion: shiftRows.sheetRegion,
     })
       .from(shiftRows)
       .where(and(eq(shiftRows.month, month), eq(shiftRows.date, shiftDate)))
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
   ]);
 
   // シフト表の順で現場リストを構築（重複除去）
-  const siteOrder: { location: string; staff: string[]; agency: string }[] = [];
+  const siteOrder: { location: string; staff: string[]; agency: string; region: string }[] = [];
   const seen = new Set<string>();
   for (const row of shifts) {
     if (!row.location || seen.has(row.location)) continue;
@@ -49,6 +50,7 @@ export async function GET(request: NextRequest) {
       location: row.location,
       staff: (row.staff as string[]) ?? [],
       agency: row.agency ?? '',
+      region: row.sheetRegion ?? '',
     });
   }
 

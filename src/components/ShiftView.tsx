@@ -414,11 +414,9 @@ export default function ShiftView({
               <span>{dates.length} 日</span>
             </>
           ) : (
-            <span>
-              {(selectedAgency || selectedLocation)
-                ? `${filteredLocationRows.length} / ${locationRows.length} 件`
-                : `${locationRows.length} 件`}
-            </span>
+            (selectedAgency || selectedLocation)
+              ? <span>{filteredLocationRows.length} / {locationRows.length} 件</span>
+              : null
           )}
         </div>
       </div>
@@ -486,6 +484,7 @@ export default function ShiftView({
       )}
       {pageMode === 'shift' && viewMode === 'staff' && rows.length > 0 && (
         <div className="shift-table-card">
+          <div className="shift-scroll-y">
           <div className="shift-scroll">
             <table className="shift-table">
               <thead>
@@ -567,6 +566,7 @@ export default function ShiftView({
               </tbody>
             </table>
           </div>
+          </div>
         </div>
       )}
 
@@ -578,6 +578,7 @@ export default function ShiftView({
       )}
       {pageMode === 'shift' && viewMode === 'location' && rows.length > 0 && (
         <div className="shift-table-card">
+          <div className="shift-scroll-y">
           <div className="shift-scroll">
             <table className="shift-table location-table">
               <thead>
@@ -682,6 +683,7 @@ export default function ShiftView({
               </tbody>
             </table>
           </div>
+          </div>
         </div>
       )}
 
@@ -702,6 +704,7 @@ export default function ShiftView({
               </div>
             ) : null
           ) : (
+            <div className="shift-scroll-y">
             <div className="shift-scroll">
               <table className="shift-table">
                 <thead>
@@ -775,6 +778,7 @@ export default function ShiftView({
                   })}
                 </tbody>
               </table>
+            </div>
             </div>
           )}
         </div>
