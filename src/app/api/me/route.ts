@@ -19,6 +19,7 @@ export async function GET() {
       if (row[20]?.trim() !== userId) continue; // U列: ユーザーID
 
       return NextResponse.json({
+        base: row[1]?.trim() ?? '',       // B列: 拠点
         birthday: row[4]?.trim() ?? '',   // E列: 生年月日
         bloodType: row[8]?.trim() ?? '',  // I列: 血液型
         animal: row[13]?.trim() ?? '',    // N列: 動物占い

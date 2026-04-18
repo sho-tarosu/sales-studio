@@ -251,6 +251,16 @@ export default function TalknoteCard() {
   const [loading, setLoading] = useState(false);
   const [region, setRegion] = useState<Region>('関東');
 
+  // ログインユーザーの拠点に基づいてデフォルト地域を設定
+  useEffect(() => {
+    fetch('/api/me')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.base === '九州') setRegion('九州');
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     setLoading(true);
     fetch(`/api/talknote?date=${date}`)
