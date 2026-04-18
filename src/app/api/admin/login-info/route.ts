@@ -24,9 +24,8 @@ export async function GET() {
       const loginInfo = row[24]?.trim(); // Y列: ログイン情報
 
       if (!name || active?.toUpperCase() !== 'TRUE') continue;
-      if (!loginInfo) continue;
 
-      result.push({ name, loginInfo });
+      result.push({ name, loginInfo: loginInfo ?? '' });
     }
 
     return NextResponse.json(result);

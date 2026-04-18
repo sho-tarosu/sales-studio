@@ -626,9 +626,8 @@ export default function Home() {
             {(session.user.role as string) === '管理者' && (
               <button
                 onClick={() => {
-                  if (loginInfoList.length === 0) {
-                    fetch('/api/admin/login-info').then(r => r.json()).then(setLoginInfoList).catch(() => {});
-                  }
+                  setLoginInfoList([]);
+                  fetch('/api/admin/login-info').then(r => r.json()).then(setLoginInfoList).catch(() => {});
                   setLoginInfoOpen(true);
                 }}
                 style={{
@@ -700,19 +699,50 @@ export default function Home() {
           <div style={{ padding: '8px 0' }}>
             {loginInfoList.length === 0 ? (
               <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-sub)', fontSize: 14 }}>読み込み中...</div>
-            ) : (
-              loginInfoList.map((item) => (
-                <div key={item.name} style={{
-                  padding: '12px 24px',
-                  borderBottom: '1px solid var(--border-color)',
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-main)' }}>{item.name}</div>
-                    <div style={{ fontSize: 13, color: 'var(--text-sub)', fontVariantNumeric: 'tabular-nums' }}>{item.loginInfo}</div>
+            ) : (() => {
+              const now = new Date();
+              const toJPStr = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+              // JST offset: UTC+9
+              const jstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+              const todayStr = toJPStr(jstNow);
+              const yestDate = new Date(jstNow.getTime() - 24 * 60 * 60 * 1000);
+              const yestStr = toJPStr(yestDate);
+
+              return loginInfoList.map((item) => {
+                let badge: { label: string; color: string; bg: string; border: string };
+                let formattedDate = '';
+
+                if (item.loginInfo) {
+                  // "2026/04/18 19:18:44" → "04/18 19:18:44"
+                  formattedDate = item.loginInfo.slice(5);
+                  // "2026/04/18" → "2026-04-18"
+                  const loginDateStr = item.loginInfo.slice(0, 10).replace(/\//g, '-');
+                  if (loginDateStr === todayStr) {
+                    badge = { label: '本日', color: '#4ade80', bg: 'rgba(74,222,128,0.12)', border: 'rgba(74,222,128,0.3)' };
+                  } else if (loginDateStr === yestStr) {
+                    badge = { label: '昨日', color: '#facc15', bg: 'rgba(250,204,21,0.12)', border: 'rgba(250,204,21,0.3)' };
+                  } else {
+                    badge = { label: '2日以上', color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.3)' };
+                  }
+                } else {
+                  badge = { label: '未ログイン', color: '#888', bg: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.12)' };
+                }
+
+                return (
+                  <div key={item.name} style={{ padding: '12px 24px', borderBottom: '1px solid var(--border-color)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                        <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-main)', whiteSpace: 'nowrap' }}>{item.name}</div>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: badge.color, background: badge.bg, border: `1px solid ${badge.border}`, borderRadius: 20, padding: '2px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                          {badge.label}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 12, color: 'var(--text-sub)', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', flexShrink: 0 }}>{formattedDate}</div>
+                    </div>
                   </div>
-                </div>
-              ))
-            )}
+                );
+              });
+            })()}
           </div>
         </div>
       )}
