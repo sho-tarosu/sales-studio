@@ -11,6 +11,7 @@
  *   ③ シフト通知          毎日18時    setupTriggers() … トリガー再設定
  *   ④ 日報催促            毎日21時    clearTriggers() … トリガー全削除
  *   ⑤ スタッフ情報同期    毎日 6時
+ * 　⑥カレンダー更新　毎日4時
  *
  * 【目次】Ctrl+F でタグ検索 → 該当行へジャンプ
  *   設定エリア（CONFIG）                44行〜
@@ -22,7 +23,7 @@
  *   補助関数（月次・過去データ等）      350行〜
  *   内部処理（集計・送信・整形）        630行〜
  *   トリガー管理                       848行〜
- *
+ *　　カレンダー処理　　　　　　　　　　　　1045行～
  * ============================================================
  */
 
@@ -34,7 +35,7 @@
 
 const CONFIG = {
   // Vercelアプリの URL（末尾スラッシュなし）
-  SYNC_URL:    'https://YOUR_APP_NAME.vercel.app/api/sync',
+  SYNC_URL:    'https://sales-studio-iota.vercel.app/api/sync',
   // .env.local の SYNC_SECRET と同じ値
   SYNC_SECRET: 'my-super-secret-key-2026',
 };
@@ -661,6 +662,8 @@ function syncStaffInfo_New() {
 
     Logger.log('[スタッフ同期] ' + numRows + '行を同期、' + restored + '件のログイン情報を復元');
     if (unmatched.length > 0) Logger.log('[スタッフ同期] ログイン情報未設定: ' + unmatched.join(', '));
+
+    syncStaffProfilesToDB(); // ⑤-B シート転記直後にDBへも反映
   } catch (e) {
     Logger.log('[スタッフ同期] エラー: ' + e.message);
   }
@@ -996,6 +999,8 @@ function isNameMatch_(nameA, nameB) {
   if (nameB === '大野' && nameA.startsWith('大野賀')) return false;
   if (nameA === '高橋' && nameB.startsWith('高橋史')) return false;
   if (nameB === '高橋' && nameA.startsWith('高橋史')) return false;
+  if (nameA === '森' && nameB.startsWith('森山')) return false;
+  if (nameB === '森' && nameA.startsWith('森山')) return false;
   return nameA.includes(nameB) || nameB.includes(nameA);
 }
 
@@ -1114,4 +1119,196 @@ function setupTriggers() {
 function clearTriggers() {
   ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t));
   Logger.log('トリガーを削除しました');
+}
+// ============================================================
+//  【追加機能】 Googleカレンダー連携（完全版）
+// ============================================================
+
+/**
+ * 【本番用】今日から1週間分のシフトを対象者全員のカレンダーに同期する
+ * ※GASの「トリガー」で「毎日 午前4時〜5時」に自動実行するよう設定してください。
+ */
+function syncWeeklyStaffCalendar() {
+  const config = DAWIN;
+  const staffMap = getStaffMapWithCalendar_(config);
+  const today = new Date();
+
+  let successCount = 0;
+  let skipCount = 0;
+
+  for (const [staffName, calendarId] of Object.entries(staffMap)) {
+    if (!calendarId) continue;
+
+    try {
+      for (let i = 0; i < 7; i++) {
+        const targetDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i);
+        const shiftInfo = getShiftDataFromSheet_(targetDate, staffName, config);
+        updateCalendarEvent_(calendarId, targetDate, shiftInfo);
+      }
+      successCount++;
+      Logger.log('✅ ' + staffName + 'さんの同期に成功しました！');
+    } catch (e) {
+      Logger.log('❌ ' + staffName + 'さんの同期に失敗: ' + e.message);
+      skipCount++;
+    }
+  }
+  Logger.log('【1週間分 同期完了】 成功: ' + successCount + '名 / 失敗・スキップ: ' + skipCount + '名');
+}
+
+/**
+ * シフト表から特定の日の勤務情報を抽出する
+ */
+function getShiftDataFromSheet_(date, staffName, config) {
+  let ss;
+  try { ss = SpreadsheetApp.openById(config.shiftSheetId); } catch(e) { return null; }
+
+  // 該当月のシート名を作成（例：26年4月【東京】）
+  const targetSheetNames = config.shiftSheetNames.map(base =>
+    Utilities.formatDate(date, 'Asia/Tokyo', 'yy') + '年' + Utilities.formatDate(date, 'Asia/Tokyo', 'M') + '月' + base
+  );
+
+  let shiftInfo = null;
+
+  for (const sheetName of targetSheetNames) {
+    const sheet = ss.getSheetByName(sheetName);
+    if (!sheet) continue;
+
+    const data = sheet.getDataRange().getValues();
+    let activeCols = [], storeColIdx = 3, timeColIdx = 4;
+
+    // ヘッダー行を特定
+    for (let rCount = 0; rCount < Math.min(10, data.length); rCount++) {
+      const row = data[rCount];
+      let tempCols = [], tempStoreIdx = 3, tempTimeIdx = 4;
+      for (let c = 0; c < row.length; c++) {
+        const cleanVal = String(row[c]).replace(/[０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0)).replace(/\s+/g, '');
+        if (config.targetHeaderNames.includes(cleanVal)) tempCols.push(c);
+        if (cleanVal === '店舗') tempStoreIdx = c;
+        if (cleanVal === '時間') tempTimeIdx = c;
+      }
+      if (tempCols.length > 0) {
+        activeCols = tempCols; storeColIdx = tempStoreIdx; timeColIdx = tempTimeIdx; break;
+      }
+    }
+
+    if (activeCols.length === 0) continue;
+
+    // 対象日の行を探す
+    let currentShiftDate = null;
+    for (const row of data) {
+      if (Object.prototype.toString.call(row[0]) === '[object Date]') currentShiftDate = row[0];
+      else if (row[0] !== '') currentShiftDate = null;
+
+      if (!currentShiftDate || !isSameDate_(currentShiftDate, date)) continue;
+
+      // 該当日にスタッフがいるか確認
+      for (const colIdx of activeCols) {
+        const cellName = normalizeName_(row[colIdx]);
+        if (isNameMatch_(cellName, staffName)) {
+          const loc = String(row[storeColIdx]).trim();
+          const timeVal = String(row[timeColIdx]).trim();
+
+          let startHour = 10, endHour = 18;
+          // 11時の場合の判定
+          if (timeVal === "11" || timeVal.startsWith("11:")) { startHour = 11; endHour = 19; }
+
+          shiftInfo = {
+            location: loc,
+            start: new Date(date.getFullYear(), date.getMonth(), date.getDate(), startHour, 0, 0),
+            end:   new Date(date.getFullYear(), date.getMonth(), date.getDate(), endHour, 0, 0)
+          };
+          break; // 見つかったら列ループを抜ける
+        }
+      }
+      if (shiftInfo) break; // 見つかったら行ループを抜ける
+    }
+    if (shiftInfo) break; // 見つかったらシートループを抜ける
+  }
+  return shiftInfo;
+}
+
+/**
+ * カレンダーの予定を上書き/削除する（直接書き込み方式）
+ */
+function updateCalendarEvent_(calendarId, date, shiftInfo) {
+  const cleanCalendarId = String(calendarId).trim();
+  const calendar = CalendarApp.getCalendarById(cleanCalendarId);
+
+  if (!calendar) {
+    throw new Error('Action not allowed (権限がないか、アドレスが間違っています)');
+  }
+
+  const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
+  const endOfDay   = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59);
+
+  // 既存の「【シフト】」予定を検索して削除
+  const events = calendar.getEvents(startOfDay, endOfDay);
+  events.forEach(event => {
+    if (event.getTitle().includes('【シフト】')) {
+      event.deleteEvent();
+    }
+  });
+
+  // シフトがある場合のみ、新しく作成
+  if (shiftInfo && shiftInfo.location) {
+    calendar.createEvent('【シフト】' + shiftInfo.location, shiftInfo.start, shiftInfo.end);
+  }
+}
+
+/**
+ * スタッフ情報（AA列）からGoogleアカウントを取得する
+ */
+function getStaffMapWithCalendar_(config) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(config.idSheetName);
+  if (!sheet) return {};
+  const m = {};
+  const data = sheet.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    const shiftName = normalizeName_(data[i][5]);   // F列: シフト名
+    const calendarId = String(data[i][26]).trim(); // AA列: カレンダーアドレス
+    if (shiftName && calendarId.includes('@')) {
+      m[shiftName] = calendarId;
+    }
+  }
+  return m;
+}
+
+// ============================================================
+//  ▼ 運用サポート用（特定個人の動作確認やトラブルシューティング）
+// ============================================================
+
+/**
+ * 【テスト用】特定のスタッフ1名のみ同期テストを行う
+ */
+function testSyncSingleStaff() {
+  const config = DAWIN;
+  const targetStaffName = "中村"; // ← テストしたい名前に書き換えて実行
+
+  const staffMap = getStaffMapWithCalendar_(config);
+  const calendarId = staffMap[targetStaffName];
+
+  if (!calendarId) {
+    Logger.log('❌ ' + targetStaffName + "さんのGoogleアカウント（AA列）が見つかりません。");
+    return;
+  }
+  Logger.log('▶ ' + targetStaffName + "さんの同期テストを開始します（送信先: " + calendarId + "）");
+
+  const today = new Date();
+  for (let i = 0; i < 7; i++) {
+    const targetDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i);
+    const shiftInfo = getShiftDataFromSheet_(targetDate, targetStaffName, config);
+
+    try {
+      updateCalendarEvent_(calendarId, targetDate, shiftInfo);
+      if (shiftInfo) {
+        Logger.log('  ' + Utilities.formatDate(targetDate, "JST", "MM/dd") + ": " + shiftInfo.location + " (" + (shiftInfo.start.getHours()) + "時開始) で更新");
+      } else {
+        Logger.log('  ' + Utilities.formatDate(targetDate, "JST", "MM/dd") + ": シフトなし（クリア）");
+      }
+    } catch(e) {
+      Logger.log('❌ エラー: ' + e.message);
+    }
+  }
+  Logger.log("✅ テスト完了。");
 }

@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "@/components/Providers";
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+};
+
 export const metadata: Metadata = {
   title: "Sales Studio",
   description: "営業成績ダッシュボード",

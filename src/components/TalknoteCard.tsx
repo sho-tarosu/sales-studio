@@ -82,8 +82,8 @@ function countMnpNew(postsByStaff: SiteMap[string]): { mnp: number; shin: number
       } else if (/MNP/i.test(msg)) {
         mnp += 1;
       }
-      // 新規○台: "新規2" → 2台、"新規" alone → 1台
-      const shinMatches = [...msg.matchAll(/新規(\d+)/g)];
+      // 新規○台: "新規2", "新規×2", "純新規×2" → N台、"新規" alone → 1台
+      const shinMatches = [...msg.matchAll(/新規[×x×\s]*(\d+)/g)];
       if (shinMatches.length > 0) {
         shin += shinMatches.reduce((s, m) => s + parseInt(m[1]), 0);
       } else if (/新規/.test(msg)) {
@@ -122,36 +122,61 @@ function SiteCard({ site, staffList, agency, siteMap }: {
     }}>
       {/* ヘッダー */}
       <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        flexWrap: 'wrap',
-        gap: 6,
         padding: '9px 12px',
         background: 'rgba(255,255,255,0.025)',
         borderBottom: hasReport ? '1px solid var(--border-color)' : 'none',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 5,
       }}>
-        {/* 現場名 */}
-        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main)', flexShrink: 0 }}>
-          {normalizeSiteName(site)}
-        </span>
-
-        {/* 代理店バッジ */}
-        {agency && (() => { const c = agencyColor(agency); return (
-          <span style={{
-            fontSize: 10,
-            color: c.text,
-            background: c.bg,
-            border: `1px solid ${c.text}44`,
-            borderRadius: 4,
-            padding: '1px 6px',
-            flexShrink: 0,
-          }}>
-            {agency}
+        {/* 1行目: 現場名・代理店・MNP/新規 */}
+        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main)', flexShrink: 0 }}>
+            {normalizeSiteName(site)}
           </span>
-        ); })()}
 
-        {/* スタッフバッジ */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, flex: 1, minWidth: 0 }}>
+          {agency && (() => { const c = agencyColor(agency); return (
+            <span style={{
+              fontSize: 10,
+              color: c.text,
+              background: c.bg,
+              border: `1px solid ${c.text}44`,
+              borderRadius: 4,
+              padding: '1px 6px',
+              flexShrink: 0,
+            }}>
+              {agency}
+            </span>
+          ); })()}
+
+          {hasReport && mnp > 0 && (
+            <span style={{
+              fontSize: 11, fontWeight: 700,
+              color: '#60a5fa',
+              background: 'rgba(96,165,250,0.12)',
+              border: '1px solid rgba(96,165,250,0.25)',
+              borderRadius: 20, padding: '2px 9px',
+              flexShrink: 0,
+            }}>
+              MNP {mnp}台
+            </span>
+          )}
+          {hasReport && shin > 0 && (
+            <span style={{
+              fontSize: 11, fontWeight: 700,
+              color: '#4ade80',
+              background: 'rgba(74,222,128,0.12)',
+              border: '1px solid rgba(74,222,128,0.25)',
+              borderRadius: 20, padding: '2px 9px',
+              flexShrink: 0,
+            }}>
+              新規 {shin}台
+            </span>
+          )}
+        </div>
+
+        {/* 2行目: スタッフバッジ */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
           {staffList.map((name) => (
             <span key={name} style={{
               fontSize: 10,
@@ -166,34 +191,6 @@ function SiteCard({ site, staffList, agency, siteMap }: {
             </span>
           ))}
         </div>
-
-        {/* MNP・新規バッジ */}
-        {hasReport && (mnp > 0 || shin > 0) && (
-          <div style={{ display: 'flex', gap: 6, marginLeft: 'auto', flexShrink: 0 }}>
-            {mnp > 0 && (
-              <span style={{
-                fontSize: 11, fontWeight: 700,
-                color: '#60a5fa',
-                background: 'rgba(96,165,250,0.12)',
-                border: '1px solid rgba(96,165,250,0.25)',
-                borderRadius: 20, padding: '2px 9px',
-              }}>
-                MNP {mnp}台
-              </span>
-            )}
-            {shin > 0 && (
-              <span style={{
-                fontSize: 11, fontWeight: 700,
-                color: '#4ade80',
-                background: 'rgba(74,222,128,0.12)',
-                border: '1px solid rgba(74,222,128,0.25)',
-                borderRadius: 20, padding: '2px 9px',
-              }}>
-                新規 {shin}台
-              </span>
-            )}
-          </div>
-        )}
       </div>
 
       {/* コンテンツ */}

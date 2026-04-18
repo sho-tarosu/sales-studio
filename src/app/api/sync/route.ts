@@ -24,6 +24,7 @@ import {
   shiftStaffNames,
   talknotePosts,
   staffEvaluations,
+  staffProfiles,
 } from '@/lib/schema';
 
 function checkAuth(request: NextRequest): boolean {
@@ -355,7 +356,10 @@ async function syncTalknote(payload: TalknotePayload) {
           eq(shiftRows.date, shiftDate),
           sql`EXISTS (
             SELECT 1 FROM jsonb_array_elements_text(${shiftRows.staff}) AS s
-            WHERE ${fullNameNoSpace} LIKE s || '%'
+            WHERE (
+              LENGTH(s) >= 3 AND ${fullNameNoSpace} LIKE s || '%'
+              OR LENGTH(s) < 3 AND ${fullNameNoSpace} = s
+            )
           )`
         )
       )

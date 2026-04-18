@@ -39,6 +39,7 @@ export async function GET() {
       const d = parseInt(parts[1]);
       if (isNaN(m) || isNaN(d) || m !== currentMonthNum) continue;
       if (d > todayDay) continue; // 未来はスキップ
+      if (d === todayDay && now.getHours() < 19) continue; // 当日19時前はスキップ
 
       const dateKey = `${currentYear}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       shiftDates.add(dateKey);
