@@ -141,13 +141,13 @@ export default function Home() {
     }
   }, [activeTab, selectedMonth, shiftFetchedMonth, fetchShift]);
 
+  // ページロード時にprefetch（ドロワーを開いた時に即表示するため）
   useEffect(() => {
-    if (!drawerOpen || meData) return;
     fetch('/api/me')
       .then((r) => r.json())
       .then((d) => setMeData(d))
       .catch(() => {});
-  }, [drawerOpen, meData]);
+  }, []);
 
   useEffect(() => {
     if (!drawerOpen || (session?.user?.role as string) !== '管理者' || allUsers.length > 0) return;
