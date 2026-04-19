@@ -357,11 +357,22 @@ async function syncTalknote(payload: TalknotePayload) {
           sql`EXISTS (
             SELECT 1 FROM jsonb_array_elements_text(${shiftRows.staff}) AS s
             WHERE (
-              LENGTH(s) >= 3 AND ${fullNameNoSpace} LIKE s || '%'
-              OR LENGTH(s) < 3 AND ${fullNameNoSpace} = s
+              LENGTH(s) >= 2 AND ${fullNameNoSpace} LIKE s || '%'
+              OR LENGTH(s) < 2 AND ${fullNameNoSpace} = s
             )
           )`
         )
+      )
+      // 複数の現場にマッチした場合、最も長く一致したシフト名を持つ現場を優先
+      // 例: "大野賀XX" が "大野"(2文字) と "大野賀X"(4文字) にマッチ → 4文字優先
+      .orderBy(
+        sql`(
+          SELECT MAX(LENGTH(s))
+          FROM jsonb_array_elements_text(${shiftRows.staff}) AS s
+          WHERE LENGTH(s) >= 2 AND ${fullNameNoSpace} LIKE s || '%'
+             OR LENGTH(s) < 2 AND ${fullNameNoSpace} = s
+        ) DESC`,
+        shiftRows.id
       )
       .limit(1);
 
