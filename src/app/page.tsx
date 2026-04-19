@@ -722,13 +722,13 @@ export default function Home() {
                   const diffMin = (nowMs - loginJstMs) / 60000;
 
                   if (diffMin <= 60 * 24) {
-                    badge = { label: '1日以内', color: '#4ade80', bg: '', border: '' };
+                    badge = { label: '1日以内', color: '#22c55e', bg: '', border: '' };
                   } else if (diffMin <= 60 * 48) {
                     badge = { label: '2日以内', color: '#facc15', bg: '', border: '' };
                   } else if (diffMin <= 60 * 72) {
-                    badge = { label: '3日以内', color: '#fb923c', bg: '', border: '' };
+                    badge = { label: '3日以内', color: '#facc15', bg: '', border: '' };
                   } else {
-                    badge = { label: '3日以上前', color: '#f87171', bg: '', border: '' };
+                    badge = { label: '3日以上前', color: '#ef4444', bg: '', border: '' };
                   }
                 } else {
                   badge = { label: '未ログイン', color: '#555', bg: '', border: '' };
