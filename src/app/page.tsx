@@ -721,19 +721,17 @@ export default function Home() {
                   ) - 9 * 60 * 60 * 1000; // JSTをUTCに変換
                   const diffMin = (nowMs - loginJstMs) / 60000;
 
-                  if (diffMin <= 30) {
-                    badge = { label: '30分以内', color: '#4ade80', bg: 'rgba(74,222,128,0.12)', border: 'rgba(74,222,128,0.3)' };
-                  } else if (diffMin <= 60 * 24) {
-                    badge = { label: '1日以内', color: '#22d3ee', bg: 'rgba(34,211,238,0.12)', border: 'rgba(34,211,238,0.3)' };
+                  if (diffMin <= 60 * 24) {
+                    badge = { label: '1日以内', color: '#4ade80', bg: '', border: '' };
                   } else if (diffMin <= 60 * 48) {
-                    badge = { label: '2日以内', color: '#facc15', bg: 'rgba(250,204,21,0.12)', border: 'rgba(250,204,21,0.3)' };
+                    badge = { label: '2日以内', color: '#facc15', bg: '', border: '' };
                   } else if (diffMin <= 60 * 72) {
-                    badge = { label: '3日以内', color: '#fb923c', bg: 'rgba(251,146,60,0.12)', border: 'rgba(251,146,60,0.3)' };
+                    badge = { label: '3日以内', color: '#fb923c', bg: '', border: '' };
                   } else {
-                    badge = { label: '3日以上前', color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.3)' };
+                    badge = { label: '3日以上前', color: '#f87171', bg: '', border: '' };
                   }
                 } else {
-                  badge = { label: '未ログイン', color: '#888', bg: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.12)' };
+                  badge = { label: '未ログイン', color: '#555', bg: '', border: '' };
                 }
 
                 return (
@@ -741,7 +739,8 @@ export default function Home() {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                         <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-main)', whiteSpace: 'nowrap' }}>{item.name}</div>
-                        <span style={{ fontSize: 10, fontWeight: 700, color: badge.color, background: badge.bg, border: `1px solid ${badge.border}`, borderRadius: 20, padding: '2px 8px', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--text-sub)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                          <span style={{ width: 7, height: 7, borderRadius: '50%', background: badge.color, flexShrink: 0, display: 'inline-block' }} />
                           {badge.label}
                         </span>
                       </div>
