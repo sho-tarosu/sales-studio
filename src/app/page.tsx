@@ -702,30 +702,35 @@ export default function Home() {
             {loginInfoList.length === 0 ? (
               <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-sub)', fontSize: 14 }}>読み込み中...</div>
             ) : (() => {
-              const now = new Date();
-              const toJPStr = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-              // JST offset: UTC+9
-              const jstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-              const todayStr = toJPStr(jstNow);
-              const yestDate = new Date(jstNow.getTime() - 24 * 60 * 60 * 1000);
-              const yestStr = toJPStr(yestDate);
+              const nowMs = Date.now();
 
               return loginInfoList.map((item) => {
                 let badge: { label: string; color: string; bg: string; border: string };
                 let formattedDate = '';
 
                 if (item.loginInfo) {
-                  // "2026/4/19 3:38:32" or "2026/04/18 19:18:44" → "4/19 3:38:32"
+                  // "2026/4/19 3:38:32" → "4/19 3:38:32"
                   formattedDate = item.loginInfo.replace(/^\d{4}\//, '');
-                  // パース: ["2026","4","19","3","38","32"] → ゼロ埋めして比較
+                  // パース → JST のDateオブジェクトに変換
                   const p = item.loginInfo.split(/[\/\s:]/);
-                  const loginDateStr = `${p[0]}-${p[1].padStart(2,'0')}-${p[2].padStart(2,'0')}`;
-                  if (loginDateStr === todayStr) {
-                    badge = { label: '本日', color: '#4ade80', bg: 'rgba(74,222,128,0.12)', border: 'rgba(74,222,128,0.3)' };
-                  } else if (loginDateStr === yestStr) {
-                    badge = { label: '昨日', color: '#facc15', bg: 'rgba(250,204,21,0.12)', border: 'rgba(250,204,21,0.3)' };
+                  // new Date(年, 月-1, 日, 時, 分, 秒) はローカル時刻として解釈されるため
+                  // UTC+9のオフセットを考慮して UTC ms に変換
+                  const loginJstMs = Date.UTC(
+                    parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]),
+                    parseInt(p[3] ?? '0'), parseInt(p[4] ?? '0'), parseInt(p[5] ?? '0')
+                  ) - 9 * 60 * 60 * 1000; // JSTをUTCに変換
+                  const diffMin = (nowMs - loginJstMs) / 60000;
+
+                  if (diffMin <= 30) {
+                    badge = { label: '30分以内', color: '#4ade80', bg: 'rgba(74,222,128,0.12)', border: 'rgba(74,222,128,0.3)' };
+                  } else if (diffMin <= 60 * 24) {
+                    badge = { label: '1日以内', color: '#22d3ee', bg: 'rgba(34,211,238,0.12)', border: 'rgba(34,211,238,0.3)' };
+                  } else if (diffMin <= 60 * 48) {
+                    badge = { label: '2日以内', color: '#facc15', bg: 'rgba(250,204,21,0.12)', border: 'rgba(250,204,21,0.3)' };
+                  } else if (diffMin <= 60 * 72) {
+                    badge = { label: '3日以内', color: '#fb923c', bg: 'rgba(251,146,60,0.12)', border: 'rgba(251,146,60,0.3)' };
                   } else {
-                    badge = { label: '2日以上', color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.3)' };
+                    badge = { label: '3日以上前', color: '#f87171', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.3)' };
                   }
                 } else {
                   badge = { label: '未ログイン', color: '#888', bg: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.12)' };
