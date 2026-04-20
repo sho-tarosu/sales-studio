@@ -24,7 +24,7 @@ const ALL_MENU_ITEMS: { id: TabName; label: string; icon: React.ReactNode; minRo
   { id: 'profile',        label: 'スタッフ',       icon: <Users           {...ICON_PROPS} /> },
 ];
 
-const ROLE_ORDER = ['アルバイト', '社員', '幹部', '管理者'];
+const ROLE_ORDER = ['業務委託', 'アルバイト', '社員', '幹部', '管理者'];
 function hasMinRole(userRole: string | undefined, minRole: string): boolean {
   const idx = ROLE_ORDER.indexOf(userRole ?? '');
   return idx >= ROLE_ORDER.indexOf(minRole);

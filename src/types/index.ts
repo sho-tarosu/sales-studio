@@ -1,4 +1,4 @@
-export type Role = '管理者' | '幹部' | '社員' | 'アルバイト';
+export type Role = '管理者' | '幹部' | '社員' | 'アルバイト' | '業務委託';
 
 export interface User {
   id: string;

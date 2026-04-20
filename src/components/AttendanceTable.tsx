@@ -67,8 +67,8 @@ export default function AttendanceTable({ data, selectedMonth, loginName, userRo
       <>
         <div className="analysis-controls">
           <div className="control-group">
-            {userRole !== 'アルバイト' && <span className="control-label">スタッフ選択</span>}
-            {userRole === 'アルバイト' ? (
+            {userRole !== 'アルバイト' && userRole !== '業務委託' && <span className="control-label">スタッフ選択</span>}
+            {userRole === 'アルバイト' || userRole === '業務委託' ? (
               <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-main)' }}>{staffName}</span>
             ) : (
               <select className="control-select" value={staffName} onChange={(e) => setStaffName(e.target.value)}>
@@ -95,8 +95,8 @@ export default function AttendanceTable({ data, selectedMonth, loginName, userRo
     <>
       <div className="analysis-controls" style={{ flexWrap: 'nowrap', alignItems: 'center' }}>
         <div className="control-group">
-          {userRole !== 'アルバイト' && <span className="control-label">スタッフ選択</span>}
-          {userRole === 'アルバイト' ? (
+          {userRole !== 'アルバイト' && userRole !== '業務委託' && <span className="control-label">スタッフ選択</span>}
+          {userRole === 'アルバイト' || userRole === '業務委託' ? (
             <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-main)' }}>{staffName}</span>
           ) : (
             <select className="control-select" value={staffName} onChange={(e) => setStaffName(e.target.value)}>

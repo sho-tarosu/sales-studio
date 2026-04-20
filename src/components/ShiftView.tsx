@@ -332,7 +332,7 @@ export default function ShiftView({
               >
                 スタッフ別
               </button>
-              {userRole !== 'アルバイト' && (
+              {userRole !== 'アルバイト' && userRole !== '業務委託' && (
                 <button
                   className={`shift-region-btn${viewMode === 'employee' ? ' active' : ''}`}
                   onClick={() => { setViewMode('employee'); setPageMode('shift'); }}
