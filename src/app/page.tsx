@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { RefreshCw, ChevronLeft } from 'lucide-react';
+import { RefreshCw, ChevronLeft, GraduationCap } from 'lucide-react';
 import Image from 'next/image';
 import { TabName, DashboardData, ShiftRow } from '@/types';
 import AuthGuard from '@/components/AuthGuard';
@@ -50,10 +50,25 @@ export default function Home() {
   const [myStats, setMyStats] = useState<{ total: number; selfClose: number } | null>(null);
   const [impersonated, setImpersonated] = useState<{ name: string; role: string } | null>(null);
   const [allUsers, setAllUsers] = useState<{ name: string; role: string }[]>([]);
+  const [secretMode, setSecretMode] = useState(false);
+  const logoTapCount = useRef(0);
+  const logoTapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // なりすまし時に使う実効値
   const effectiveName = impersonated?.name ?? session?.user?.name;
   const effectiveRole = impersonated?.role ?? session?.user?.role;
+
+  const handleLogoTap = useCallback(() => {
+    if (!['社員', '幹部', '管理者'].includes(effectiveRole ?? '')) return;
+    logoTapCount.current += 1;
+    if (logoTapTimer.current) clearTimeout(logoTapTimer.current);
+    if (logoTapCount.current >= 3) {
+      logoTapCount.current = 0;
+      setSecretMode(v => !v);
+    } else {
+      logoTapTimer.current = setTimeout(() => { logoTapCount.current = 0; }, 800);
+    }
+  }, [effectiveRole]);
 
   const now = new Date();
   const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -182,8 +197,8 @@ export default function Home() {
         <header className="header-area">
           {/* ブランドバー: スマホのみ表示 */}
           <div className="header-brand-row">
-            <div className="header-logo">
-              <Image src="/icon-512.png" alt="logo" width={45} height={45} style={{ borderRadius: 10, flexShrink: 0 }} />
+            <div className="header-logo" onClick={handleLogoTap} style={{ cursor: 'pointer' }}>
+              <Image src={secretMode ? '/icon-g-512.png' : '/icon-512.png'} alt="logo" width={45} height={45} style={{ borderRadius: 10, flexShrink: 0 }} />
               <span style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-main)', letterSpacing: '0.01em', whiteSpace: 'nowrap' }}>
                 Sales Studio
               </span>
@@ -810,6 +825,49 @@ export default function Home() {
               ))
             )}
           </div>
+        </div>
+      )}
+      {/* 裏メニュー（社員以上・3回タップで起動） */}
+      {secretMode && (
+        <div className="secret-mode-wrapper">
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '10px 16px',
+            paddingTop: 'calc(10px + env(safe-area-inset-top))',
+            borderBottom: '1px solid var(--border-color)',
+            flexShrink: 0,
+          }}>
+            <Image
+              src="/icon-g-512.png"
+              alt="logo"
+              width={36}
+              height={36}
+              style={{ borderRadius: 8, cursor: 'pointer', flexShrink: 0 }}
+              onClick={handleLogoTap}
+            />
+            <span style={{ fontSize: 18, fontWeight: 700, color: '#22c55e' }}>Sales Studio</span>
+          </div>
+          <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+            <GrowthView />
+          </div>
+          <nav style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            flexDirection: 'column',
+            gap: 3,
+            padding: '8px 0',
+            paddingBottom: 'calc(8px + env(safe-area-inset-bottom))',
+            borderTop: '1px solid var(--border-color)',
+            background: 'var(--card-bg)',
+            flexShrink: 0,
+            color: '#22c55e',
+          }}>
+            <GraduationCap size={20} strokeWidth={1.75} />
+            <span style={{ fontSize: 9 }}>育成管理</span>
+          </nav>
         </div>
       )}
     </AuthGuard>
