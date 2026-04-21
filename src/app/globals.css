@@ -1294,7 +1294,10 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
 
 .secret-mode-wrapper {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 1000;
   background: var(--bg-color);
   display: flex;
@@ -1304,11 +1307,10 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
 
 @media (max-width: 767px) {
   .secret-mode-wrapper {
-    width: 100dvh;
-    height: 100dvw;
-    inset: unset;
-    top: 0;
-    left: 0;
+    right: auto;
+    bottom: auto;
+    width: 100vh;
+    height: 100vw;
     transform-origin: 0 0;
     transform: rotate(90deg) translateX(-100%);
   }
