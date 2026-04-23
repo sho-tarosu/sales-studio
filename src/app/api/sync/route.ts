@@ -320,51 +320,47 @@ async function syncTalknote(payload: TalknotePayload) {
   const { month, rows } = payload;
   if (rows.length === 0) return { inserted: 0 };
 
+  // シフトデータを一括取得してメモリ上でマッチング（N+1クエリ回避）
+  const allShifts = await db
+    .select({ date: shiftRows.date, location: shiftRows.location, staff: shiftRows.staff })
+    .from(shiftRows)
+    .where(eq(shiftRows.month, month));
+
+  // date → [{location, staff[]}] のマップを構築
+  const shiftMap = new Map<string, { location: string; staff: string[] }[]>();
+  for (const shift of allShifts) {
+    const key = shift.date;
+    if (!shiftMap.has(key)) shiftMap.set(key, []);
+    shiftMap.get(key)!.push({ location: shift.location ?? '', staff: (shift.staff as string[]) ?? [] });
+  }
+
   const toInsert: (typeof talknotePosts.$inferInsert)[] = [];
   for (const row of rows) {
     const date = row.postedAt.split(' ')[0]; // 'YYYY-MM-DD'
     const [, m, d] = date.split('-');
-    const shiftDate = `${parseInt(m)}/${parseInt(d)}`; // '3/31'
-    // スペースを除去して照合
-    // Talknote "大久保 光"→"大久保光"、"岡田 和己"→"岡田和己"
-    // シフト側は "大久保"（姓のみ）や "岡田和"（姓+名一部）のケースがあるため
-    // 「シフト名が Talknote名（スペース除去）の前方一致」で照合する
+    const shiftDate = `${parseInt(m)}/${parseInt(d)}`; // '4/23'
     const fullNameNoSpace = row.staffName.replace(/[\s　]/g, '');
 
-    const shiftResult = await db
-      .select({ location: shiftRows.location })
-      .from(shiftRows)
-      .where(
-        and(
-          eq(shiftRows.month, month),
-          eq(shiftRows.date, shiftDate),
-          sql`EXISTS (
-            SELECT 1 FROM jsonb_array_elements_text(${shiftRows.staff}) AS s
-            WHERE (
-              LENGTH(s) >= 2 AND ${fullNameNoSpace} LIKE s || '%'
-              OR LENGTH(s) < 2 AND ${fullNameNoSpace} = s
-            )
-          )`
-        )
-      )
-      // 複数の現場にマッチした場合、最も長く一致したシフト名を持つ現場を優先
-      // 例: "大野賀XX" が "大野"(2文字) と "大野賀X"(4文字) にマッチ → 4文字優先
-      .orderBy(
-        sql`(
-          SELECT MAX(LENGTH(s))
-          FROM jsonb_array_elements_text(${shiftRows.staff}) AS s
-          WHERE LENGTH(s) >= 2 AND ${fullNameNoSpace} LIKE s || '%'
-             OR LENGTH(s) < 2 AND ${fullNameNoSpace} = s
-        ) DESC`,
-        shiftRows.id
-      )
-      .limit(1);
+    // メモリ上でシフト名の前方一致マッチング
+    let site = '';
+    let bestMatchLen = 0;
+    for (const shift of shiftMap.get(shiftDate) ?? []) {
+      for (const s of shift.staff) {
+        const matched = s.length >= 2
+          ? fullNameNoSpace.startsWith(s)
+          : fullNameNoSpace === s;
+        if (matched && s.length > bestMatchLen) {
+          bestMatchLen = s.length;
+          site = shift.location;
+        }
+      }
+    }
 
     toInsert.push({
       date,
       postedAt: row.postedAt,
       staffName: row.staffName,
-      site: shiftResult[0]?.location ?? '',
+      site,
       message: row.message,
     });
   }
