@@ -13,12 +13,15 @@ export function getDb(): DrizzleDb {
     if (!url) {
       throw new Error('DATABASE_URL が設定されていません');
     }
-    const client = postgres(url, {
+    // セッションモード(5432)→トランザクションモード(6543)に切り替え
+    // トランザクションモードはサーバーレス環境で接続を効率的に多重化する
+    const poolerUrl = url.replace(/\.pooler\.supabase\.com:5432/, '.pooler.supabase.com:6543');
+    const client = postgres(poolerUrl, {
       ssl: 'require',
-      max: 1,           // サーバーレス環境では1接続に制限
-      idle_timeout: 20, // アイドル接続を素早く解放
+      max: 1,
+      idle_timeout: 20,
       connect_timeout: 10,
-      prepare: false,   // トランザクションプールモードで必要
+      prepare: false, // トランザクションモードでは必須
     });
     _db = drizzle(client, { schema });
   }
