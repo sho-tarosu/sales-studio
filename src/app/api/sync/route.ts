@@ -375,7 +375,7 @@ async function syncTalknote(payload: TalknotePayload) {
     await db.insert(talknotePosts).values(chunk).onConflictDoUpdate({
       target: [talknotePosts.postedAt, talknotePosts.staffName],
       set: { site: sql`EXCLUDED.site` },
-      setWhere: sql`${talknotePosts.site} = ''`,
+      where: sql`${talknotePosts.site} = ''`,
     });
   }
   return { inserted: toInsert.length };
