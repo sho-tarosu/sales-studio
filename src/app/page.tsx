@@ -1,6 +1,23 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+
+async function fetchWithRetry(url: string, timeoutMs = 15000): Promise<Response> {
+  for (let attempt = 0; attempt <= 1; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timer);
+      return res;
+    } catch (e) {
+      clearTimeout(timer);
+      if (e instanceof Error && e.name === 'AbortError' && attempt === 0) continue;
+      throw e;
+    }
+  }
+  throw new Error('リクエストに失敗しました');
+}
 import { useSession, signOut } from 'next-auth/react';
 import { RefreshCw, ChevronLeft, GraduationCap } from 'lucide-react';
 import Image from 'next/image';
@@ -98,10 +115,8 @@ export default function Home() {
   const fetchShift = useCallback(async (month: string) => {
     setShiftLoading(true);
     setShiftError(null);
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 15000); // 15秒タイムアウト
     try {
-      const res = await fetch(`/api/shift?month=${month}`, { signal: controller.signal });
+      const res = await fetchWithRetry(`/api/shift?month=${month}`);
       if (!res.ok) {
         const text = await res.text();
         let msg = 'シフトデータの取得に失敗しました';
@@ -119,8 +134,7 @@ export default function Home() {
       setShiftError(msg);
       setShiftRows([]);
     } finally {
-      clearTimeout(timer);
-      setShiftFetchedMonth(month); // 成功・失敗どちらでも更新して再トリガーを防ぐ
+      setShiftFetchedMonth(month);
       setShiftLoading(false);
     }
   }, []);
@@ -129,7 +143,7 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/data?month=${month}`);
+      const res = await fetchWithRetry(`/api/data?month=${month}`);
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error || 'データの取得に失敗しました');
