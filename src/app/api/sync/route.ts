@@ -241,6 +241,9 @@ async function syncType(payload: TypePayload) {
 async function syncShift(payload: ShiftPayload) {
   const { month, tokyoRows, fukuokaRows, tokyoStaffNames, fukuokaStaffNames } = payload;
 
+  // データが0件のときは既存データを削除しない（空送信による消滅防止）
+  if (tokyoRows.length === 0 && fukuokaRows.length === 0) return { inserted: 0 };
+
   await Promise.all([
     db.delete(shiftRows).where(eq(shiftRows.month, month)),
     db.delete(shiftStaffNames).where(eq(shiftStaffNames.month, month)),
@@ -267,7 +270,7 @@ async function syncShift(payload: ShiftPayload) {
   for (let i = 0; i < allRows.length; i += CHUNK) {
     const chunk = allRows.slice(i, i + CHUNK);
     await Promise.all([
-      db.insert(shiftRows).values(chunk),
+      db.insert(shiftRows).values(chunk).onConflictDoNothing(),
     ]);
   }
 
