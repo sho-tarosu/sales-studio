@@ -13,7 +13,13 @@ export function getDb(): DrizzleDb {
     if (!url) {
       throw new Error('DATABASE_URL が設定されていません');
     }
-    const client = postgres(url, { ssl: 'require' });
+    const client = postgres(url, {
+      ssl: 'require',
+      max: 1,           // サーバーレス環境では1接続に制限
+      idle_timeout: 20, // アイドル接続を素早く解放
+      connect_timeout: 10,
+      prepare: false,   // トランザクションプールモードで必要
+    });
     _db = drizzle(client, { schema });
   }
   return _db;
