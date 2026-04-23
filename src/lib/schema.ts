@@ -1,4 +1,4 @@
-import { pgTable, serial, text, numeric, boolean, jsonb, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, numeric, boolean, jsonb, timestamp, uniqueIndex } from 'drizzle-orm/pg-core';
 
 /**
  * 合算データシート
@@ -146,4 +146,6 @@ export const talknotePosts = pgTable('talknote_posts', {
   site: text('site').default(''),
   message: text('message').notNull(),
   syncedAt: timestamp('synced_at', { withTimezone: true }).defaultNow(),
-});
+}, (t) => [
+  uniqueIndex('talknote_posts_posted_at_staff_name_key').on(t.postedAt, t.staffName),
+]);

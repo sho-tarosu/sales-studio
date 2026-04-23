@@ -320,11 +320,6 @@ async function syncTalknote(payload: TalknotePayload) {
   const { month, rows } = payload;
   if (rows.length === 0) return { inserted: 0 };
 
-  // 対象月のデータを全削除
-  await Promise.all([
-    db.delete(talknotePosts).where(sql`LEFT(${talknotePosts.date}, 7) = ${month}`),
-  ]);
-
   const toInsert: (typeof talknotePosts.$inferInsert)[] = [];
   for (const row of rows) {
     const date = row.postedAt.split(' ')[0]; // 'YYYY-MM-DD'
@@ -377,9 +372,11 @@ async function syncTalknote(payload: TalknotePayload) {
   const CHUNK = 50;
   for (let i = 0; i < toInsert.length; i += CHUNK) {
     const chunk = toInsert.slice(i, i + CHUNK);
-    await Promise.all([
-      db.insert(talknotePosts).values(chunk),
-    ]);
+    await db.insert(talknotePosts).values(chunk).onConflictDoUpdate({
+      target: [talknotePosts.postedAt, talknotePosts.staffName],
+      set: { site: sql`EXCLUDED.site` },
+      setWhere: sql`${talknotePosts.site} = ''`,
+    });
   }
   return { inserted: toInsert.length };
 }
