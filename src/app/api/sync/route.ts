@@ -14,7 +14,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql, eq, and } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { dbSupabase } from '@/lib/db-supabase';
 import {
   salesRecords,
   ageRecords,
@@ -145,7 +144,6 @@ async function syncSales(payload: SalesPayload) {
   // 対象月の行を全削除（date列は 'YYYY-MM-DD' 形式）
   await Promise.all([
     db.delete(salesRecords).where(sql`LEFT(${salesRecords.date}, 7) = ${month}`),
-    dbSupabase.delete(salesRecords).where(sql`LEFT(${salesRecords.date}, 7) = ${month}`),
   ]);
 
   const toInsert = dataRows.map((row) => {
@@ -172,7 +170,6 @@ async function syncSales(payload: SalesPayload) {
 
   await Promise.all([
     db.insert(salesRecords).values(toInsert),
-    dbSupabase.insert(salesRecords).values(toInsert),
   ]);
   return { inserted: toInsert.length };
 }
@@ -190,7 +187,6 @@ async function syncAge(payload: AgePayload) {
 
   await Promise.all([
     db.delete(ageRecords).where(sql`LEFT(${ageRecords.recordedAt}, 7) = ${month}`),
-    dbSupabase.delete(ageRecords).where(sql`LEFT(${ageRecords.recordedAt}, 7) = ${month}`),
   ]);
 
   const toInsert = dataRows
@@ -205,7 +201,6 @@ async function syncAge(payload: AgePayload) {
   if (toInsert.length > 0) {
     await Promise.all([
       db.insert(ageRecords).values(toInsert),
-      dbSupabase.insert(ageRecords).values(toInsert),
     ]);
   }
   return { inserted: toInsert.length };
@@ -224,7 +219,6 @@ async function syncType(payload: TypePayload) {
 
   await Promise.all([
     db.delete(typeRecords).where(sql`LEFT(${typeRecords.recordedAt}, 7) = ${month}`),
-    dbSupabase.delete(typeRecords).where(sql`LEFT(${typeRecords.recordedAt}, 7) = ${month}`),
   ]);
 
   const toInsert = dataRows
@@ -239,7 +233,6 @@ async function syncType(payload: TypePayload) {
   if (toInsert.length > 0) {
     await Promise.all([
       db.insert(typeRecords).values(toInsert),
-      dbSupabase.insert(typeRecords).values(toInsert),
     ]);
   }
   return { inserted: toInsert.length };
@@ -251,8 +244,6 @@ async function syncShift(payload: ShiftPayload) {
   await Promise.all([
     db.delete(shiftRows).where(eq(shiftRows.month, month)),
     db.delete(shiftStaffNames).where(eq(shiftStaffNames.month, month)),
-    dbSupabase.delete(shiftRows).where(eq(shiftRows.month, month)),
-    dbSupabase.delete(shiftStaffNames).where(eq(shiftStaffNames.month, month)),
   ]);
 
   const makeRows = (rows: ShiftRowData[], region: string) =>
@@ -277,7 +268,6 @@ async function syncShift(payload: ShiftPayload) {
     const chunk = allRows.slice(i, i + CHUNK);
     await Promise.all([
       db.insert(shiftRows).values(chunk),
-      dbSupabase.insert(shiftRows).values(chunk),
     ]);
   }
 
@@ -289,7 +279,6 @@ async function syncShift(payload: ShiftPayload) {
   if (staffNameRows.length > 0) {
     await Promise.all([
       db.insert(shiftStaffNames).values(staffNameRows),
-      dbSupabase.insert(shiftStaffNames).values(staffNameRows),
     ]);
   }
 
@@ -301,7 +290,6 @@ async function syncEmployeeShift(payload: EmployeeShiftPayload) {
 
   await Promise.all([
     db.delete(employeeShifts).where(eq(employeeShifts.month, month)),
-    dbSupabase.delete(employeeShifts).where(eq(employeeShifts.month, month)),
   ]);
 
   const toInsert: (typeof employeeShifts.$inferInsert)[] = [];
@@ -320,7 +308,6 @@ async function syncEmployeeShift(payload: EmployeeShiftPayload) {
   if (toInsert.length > 0) {
     await Promise.all([
       db.insert(employeeShifts).values(toInsert),
-      dbSupabase.insert(employeeShifts).values(toInsert),
     ]);
   }
   return { inserted: toInsert.length };
@@ -333,7 +320,6 @@ async function syncTalknote(payload: TalknotePayload) {
   // 対象月のデータを全削除
   await Promise.all([
     db.delete(talknotePosts).where(sql`LEFT(${talknotePosts.date}, 7) = ${month}`),
-    dbSupabase.delete(talknotePosts).where(sql`LEFT(${talknotePosts.date}, 7) = ${month}`),
   ]);
 
   const toInsert: (typeof talknotePosts.$inferInsert)[] = [];
@@ -390,7 +376,6 @@ async function syncTalknote(payload: TalknotePayload) {
     const chunk = toInsert.slice(i, i + CHUNK);
     await Promise.all([
       db.insert(talknotePosts).values(chunk),
-      dbSupabase.insert(talknotePosts).values(chunk),
     ]);
   }
   return { inserted: toInsert.length };
@@ -401,7 +386,6 @@ async function syncEvaluation(payload: EvaluationPayload) {
 
   await Promise.all([
     db.delete(staffEvaluations),
-    dbSupabase.delete(staffEvaluations),
   ]);
 
   const toInsert = payload.staff.map((s) => ({
@@ -419,7 +403,6 @@ async function syncEvaluation(payload: EvaluationPayload) {
 
   await Promise.all([
     db.insert(staffEvaluations).values(toInsert),
-    dbSupabase.insert(staffEvaluations).values(toInsert),
   ]);
   return { inserted: toInsert.length };
 }
