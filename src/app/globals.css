@@ -1312,7 +1312,7 @@ thead .loc-th-dow { z-index: 30; } /* 最前面 */
     width: 100vh;
     height: 100vw;
     transform-origin: 0 0;
-    transform: rotate(90deg) translateX(-100%);
+    transform: translateY(100vh) rotate(90deg);
   }
 }
 
