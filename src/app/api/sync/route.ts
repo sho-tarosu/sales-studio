@@ -365,14 +365,18 @@ async function syncTalknote(payload: TalknotePayload) {
     });
   }
 
+  // site が空の既存行を先に削除して再挿入できるようにする
+  await db.delete(talknotePosts).where(
+    and(
+      sql`LEFT(${talknotePosts.date}, 7) = ${month}`,
+      sql`${talknotePosts.site} = ''`
+    )
+  );
+
   const CHUNK = 50;
   for (let i = 0; i < toInsert.length; i += CHUNK) {
     const chunk = toInsert.slice(i, i + CHUNK);
-    await db.insert(talknotePosts).values(chunk).onConflictDoUpdate({
-      target: [talknotePosts.postedAt, talknotePosts.staffName],
-      set: { site: sql`EXCLUDED.site` },
-      where: sql`${talknotePosts.site} = ''`,
-    });
+    await db.insert(talknotePosts).values(chunk).onConflictDoNothing();
   }
   return { inserted: toInsert.length };
 }
