@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql, or } from 'drizzle-orm';
+import { sql, or, asc } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { salesRecords, ageRecords, typeRecords } from '@/lib/schema';
+import { salesRecords, ageRecords, typeRecords, staffProfiles } from '@/lib/schema';
 import { aggregateMainSheet, aggregateAgeSheet, aggregateTypeSheet } from '@/lib/aggregator';
 import { auth } from '@/lib/auth';
 
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
     const prevMonthStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
 
     // DB から並列取得
-    const [salesRows, ageRows, typeRows] = await Promise.all([
+    const [salesRows, ageRows, typeRows, profileRows] = await Promise.all([
       db.select().from(salesRecords).where(
         or(
           sql`LEFT(${salesRecords.date}, 7) = ${currentMonthStr}`,
@@ -48,6 +48,7 @@ export async function GET(request: NextRequest) {
       db.select().from(typeRecords).where(
         sql`LEFT(${typeRecords.recordedAt}, 7) = ${currentMonthStr}`
       ),
+      db.select({ name: staffProfiles.name }).from(staffProfiles).orderBy(asc(staffProfiles.id)),
     ]);
 
     // 既存の aggregator が期待する string[][] 形式に変換
@@ -82,6 +83,16 @@ export async function GET(request: NextRequest) {
     }
     if (typeSheetRows.length > 1) {
       aggregateTypeSheet(typeSheetRows, staffMap, targetYear, targetMonthIdx);
+    }
+
+    // スプレッドの行順（staffProfiles.id順）でランキングをソート
+    if (profileRows.length > 0) {
+      const orderMap = new Map(profileRows.map((p, i) => [p.name, i]));
+      data.ranking.sort((a, b) => {
+        const ia = orderMap.get(a.name) ?? Number.MAX_SAFE_INTEGER;
+        const ib = orderMap.get(b.name) ?? Number.MAX_SAFE_INTEGER;
+        return ia - ib;
+      });
     }
 
     data.ranking.forEach((p) => {
