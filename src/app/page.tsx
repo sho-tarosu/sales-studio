@@ -337,7 +337,7 @@ export default function Home() {
                     <h3 style={{ fontSize: '14px', color: 'var(--text-sub)', marginBottom: '10px' }}>
                       Top 10 チャート
                     </h3>
-                    <BarChart ranking={data.ranking} limit={10} />
+                    <BarChart ranking={[...data.ranking].sort((a, b) => b.total - a.total)} limit={10} />
                   </div>
                   <div className="ranking-card">
                     <div style={{ padding: '16px', borderBottom: '1px solid #333', fontWeight: 'bold' }}>
@@ -390,7 +390,7 @@ export default function Home() {
                   <div className="ranking-charts-pc" style={{ gap: 16 }}>
                     <div className="chart-card" style={{ flex: 1 }}>
                       <div style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 8 }}>獲得</div>
-                      <BarChart ranking={data.ranking} />
+                      <BarChart ranking={[...data.ranking].sort((a, b) => b.total - a.total)} />
                     </div>
                     <div className="chart-card" style={{ flex: 1 }}>
                       <div style={{ fontSize: 13, color: 'var(--text-sub)', marginBottom: 8 }}>自己クロ</div>
@@ -455,7 +455,7 @@ export default function Home() {
                           color="#f97316"
                         />
                       ) : (
-                        <BarChart ranking={data.ranking} />
+                        <BarChart ranking={[...data.ranking].sort((a, b) => b.total - a.total)} />
                       )}
                     </div>
                   )}
