@@ -190,6 +190,10 @@ export default function Home() {
 
   // タブ切り替え時にすべてのパネルを閉じ、スクロール位置をリセット
   useEffect(() => {
+    if (secretMode) setActiveTab('growth');
+  }, [secretMode]);
+
+  useEffect(() => {
     setDrawerOpen(false);
     setContactsOpen(false);
     setLoginInfoOpen(false);
