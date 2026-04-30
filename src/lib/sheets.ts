@@ -115,7 +115,14 @@ export async function getShiftSheetDataWithHolidays(
       for (let i = 0; i < rowData.length; i++) {
         const colBBg = rowData[i]?.values?.[0]?.effectiveFormat?.backgroundColor;
         if (isOrangeBackground(colBBg)) {
-          const dateStr = values[i]?.[0];
+          const rawDate = values[i]?.[0] ?? '';
+          const ymd = rawDate.match(/^(?:\d{2,4}[\/\-])(\d{1,2})[\/\-](\d{1,2})$/);
+          const jp = !ymd ? rawDate.match(/(?:\d+年)?(\d{1,2})月(\d{1,2})日/) : null;
+          const dateStr = ymd
+            ? `${parseInt(ymd[1])}/${parseInt(ymd[2])}`
+            : jp
+            ? `${parseInt(jp[1])}/${parseInt(jp[2])}`
+            : rawDate;
           if (dateStr && /\d/.test(dateStr)) {
             holidayDates.add(dateStr);
           }

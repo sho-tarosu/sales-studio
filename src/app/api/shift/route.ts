@@ -17,6 +17,17 @@ const REGION_COLS = {
   '福岡': { staffEnd: 11, agencyIdx: 11 },
 } as const;
 
+// Sheets API は表示形式そのままを返すため "2026/4/30" や "4月30日" 等が混在する
+// GAS と同じ "M/D" 形式（例: "4/30"）に統一する
+function normalizeDate(raw: string): string {
+  if (!raw) return raw;
+  const ymd = raw.match(/^(?:\d{2,4}[\/\-])(\d{1,2})[\/\-](\d{1,2})$/);
+  if (ymd) return `${parseInt(ymd[1])}/${parseInt(ymd[2])}`;
+  const jp = raw.match(/(?:\d+年)?(\d{1,2})月(\d{1,2})日/);
+  if (jp) return `${parseInt(jp[1])}/${parseInt(jp[2])}`;
+  return raw;
+}
+
 function parseShiftRows(
   rows: string[][],
   region: '東京' | '福岡',
@@ -25,7 +36,7 @@ function parseShiftRows(
   const { staffEnd, agencyIdx } = REGION_COLS[region];
   const result: ShiftRow[] = [];
   for (const row of rows) {
-    const date = row[0] ?? '';
+    const date = normalizeDate(row[0] ?? '');
     if (!date || !/\d/.test(date)) continue;
     if (row[4] === '場所') continue;
     const staff = row.slice(7, staffEnd).filter((s) => s && s.trim() !== '');
