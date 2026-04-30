@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     title: "Sales Studio",
   },
   icons: {
-    apple: "/icon-180.png",
+    apple: "/icon2-180.png",
   },
 };
 

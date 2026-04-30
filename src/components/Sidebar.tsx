@@ -42,7 +42,7 @@ export default function Sidebar({ activeTab, onTabChange, userName, userRole, se
       <div className="sidebar-brand-row">
         {!collapsed && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Image src={secretMode ? '/icon-g-192.png' : '/icon-192.png'} alt="logo" width={48} height={48} style={{ borderRadius: 8, cursor: onLogoTap ? 'pointer' : 'default' }} onClick={onLogoTap} />
+            <Image src={secretMode ? '/icon-g-192.png' : '/icon2-192.png'} alt="logo" width={48} height={48} style={{ borderRadius: 8, cursor: onLogoTap ? 'pointer' : 'default' }} onClick={onLogoTap} />
             <div className="brand-text">Sales Studio</div>
           </div>
         )}
