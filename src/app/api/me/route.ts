@@ -22,7 +22,7 @@ export async function GET() {
         base: row[1]?.trim() ?? '',       // B列: 拠点
         birthday: row[4]?.trim() ?? '',   // E列: 生年月日
         bloodType: row[8]?.trim() ?? '',  // I列: 血液型
-        joinDate: row[11]?.trim() ?? '',  // L列: 入社日
+        joinDate: row[9]?.trim() ?? '',   // J列: 入社日
         animal: row[13]?.trim() ?? '',    // N列: 動物占い
         zodiac: row[17]?.trim() ?? '',    // R列: 星座
       });
