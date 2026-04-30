@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { eq } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
-import { db } from '@/lib/db';
-import { employeeShifts } from '@/lib/schema';
+import { getShiftSheetData } from '@/lib/sheets';
 
 export const dynamic = 'force-dynamic';
+
+const SHEET_NAME = '【社員】';
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -18,35 +18,86 @@ export async function GET(request: NextRequest) {
     searchParams.get('month') ||
     `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
-  try {
-    const shifts = await db
-      .select()
-      .from(employeeShifts)
-      .where(eq(employeeShifts.month, month));
+  const [, mo] = month.split('-');
+  const m = parseInt(mo);
+  const firstDayPattern = `${m}/1`;
 
-    if (shifts.length === 0) {
+  try {
+    const rows = await getShiftSheetData(SHEET_NAME);
+
+    if (rows.length < 4) {
       return NextResponse.json({ staff: [], dates: [], cells: {} });
     }
 
-    // dates の順序を保持しつつ重複排除
-    const datesMap = new Map<string, string>();
-    const staffSet = new Set<string>();
-    const cells: Record<string, Record<string, string>> = {};
+    const staffRow = rows[2] ?? [];
 
-    for (const s of shifts) {
-      if (!datesMap.has(s.date)) datesMap.set(s.date, s.dayOfWeek ?? '');
-      staffSet.add(s.staffName);
-      if (!cells[s.date]) cells[s.date] = {};
-      cells[s.date][s.staffName] = s.value ?? '';
+    let startCol = -1;
+    for (let i = 3; i < rows.length && startCol === -1; i++) {
+      const row = rows[i];
+      for (let col = 0; col < row.length; col++) {
+        if ((row[col] ?? '').trim() === firstDayPattern) {
+          startCol = col;
+          break;
+        }
+      }
     }
 
-    const dates = Array.from(datesMap.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, dayOfWeek]) => ({ date, dayOfWeek }));
+    if (startCol === -1) {
+      return NextResponse.json({ staff: [], dates: [], cells: {} });
+    }
 
-    const staff = Array.from(staffSet);
+    const staffColStart = startCol + 2;
 
-    return NextResponse.json({ staff, dates, cells });
+    const nextM = m === 12 ? 1 : m + 1;
+    const nextMonthPattern = `${nextM}/1`;
+    let endCol = rows[3]?.length ?? staffColStart;
+    outer:
+    for (let i = 3; i < rows.length; i++) {
+      const row = rows[i];
+      for (let col = startCol + 1; col < row.length; col++) {
+        if ((row[col] ?? '').trim() === nextMonthPattern) {
+          endCol = col;
+          break outer;
+        }
+      }
+    }
+
+    const staffWithCol: { name: string; col: number }[] = [];
+    for (let col = staffColStart; col < endCol; col++) {
+      const name = (staffRow[col] ?? '').trim();
+      if (name) staffWithCol.push({ name, col });
+    }
+
+    const dates: { date: string; dayOfWeek: string }[] = [];
+    const cells: Record<string, Record<string, string>> = {};
+
+    for (let i = 3; i < rows.length; i++) {
+      const row = rows[i];
+      const rawDate = (row[startCol] ?? '').trim();
+      if (!rawDate) continue;
+
+      const parts = rawDate.split('/');
+      if (parts.length !== 2) continue;
+      const mm = parseInt(parts[0]);
+      const dd = parseInt(parts[1]);
+      if (mm !== m || isNaN(dd) || dd < 1 || dd > 31) continue;
+
+      const dateStr = `${String(mm).padStart(2, '0')}/${String(dd).padStart(2, '0')}`;
+      const dayOfWeek = (row[startCol + 1] ?? '').trim();
+
+      dates.push({ date: dateStr, dayOfWeek });
+      cells[dateStr] = {};
+
+      for (const { name, col } of staffWithCol) {
+        cells[dateStr][name] = (row[col] ?? '').trim();
+      }
+    }
+
+    return NextResponse.json({
+      staff: staffWithCol.map((s) => s.name),
+      dates,
+      cells,
+    });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'データの取得に失敗しました' },

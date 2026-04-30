@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sql, or, asc } from 'drizzle-orm';
-import { db } from '@/lib/db';
-import { salesRecords, ageRecords, typeRecords, staffProfiles } from '@/lib/schema';
+import { getSheetData } from '@/lib/sheets';
 import { aggregateMainSheet, aggregateAgeSheet, aggregateTypeSheet } from '@/lib/aggregator';
 import { auth } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
+
+const SHEET_NAME_MAIN = '合算データ';
+const SHEET_NAME_AGE = 'グラフ用データ_年代';
+const SHEET_NAME_TYPE = 'グラフ用データ_家族構成';
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -30,69 +32,22 @@ export async function GET(request: NextRequest) {
       targetMonthIdx = now.getMonth();
     }
 
-    const currentMonthStr = `${targetYear}-${String(targetMonthIdx + 1).padStart(2, '0')}`;
-    const prevDate = new Date(targetYear, targetMonthIdx - 1, 1);
-    const prevMonthStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
-
-    // DB から並列取得
-    const [salesRows, ageRows, typeRows, profileRows] = await Promise.all([
-      db.select().from(salesRecords).where(
-        or(
-          sql`LEFT(${salesRecords.date}, 7) = ${currentMonthStr}`,
-          sql`LEFT(${salesRecords.date}, 7) = ${prevMonthStr}`
-        )
-      ),
-      db.select().from(ageRecords).where(
-        sql`LEFT(${ageRecords.recordedAt}, 7) = ${currentMonthStr}`
-      ),
-      db.select().from(typeRecords).where(
-        sql`LEFT(${typeRecords.recordedAt}, 7) = ${currentMonthStr}`
-      ),
-      db.select({ name: staffProfiles.name }).from(staffProfiles).orderBy(asc(staffProfiles.id)),
+    const [mainRows, ageRows, typeRows] = await Promise.all([
+      getSheetData(SHEET_NAME_MAIN),
+      getSheetData(SHEET_NAME_AGE).catch(() => []),
+      getSheetData(SHEET_NAME_TYPE).catch(() => []),
     ]);
 
-    // 既存の aggregator が期待する string[][] 形式に変換
-    const mainSheetRows: string[][] = [
-      ['', 'date', 'name', '', '', 'site', 'mnp_h', 'mnp_s', 'new', 'change', 'cellup', 'hikari_n', 'hikari_t', 'hikari_c', 'tablet', 'life', 'credit', 'self_close'],
-      ...salesRows.map((r) => [
-        '', r.date, r.staffName, '', '', r.site ?? '',
-        r.mnpH ?? '0', r.mnpS ?? '0', r.newCount ?? '0', r.changeCount ?? '0', r.cellup ?? '0',
-        r.hikariN ?? '0', r.hikariT ?? '0', r.hikariC ?? '0',
-        r.tablet ?? '0', r.life ?? '0', r.credit ?? '0', r.selfClose ?? '0',
-      ]),
-    ];
-
-    const ageSheetRows: string[][] = [
-      ['timestamp', 'name', 'age_group', 'count'],
-      ...ageRows.map((r) => [r.recordedAt, r.staffName, r.ageGroup, r.count ?? '1']),
-    ];
-
-    const typeSheetRows: string[][] = [
-      ['timestamp', 'name', 'type_group', 'count'],
-      ...typeRows.map((r) => [r.recordedAt, r.staffName, r.typeGroup, r.count ?? '1']),
-    ];
-
-    // 既存の集計ロジックをそのまま使用
-    const data = aggregateMainSheet(mainSheetRows, targetYear, targetMonthIdx);
+    const data = aggregateMainSheet(mainRows, targetYear, targetMonthIdx);
 
     const staffMap: Record<string, typeof data.ranking[0]> = {};
     data.ranking.forEach((s) => { staffMap[s.name] = s; });
 
-    if (ageSheetRows.length > 1) {
-      aggregateAgeSheet(ageSheetRows, staffMap, targetYear, targetMonthIdx);
+    if (ageRows.length > 0) {
+      aggregateAgeSheet(ageRows, staffMap, targetYear, targetMonthIdx);
     }
-    if (typeSheetRows.length > 1) {
-      aggregateTypeSheet(typeSheetRows, staffMap, targetYear, targetMonthIdx);
-    }
-
-    // スプレッドの行順（staffProfiles.id順）でランキングをソート
-    if (profileRows.length > 0) {
-      const orderMap = new Map(profileRows.map((p, i) => [p.name, i]));
-      data.ranking.sort((a, b) => {
-        const ia = orderMap.get(a.name) ?? Number.MAX_SAFE_INTEGER;
-        const ib = orderMap.get(b.name) ?? Number.MAX_SAFE_INTEGER;
-        return ia - ib;
-      });
+    if (typeRows.length > 0) {
+      aggregateTypeSheet(typeRows, staffMap, targetYear, targetMonthIdx);
     }
 
     data.ranking.forEach((p) => {
