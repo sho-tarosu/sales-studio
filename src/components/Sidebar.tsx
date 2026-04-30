@@ -11,6 +11,8 @@ interface SidebarProps {
   onTabChange: (tab: TabName) => void;
   userName?: string;
   userRole?: string;
+  secretMode?: boolean;
+  onLogoTap?: () => void;
 }
 
 const ICON_PROPS = { size: 18, strokeWidth: 1.75 } as const;
@@ -30,7 +32,7 @@ function hasMinRole(userRole: string | undefined, minRole: string): boolean {
   return idx >= ROLE_ORDER.indexOf(minRole);
 }
 
-export default function Sidebar({ activeTab, onTabChange, userName, userRole }: SidebarProps) {
+export default function Sidebar({ activeTab, onTabChange, userName, userRole, secretMode, onLogoTap }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const initials = userName ? userName.slice(0, 2) : '??';
 
@@ -40,7 +42,7 @@ export default function Sidebar({ activeTab, onTabChange, userName, userRole }: 
       <div className="sidebar-brand-row">
         {!collapsed && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Image src="/icon-192.png" alt="logo" width={48} height={48} style={{ borderRadius: 8 }} />
+            <Image src={secretMode ? '/icon-g-192.png' : '/icon-192.png'} alt="logo" width={48} height={48} style={{ borderRadius: 8, cursor: onLogoTap ? 'pointer' : 'default' }} onClick={onLogoTap} />
             <div className="brand-text">Sales Studio</div>
           </div>
         )}

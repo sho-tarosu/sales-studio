@@ -207,6 +207,8 @@ export default function Home() {
         onTabChange={setActiveTab}
         userName={session?.user?.name}
         userRole={session?.user?.role}
+        secretMode={secretMode}
+        onLogoTap={handleLogoTap}
       />
 
       <main className="main-content">
