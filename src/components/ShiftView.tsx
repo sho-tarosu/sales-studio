@@ -505,7 +505,7 @@ export default function ShiftView({
                 {dates.map((date) => {
                   const [mm, dd] = date.split('/');
                   const label =
-                    mm === selectedMonthNum
+                    parseInt(mm) === parseInt(selectedMonthNum)
                       ? parseInt(dd)
                       : `${parseInt(mm)}/${parseInt(dd)}`;
                   const day = dayOfWeekMap[date] ?? '';
@@ -607,7 +607,7 @@ export default function ShiftView({
                     const isDateBoundary = i > 0 && filteredLocationRows[i - 1].date !== row.date;
                     const [mm, dd] = row.date.split('/');
                     const dateLabel =
-                      mm === selectedMonthNum
+                      parseInt(mm) === parseInt(selectedMonthNum)
                         ? parseInt(dd)
                         : `${parseInt(mm)}/${parseInt(dd)}`;
                     const isToday = row.date === todayStr;

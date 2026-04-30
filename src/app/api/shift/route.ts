@@ -19,11 +19,18 @@ const REGION_COLS = {
 
 // Sheets API は表示形式そのままを返すため "2026/4/30" や "4月30日" 等が混在する
 // GAS と同じ "M/D" 形式（例: "4/30"）に統一する
+// Sheets API は表示形式そのままを返す（"04/30", "2026/4/30", "4月30日" 等）
+// GAS と同じ "M/D" 形式（例: "4/30"、先頭ゼロなし）に統一する
 function normalizeDate(raw: string): string {
-  if (!raw) return raw;
-  const ymd = raw.match(/^(?:\d{2,4}[\/\-])(\d{1,2})[\/\-](\d{1,2})$/);
-  if (ymd) return `${parseInt(ymd[1])}/${parseInt(ymd[2])}`;
-  const jp = raw.match(/(?:\d+年)?(\d{1,2})月(\d{1,2})日/);
+  if (!raw || !/\d/.test(raw)) return raw;
+  // YYYY/M/D or YYYY-M-D
+  const withYear = raw.match(/^\d{4}[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+  if (withYear) return `${parseInt(withYear[1])}/${parseInt(withYear[2])}`;
+  // MM/DD or M/D（先頭ゼロを除去）
+  const md = raw.match(/^(\d{1,2})[\/](\d{1,2})$/);
+  if (md) return `${parseInt(md[1])}/${parseInt(md[2])}`;
+  // Japanese: M月D日 or YYYY年M月D日
+  const jp = raw.match(/(\d{1,2})月(\d{1,2})日/);
   if (jp) return `${parseInt(jp[1])}/${parseInt(jp[2])}`;
   return raw;
 }
