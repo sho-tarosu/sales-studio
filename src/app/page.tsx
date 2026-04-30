@@ -19,7 +19,7 @@ async function fetchWithRetry(url: string, timeoutMs = 15000): Promise<Response>
   throw new Error('リクエストに失敗しました');
 }
 import { useSession, signOut } from 'next-auth/react';
-import { RefreshCw, ChevronLeft, GraduationCap } from 'lucide-react';
+import { RefreshCw, ChevronLeft } from 'lucide-react';
 import Image from 'next/image';
 import { TabName, DashboardData, ShiftRow } from '@/types';
 import AuthGuard from '@/components/AuthGuard';
@@ -919,49 +919,6 @@ export default function Home() {
               ))
             )}
           </div>
-        </div>
-      )}
-      {/* 裏メニュー（社員以上・3回タップで起動） */}
-      {secretMode && (
-        <div className="secret-mode-wrapper">
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '10px 16px',
-            paddingTop: 'calc(10px + env(safe-area-inset-top))',
-            borderBottom: '1px solid var(--border-color)',
-            flexShrink: 0,
-          }}>
-            <Image
-              src="/icon-g-512.png"
-              alt="logo"
-              width={36}
-              height={36}
-              style={{ borderRadius: 8, cursor: 'pointer', flexShrink: 0 }}
-              onClick={handleLogoTap}
-            />
-            <span style={{ fontSize: 18, fontWeight: 700, color: '#22c55e' }}>Sales Studio</span>
-          </div>
-          <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
-            <GrowthView />
-          </div>
-          <nav style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            flexDirection: 'column',
-            gap: 3,
-            padding: '8px 0',
-            paddingBottom: 'calc(8px + env(safe-area-inset-bottom))',
-            borderTop: '1px solid var(--border-color)',
-            background: 'var(--card-bg)',
-            flexShrink: 0,
-            color: '#22c55e',
-          }}>
-            <GraduationCap size={20} strokeWidth={1.75} />
-            <span style={{ fontSize: 9 }}>育成管理</span>
-          </nav>
         </div>
       )}
     </AuthGuard>
