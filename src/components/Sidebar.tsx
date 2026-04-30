@@ -57,7 +57,13 @@ export default function Sidebar({ activeTab, onTabChange, userName, userRole, se
 
       {/* Navigation */}
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
-        {ALL_MENU_ITEMS.filter((item) => !item.minRole || hasMinRole(userRole, item.minRole)).map((item) => (
+        {ALL_MENU_ITEMS.filter((item) => {
+          if (!item.minRole || hasMinRole(userRole, item.minRole)) {
+            if (secretMode) return item.id === 'growth';
+            return true;
+          }
+          return false;
+        }).map((item) => (
           <button
             key={item.id}
             className={`menu-item${activeTab === item.id ? ' active' : ''}${collapsed ? ' menu-item-collapsed' : ''}`}
