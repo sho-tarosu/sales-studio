@@ -74,6 +74,7 @@ function AttributeBadge({ label }: { label: string }) {
       color: isFreeter ? '#60a5fa' : '#a78bfa',
       border: `1px solid ${isFreeter ? '#60a5fa55' : '#a78bfa55'}`,
       fontWeight: 600,
+      whiteSpace: 'nowrap',
     }}>
       {label}
     </span>
