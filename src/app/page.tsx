@@ -63,7 +63,7 @@ export default function Home() {
   const [contacts, setContacts] = useState<{ name: string; contact: string; mentees: string[] }[]>([]);
   const [loginInfoOpen, setLoginInfoOpen] = useState(false);
   const [loginInfoList, setLoginInfoList] = useState<{ name: string; loginInfo: string }[]>([]);
-  const [meData, setMeData] = useState<{ birthday: string; bloodType: string; animal: string; zodiac: string } | null>(null);
+  const [meData, setMeData] = useState<{ birthday: string; bloodType: string; joinDate: string; animal: string; zodiac: string } | null>(null);
   const [myStats, setMyStats] = useState<{ total: number; selfClose: number } | null>(null);
   const [impersonated, setImpersonated] = useState<{ name: string; role: string } | null>(null);
   const [allUsers, setAllUsers] = useState<{ name: string; role: string }[]>([]);
@@ -573,6 +573,12 @@ export default function Home() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
                     <span style={{ color: 'var(--text-sub)' }}>星座</span>
                     <span style={{ color: 'var(--text-main)' }}>{meData.zodiac}</span>
+                  </div>
+                )}
+                {meData.joinDate && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
+                    <span style={{ color: 'var(--text-sub)' }}>入社日</span>
+                    <span style={{ color: 'var(--text-main)' }}>{meData.joinDate}</span>
                   </div>
                 )}
               </div>
