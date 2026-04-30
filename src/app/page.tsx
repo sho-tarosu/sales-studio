@@ -761,13 +761,15 @@ export default function Home() {
               const maxMonths = Math.max(...tenureList.map(t => t.totalMonths), 1);
               return tenureList.map((item) => (
                 <div key={item.name} style={{ marginBottom: 16 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
-                    <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>{item.name}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>{item.name}</span>
+                      <span style={{ color: 'var(--text-sub)', fontSize: 11 }}>{item.joinDate}</span>
+                    </span>
                     <span style={{ color: 'var(--text-sub)' }}>
                       {item.years > 0 ? `${item.years}年` : ''}{item.months}ヶ月
                     </span>
                   </div>
-                  <div style={{ fontSize: 11, color: 'var(--text-sub)', marginBottom: 6 }}>{item.joinDate}</div>
                   <div style={{ height: 6, background: 'var(--border-color)', borderRadius: 3, overflow: 'hidden' }}>
                     <div style={{
                       height: '100%',
