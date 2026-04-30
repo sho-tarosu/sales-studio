@@ -63,6 +63,8 @@ export default function Home() {
   const [contacts, setContacts] = useState<{ name: string; contact: string; mentees: string[] }[]>([]);
   const [loginInfoOpen, setLoginInfoOpen] = useState(false);
   const [loginInfoList, setLoginInfoList] = useState<{ name: string; loginInfo: string }[]>([]);
+  const [tenureOpen, setTenureOpen] = useState(false);
+  const [tenureList, setTenureList] = useState<{ name: string; years: number; months: number; totalMonths: number }[]>([]);
   const [meData, setMeData] = useState<{ birthday: string; bloodType: string; joinDate: string; animal: string; zodiac: string } | null>(null);
   const [myStats, setMyStats] = useState<{ total: number; selfClose: number } | null>(null);
   const [impersonated, setImpersonated] = useState<{ name: string; role: string } | null>(null);
@@ -575,7 +577,7 @@ export default function Home() {
                     <span style={{ color: 'var(--text-main)' }}>{meData.zodiac}</span>
                   </div>
                 )}
-                {meData.joinDate && (
+                {meData.joinDate && (session.user.role === '管理者' || session.user.role === '社員') && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
                     <span style={{ color: 'var(--text-sub)' }}>入社日</span>
                     <span style={{ color: 'var(--text-main)' }}>{meData.joinDate}</span>
@@ -657,6 +659,35 @@ export default function Home() {
               <ChevronLeft size={18} strokeWidth={1.75} style={{ transform: 'rotate(180deg)', color: 'var(--text-sub)' }} />
             </button>
 
+            {/* 勤続年数（社員以上） */}
+            {(session.user.role === '管理者' || session.user.role === '社員') && (
+              <button
+                onClick={() => {
+                  if (tenureList.length === 0) {
+                    fetch('/api/admin/tenure').then(r => r.json()).then(setTenureList).catch(() => {});
+                  }
+                  setTenureOpen(true);
+                }}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '14px 0',
+                  background: 'none',
+                  border: 'none',
+                  borderBottom: '1px solid var(--border-color)',
+                  color: 'var(--text-main)',
+                  fontSize: 15,
+                  cursor: 'pointer',
+                  marginBottom: 16,
+                }}
+              >
+                <span>勤続年数</span>
+                <ChevronLeft size={18} strokeWidth={1.75} style={{ transform: 'rotate(180deg)', color: 'var(--text-sub)' }} />
+              </button>
+            )}
+
             {/* ログイン情報（管理者のみ） */}
             {(session.user.role as string) === '管理者' && (
               <button
@@ -700,6 +731,53 @@ export default function Home() {
             >
               ログアウト
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 勤続年数パネル */}
+      {tenureOpen && (
+        <div onClick={() => setTenureOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 299 }} />
+      )}
+      {tenureOpen && (
+        <div
+          className="contacts-panel"
+          onTouchStart={(e) => { (e.currentTarget as HTMLDivElement).dataset.touchX = String(e.touches[0].clientX); }}
+          onTouchEnd={(e) => {
+            const startX = Number((e.currentTarget as HTMLDivElement).dataset.touchX ?? 0);
+            if (e.changedTouches[0].clientX - startX > 80) setTenureOpen(false);
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', padding: '10px 8px', paddingTop: 'calc(10px + env(safe-area-inset-top))', borderBottom: '1px solid var(--border-color)', flexShrink: 0 }}>
+            <button onClick={() => setTenureOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px 8px' }}>
+              <ChevronLeft size={24} strokeWidth={1.75} />
+            </button>
+            <span style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-main)', marginLeft: 4 }}>勤続年数</span>
+          </div>
+          <div style={{ padding: '16px', paddingBottom: 'calc(50px + env(safe-area-inset-bottom))', flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+            {tenureList.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-sub)', fontSize: 14 }}>読み込み中...</div>
+            ) : (() => {
+              const maxMonths = Math.max(...tenureList.map(t => t.totalMonths), 1);
+              return tenureList.map((item) => (
+                <div key={item.name} style={{ marginBottom: 16 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+                    <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>{item.name}</span>
+                    <span style={{ color: 'var(--text-sub)' }}>
+                      {item.years > 0 ? `${item.years}年` : ''}{item.months}ヶ月
+                    </span>
+                  </div>
+                  <div style={{ height: 6, background: 'var(--border-color)', borderRadius: 3, overflow: 'hidden' }}>
+                    <div style={{
+                      height: '100%',
+                      width: `${(item.totalMonths / maxMonths) * 100}%`,
+                      background: 'var(--accent-color)',
+                      borderRadius: 3,
+                    }} />
+                  </div>
+                </div>
+              ));
+            })()}
           </div>
         </div>
       )}
