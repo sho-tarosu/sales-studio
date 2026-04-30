@@ -286,11 +286,13 @@ export default function GrowthView() {
   const [selected, setSelected] = useState<StaffEvaluation | null>(null);
 
   useEffect(() => {
-    fetch('/api/growth')
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 10000);
+    fetch('/api/growth', { signal: controller.signal })
       .then((r) => r.json())
-      .then((d) => setStaff(d))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .then((d) => Array.isArray(d) ? setStaff(d) : setStaff([]))
+      .catch(() => setStaff([]))
+      .finally(() => { clearTimeout(timer); setLoading(false); });
   }, []);
 
   if (loading) {

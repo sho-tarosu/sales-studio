@@ -5,6 +5,7 @@ import { staffEvaluations } from '@/lib/schema';
 import { StaffEvaluation } from '@/types';
 
 export async function GET() {
+  try {
   const rows = await db
     .select()
     .from(staffEvaluations)
@@ -24,4 +25,7 @@ export async function GET() {
   }));
 
   return NextResponse.json(data);
+  } catch {
+    return NextResponse.json([], { status: 200 });
+  }
 }
