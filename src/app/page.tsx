@@ -759,7 +759,7 @@ export default function Home() {
               <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-sub)', fontSize: 14 }}>読み込み中...</div>
             ) : (() => {
               return tenureList.map((item) => (
-                <div key={item.name} style={{ display: 'grid', gridTemplateColumns: '5.5em 6em 1fr auto', alignItems: 'center', gap: 8, marginBottom: 14, fontSize: 13 }}>
+                <div key={item.name} style={{ display: 'grid', gridTemplateColumns: '5.5em 6em 1fr auto', alignItems: 'center', gap: 8, padding: '12px 0', borderBottom: '1px solid var(--border-color)', fontSize: 13 }}>
                   <span style={{ color: 'var(--text-main)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</span>
                   <span style={{ color: 'var(--text-sub)', fontSize: 11 }}>{item.joinDate}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
