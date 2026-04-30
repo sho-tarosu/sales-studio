@@ -4,6 +4,8 @@ import { db } from '@/lib/db';
 import { staffEvaluations } from '@/lib/schema';
 import { StaffEvaluation } from '@/types';
 
+export const maxDuration = 5;
+
 export async function GET() {
   try {
   const rows = await db

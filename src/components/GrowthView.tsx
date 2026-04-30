@@ -288,7 +288,7 @@ export default function GrowthView() {
 
   useEffect(() => {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 10000);
+    const timer = setTimeout(() => controller.abort(), 3000);
     fetch('/api/growth', { signal: controller.signal })
       .then((r) => r.json())
       .then((d) => Array.isArray(d) ? setStaff(d) : setStaff([]))
