@@ -760,24 +760,16 @@ export default function Home() {
             ) : (() => {
               const maxMonths = Math.max(...tenureList.map(t => t.totalMonths), 1);
               return tenureList.map((item) => (
-                <div key={item.name} style={{ marginBottom: 16 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>{item.name}</span>
-                      <span style={{ color: 'var(--text-sub)', fontSize: 11 }}>{item.joinDate}</span>
-                    </span>
-                    <span style={{ color: 'var(--text-sub)' }}>
-                      {item.years > 0 ? `${item.years}年` : ''}{item.months}ヶ月
-                    </span>
+                <div key={item.name} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, fontSize: 13 }}>
+                  <span style={{ color: 'var(--text-main)', fontWeight: 500, whiteSpace: 'nowrap' }}>{item.name}</span>
+                  <span style={{ color: 'var(--text-sub)', fontSize: 11, whiteSpace: 'nowrap' }}>{item.joinDate}</span>
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                    <div style={{ flex: 1, height: 1, background: 'var(--border-color)' }} />
+                    <span style={{ color: 'var(--text-sub)', fontSize: 12 }}>→</span>
                   </div>
-                  <div style={{ height: 6, background: 'var(--border-color)', borderRadius: 3, overflow: 'hidden' }}>
-                    <div style={{
-                      height: '100%',
-                      width: `${(item.totalMonths / maxMonths) * 100}%`,
-                      background: 'var(--accent-color)',
-                      borderRadius: 3,
-                    }} />
-                  </div>
+                  <span style={{ color: 'var(--text-sub)', whiteSpace: 'nowrap' }}>
+                    {item.years > 0 ? `${item.years}年` : ''}{item.months}ヶ月
+                  </span>
                 </div>
               ));
             })()}
