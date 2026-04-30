@@ -1,16 +1,16 @@
 'use client';
 
-import { LayoutDashboard, BarChart2, PieChart, Calendar, Users } from 'lucide-react';
+import { LayoutDashboard, BarChart2, PieChart, Calendar, Users, GraduationCap } from 'lucide-react';
 import { TabName } from '@/types';
 
 interface BottomNavProps {
   activeTab: TabName;
   onTabChange: (tab: TabName) => void;
   userRole?: string;
+  secretMode?: boolean;
 }
 
-
-const ALL_NAV_ITEMS: { id: TabName; icon: React.ReactNode; label: string; minRole?: string }[] = [
+const ALL_NAV_ITEMS: { id: TabName; icon: React.ReactNode; label: string }[] = [
   { id: 'dashboard',      icon: <LayoutDashboard size={20} strokeWidth={1.75} />, label: 'ホーム' },
   { id: 'visual-ranking', icon: <BarChart2        size={20} strokeWidth={1.75} />, label: 'ランキング' },
   { id: 'analytics',      icon: <PieChart         size={20} strokeWidth={1.75} />, label: '実績・分析' },
@@ -18,8 +18,12 @@ const ALL_NAV_ITEMS: { id: TabName; icon: React.ReactNode; label: string; minRol
   { id: 'profile',        icon: <Users            size={20} strokeWidth={1.75} />, label: 'スタッフ' },
 ];
 
-export default function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
-  const navItems = ALL_NAV_ITEMS;
+const SECRET_NAV_ITEMS: { id: TabName; icon: React.ReactNode; label: string }[] = [
+  { id: 'growth', icon: <GraduationCap size={20} strokeWidth={1.75} />, label: '育成管理' },
+];
+
+export default function BottomNav({ activeTab, onTabChange, secretMode }: BottomNavProps) {
+  const navItems = secretMode ? SECRET_NAV_ITEMS : ALL_NAV_ITEMS;
   return (
     <nav className="bottom-nav">
       {navItems.map((item) => {

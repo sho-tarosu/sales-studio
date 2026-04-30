@@ -512,7 +512,7 @@ export default function Home() {
         </>)}
       </main>
 
-      {!secretMode && <BottomNav activeTab={activeTab} onTabChange={setActiveTab} userRole={effectiveRole} />}
+      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} userRole={effectiveRole} secretMode={secretMode} />
 
       {/* プロフィール フルスクリーン / PC ドロップダウン */}
       {drawerOpen && (
