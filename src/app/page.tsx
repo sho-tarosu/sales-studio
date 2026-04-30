@@ -64,7 +64,7 @@ export default function Home() {
   const [loginInfoOpen, setLoginInfoOpen] = useState(false);
   const [loginInfoList, setLoginInfoList] = useState<{ name: string; loginInfo: string }[]>([]);
   const [tenureOpen, setTenureOpen] = useState(false);
-  const [tenureList, setTenureList] = useState<{ name: string; years: number; months: number; totalMonths: number }[]>([]);
+  const [tenureList, setTenureList] = useState<{ name: string; joinDate: string; years: number; months: number; totalMonths: number }[]>([]);
   const [meData, setMeData] = useState<{ birthday: string; bloodType: string; joinDate: string; animal: string; zodiac: string } | null>(null);
   const [myStats, setMyStats] = useState<{ total: number; selfClose: number } | null>(null);
   const [impersonated, setImpersonated] = useState<{ name: string; role: string } | null>(null);
@@ -761,12 +761,13 @@ export default function Home() {
               const maxMonths = Math.max(...tenureList.map(t => t.totalMonths), 1);
               return tenureList.map((item) => (
                 <div key={item.name} style={{ marginBottom: 16 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
                     <span style={{ color: 'var(--text-main)', fontWeight: 500 }}>{item.name}</span>
                     <span style={{ color: 'var(--text-sub)' }}>
                       {item.years > 0 ? `${item.years}年` : ''}{item.months}ヶ月
                     </span>
                   </div>
+                  <div style={{ fontSize: 11, color: 'var(--text-sub)', marginBottom: 6 }}>{item.joinDate}</div>
                   <div style={{ height: 6, background: 'var(--border-color)', borderRadius: 3, overflow: 'hidden' }}>
                     <div style={{
                       height: '100%',
