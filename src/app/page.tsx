@@ -72,6 +72,7 @@ export default function Home() {
   const [secretMode, setSecretMode] = useState(false);
   const logoTapCount = useRef(0);
   const logoTapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevTab = useRef<TabName>('dashboard');
 
   // なりすまし時に使う実効値
   const effectiveName = impersonated?.name ?? session?.user?.name;
@@ -190,7 +191,13 @@ export default function Home() {
 
   // タブ切り替え時にすべてのパネルを閉じ、スクロール位置をリセット
   useEffect(() => {
-    if (secretMode) setActiveTab('growth');
+    if (secretMode) {
+      prevTab.current = activeTab;
+      setActiveTab('growth');
+    } else {
+      setActiveTab(prevTab.current);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [secretMode]);
 
   useEffect(() => {
