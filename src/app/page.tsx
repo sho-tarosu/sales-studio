@@ -759,14 +759,14 @@ export default function Home() {
               <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-sub)', fontSize: 14 }}>読み込み中...</div>
             ) : (() => {
               return tenureList.map((item) => (
-                <div key={item.name} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, fontSize: 13 }}>
-                  <span style={{ color: 'var(--text-main)', fontWeight: 500, whiteSpace: 'nowrap' }}>{item.name}</span>
-                  <span style={{ color: 'var(--text-sub)', fontSize: 11, whiteSpace: 'nowrap' }}>{item.joinDate}</span>
-                  <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-                    <div style={{ flex: 1, height: 1, background: 'var(--border-color)' }} />
-                    <span style={{ color: 'var(--text-sub)', fontSize: 12 }}>→</span>
+                <div key={item.name} style={{ display: 'grid', gridTemplateColumns: '5.5em 6em 1fr auto', alignItems: 'center', gap: 8, marginBottom: 14, fontSize: 13 }}>
+                  <span style={{ color: 'var(--text-main)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</span>
+                  <span style={{ color: 'var(--text-sub)', fontSize: 11 }}>{item.joinDate}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, transparent, var(--accent-color))' }} />
+                    <span style={{ color: 'var(--accent-color)', fontSize: 11, lineHeight: 1 }}>▷</span>
                   </div>
-                  <span style={{ color: 'var(--text-sub)', whiteSpace: 'nowrap' }}>
+                  <span style={{ color: 'var(--text-sub)', textAlign: 'right' }}>
                     {item.years > 0 ? `${item.years}年` : ''}{item.months}ヶ月
                   </span>
                 </div>
