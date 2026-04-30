@@ -577,7 +577,7 @@ export default function Home() {
                     <span style={{ color: 'var(--text-main)' }}>{meData.zodiac}</span>
                   </div>
                 )}
-                {meData.joinDate && (session.user.role === '管理者' || session.user.role === '社員') && (
+                {meData.joinDate && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
                     <span style={{ color: 'var(--text-sub)' }}>入社日</span>
                     <span style={{ color: 'var(--text-main)' }}>{meData.joinDate}</span>
