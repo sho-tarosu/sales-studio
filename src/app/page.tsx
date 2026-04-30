@@ -318,6 +318,10 @@ export default function Home() {
           </div>
         )}
 
+        {secretMode && ['社員', '幹部', '管理者'].includes(effectiveRole ?? '') ? (
+          <GrowthView />
+        ) : (<>
+
         {loading && (
           <div style={{ textAlign: 'center', padding: 40, color: '#aaa' }}>
             データを読み込んでいます...
@@ -504,6 +508,8 @@ export default function Home() {
         {activeTab === 'profile' && <ProfileView effectiveRole={effectiveRole} effectiveName={effectiveName} />}
 
         {activeTab === 'growth' && ['社員', '幹部', '管理者'].includes(effectiveRole ?? '') && <GrowthView />}
+
+        </>)}
       </main>
 
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} userRole={effectiveRole} />
