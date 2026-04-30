@@ -758,7 +758,6 @@ export default function Home() {
             {tenureList.length === 0 ? (
               <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-sub)', fontSize: 14 }}>読み込み中...</div>
             ) : (() => {
-              const maxMonths = Math.max(...tenureList.map(t => t.totalMonths), 1);
               return tenureList.map((item) => (
                 <div key={item.name} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14, fontSize: 13 }}>
                   <span style={{ color: 'var(--text-main)', fontWeight: 500, whiteSpace: 'nowrap' }}>{item.name}</span>
