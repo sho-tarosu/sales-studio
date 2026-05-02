@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
-import { getShiftSheetDataWithHolidays } from '@/lib/sheets';
+import { getShiftSheetData } from '@/lib/sheets';
 import type { ShiftRow } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -86,11 +86,9 @@ export async function GET(request: NextRequest) {
 
   async function safeGet(sheetName: string): Promise<{ values: string[][]; holidayDates: Set<string> }> {
     const empty = { values: [] as string[][], holidayDates: new Set<string>() };
-    const timeout = new Promise<typeof empty>((resolve) =>
-      setTimeout(() => resolve(empty), 10000)
-    );
     try {
-      return await Promise.race([getShiftSheetDataWithHolidays(sheetName), timeout]);
+      const values = await getShiftSheetData(sheetName);
+      return { values, holidayDates: new Set<string>() };
     } catch (e) {
       console.error(`[shift API] シートデータ取得エラー (${sheetName}):`, e);
       return empty;

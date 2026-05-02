@@ -13,10 +13,12 @@ export async function GET() {
   }
 
   const userName = session.user.name;
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonthNum = now.getMonth() + 1;
-  const todayDay = now.getDate();
+  // Vercel は UTC で動くため JST (UTC+9) に変換して使用
+  const nowJst = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const currentYear = nowJst.getUTCFullYear();
+  const currentMonthNum = nowJst.getUTCMonth() + 1;
+  const todayDay = nowJst.getUTCDate();
+  const jstHour = nowJst.getUTCHours();
   const month = `${currentYear}-${String(currentMonthNum).padStart(2, '0')}`;
 
   try {
@@ -30,7 +32,11 @@ export async function GET() {
     const shiftDates = new Set<string>();
     for (const row of shifts) {
       const staffArray = (row.staff as string[]) ?? [];
-      if (!staffArray.some((s) => s && userName.startsWith(s.trim()))) continue;
+      if (!staffArray.some((s) => {
+        const sn = s?.trim();
+        if (!sn) return false;
+        return userName.startsWith(sn) || sn.startsWith(userName);
+      })) continue;
 
       // date は "M/D" 形式
       const parts = row.date.split('/');
@@ -39,7 +45,7 @@ export async function GET() {
       const d = parseInt(parts[1]);
       if (isNaN(m) || isNaN(d) || m !== currentMonthNum) continue;
       if (d > todayDay) continue; // 未来はスキップ
-      if (d === todayDay && now.getHours() < 19) continue; // 当日19時前はスキップ
+      if (d === todayDay && jstHour < 19) continue; // 当日JST19時前はスキップ
 
       const dateKey = `${currentYear}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       shiftDates.add(dateKey);

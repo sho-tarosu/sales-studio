@@ -32,13 +32,36 @@ export async function GET(request: NextRequest) {
       targetMonthIdx = now.getMonth();
     }
 
-    const [mainRows, ageRows, typeRows] = await Promise.all([
+    const [mainRows, ageRows, typeRows, staffRows] = await Promise.all([
       getSheetData(SHEET_NAME_MAIN),
       getSheetData(SHEET_NAME_AGE).catch(() => []),
       getSheetData(SHEET_NAME_TYPE).catch(() => []),
+      getSheetData('スタッフ情報').catch(() => []),
     ]);
 
     const data = aggregateMainSheet(mainRows, targetYear, targetMonthIdx);
+
+    // スタッフ情報シートの行順でソート＆役職を付与（T列=index19:名前, AC列=index28:役職）
+    if (staffRows.length > 1) {
+      const orderMap = new Map<string, number>();
+      const positionMap = new Map<string, string>();
+      staffRows.slice(1).forEach((row, i) => {
+        const name = row[19]?.trim();
+        if (!name) return;
+        orderMap.set(name, i);
+        const pos = row[28]?.trim();
+        if (pos) positionMap.set(name, pos);
+      });
+      data.ranking.sort((a, b) => {
+        const ia = orderMap.get(a.name) ?? Number.MAX_SAFE_INTEGER;
+        const ib = orderMap.get(b.name) ?? Number.MAX_SAFE_INTEGER;
+        return ia - ib;
+      });
+      data.ranking.forEach((s) => {
+        const pos = positionMap.get(s.name);
+        if (pos) s.position = pos;
+      });
+    }
 
     const staffMap: Record<string, typeof data.ranking[0]> = {};
     data.ranking.forEach((s) => { staffMap[s.name] = s; });

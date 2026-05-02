@@ -21,6 +21,7 @@ export interface CalendarDay {
 
 export interface Staff {
   name: string;
+  position?: string;
   total: number;
   mnp: number;
   new: number;

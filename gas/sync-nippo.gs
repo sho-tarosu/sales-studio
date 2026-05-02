@@ -590,14 +590,14 @@ function syncStaffInfo_New() {
     let   targetSheet = targetSS.getSheetByName(STAFF_SYNC.targetSheetName);
     if (!targetSheet) targetSheet = targetSS.insertSheet(STAFF_SYNC.targetSheetName);
 
-    // ① 既存のログイン情報（T列=index19以降）を名前でマップ保存（スペース除去して正規化）
+    // ① 既存のログイン情報（T列=index19以降）をA列の名前でマップ保存（T列の書き方に依存しない）
     const loginMap = {};
     let loginHeader = null; // T列以降のヘッダー行を別途保存
     if (targetSheet.getLastRow() >= 2) {
       const existing = targetSheet.getDataRange().getValues();
       loginHeader = existing[0].slice(19); // 0行目（ヘッダー）を保存
       for (let i = 1; i < existing.length; i++) {
-        const name = normName(existing[i][19]); // T列: 名前
+        const name = normName(existing[i][0]); // A列: 名前（T列の書き方に依存しない）
         if (name) loginMap[name] = existing[i].slice(19);
       }
     }

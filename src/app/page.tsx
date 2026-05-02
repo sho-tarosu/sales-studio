@@ -66,7 +66,6 @@ export default function Home() {
   const [tenureOpen, setTenureOpen] = useState(false);
   const [tenureList, setTenureList] = useState<{ name: string; joinDate: string; years: number; months: number; totalMonths: number }[]>([]);
   const [meData, setMeData] = useState<{ birthday: string; bloodType: string; joinDate: string; animal: string; zodiac: string } | null>(null);
-  const [myStats, setMyStats] = useState<{ total: number; selfClose: number } | null>(null);
   const [impersonated, setImpersonated] = useState<{ name: string; role: string } | null>(null);
   const [allUsers, setAllUsers] = useState<{ name: string; role: string }[]>([]);
   const [secretMode, setSecretMode] = useState(false);
@@ -96,15 +95,6 @@ export default function Home() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (effectiveRole === 'アルバイト') {
-      const params = new URLSearchParams({ month: selectedMonth });
-      if (effectiveName) params.set('name', effectiveName);
-      fetch(`/api/me/stats?${params}`).then(r => r.json()).then(setMyStats).catch(() => {});
-    } else {
-      setMyStats(null);
-    }
-  }, [effectiveRole, effectiveName, selectedMonth, data]);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState('更新中...');
 
@@ -499,7 +489,7 @@ export default function Home() {
             )}
 
             {activeTab === 'analytics' && (
-              <AnalyticsView data={data} selectedMonth={selectedMonth} loginName={effectiveName} userRole={effectiveRole} myStats={myStats} />
+              <AnalyticsView data={data} selectedMonth={selectedMonth} loginName={effectiveName} userRole={effectiveRole} />
             )}
           </>
         )}

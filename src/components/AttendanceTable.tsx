@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { DashboardData, Staff } from '@/types';
+import IncentiveBar from './IncentiveBar';
 
 interface AttendanceTableProps {
   data: DashboardData;
@@ -62,21 +63,32 @@ export default function AttendanceTable({ data, selectedMonth, loginName, userRo
     return { year: parseInt(parts[0]), month: parseInt(parts[1]) - 1 };
   }, [selectedMonth]);
 
+  const positionBadge = staff?.position ? (
+    <span style={{
+      display: 'inline-block', fontSize: 10, padding: '2px 7px', borderRadius: 4, marginTop: 4,
+      background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.55)',
+      alignSelf: 'flex-start',
+    }}>{staff.position}</span>
+  ) : null;
+
   if (!staff || !staff.calendar) {
     return (
       <>
         <div className="analysis-controls">
           <div className="control-group">
             {userRole !== 'アルバイト' && userRole !== '業務委託' && <span className="control-label">スタッフ選択</span>}
-            {userRole === 'アルバイト' || userRole === '業務委託' ? (
-              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-main)' }}>{staffName}</span>
-            ) : (
-              <select className="control-select" value={staffName} onChange={(e) => setStaffName(e.target.value)}>
-                {data.ranking.map((s) => (
-                  <option key={s.name} value={s.name}>{s.name}</option>
-                ))}
-              </select>
-            )}
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {userRole === 'アルバイト' || userRole === '業務委託' ? (
+                <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-main)' }}>{staffName}</span>
+              ) : (
+                <select className="control-select" value={staffName} onChange={(e) => setStaffName(e.target.value)}>
+                  {data.ranking.map((s) => (
+                    <option key={s.name} value={s.name}>{s.name}</option>
+                  ))}
+                </select>
+              )}
+              {positionBadge}
+            </div>
           </div>
         </div>
         <div className="chart-card" style={{ padding: 0, overflow: 'hidden' }}>
@@ -96,15 +108,18 @@ export default function AttendanceTable({ data, selectedMonth, loginName, userRo
       <div className="analysis-controls" style={{ flexWrap: 'nowrap', alignItems: 'center' }}>
         <div className="control-group">
           {userRole !== 'アルバイト' && userRole !== '業務委託' && <span className="control-label">スタッフ選択</span>}
-          {userRole === 'アルバイト' || userRole === '業務委託' ? (
-            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-main)' }}>{staffName}</span>
-          ) : (
-            <select className="control-select" value={staffName} onChange={(e) => setStaffName(e.target.value)}>
-              {data.ranking.map((s) => (
-                <option key={s.name} value={s.name}>{s.name}</option>
-              ))}
-            </select>
-          )}
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {userRole === 'アルバイト' || userRole === '業務委託' ? (
+              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-main)' }}>{staffName}</span>
+            ) : (
+              <select className="control-select" value={staffName} onChange={(e) => setStaffName(e.target.value)}>
+                {data.ranking.map((s) => (
+                  <option key={s.name} value={s.name}>{s.name}</option>
+                ))}
+              </select>
+            )}
+            {positionBadge}
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 16, marginLeft: 8 }}>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1.3 }}>
@@ -174,6 +189,7 @@ export default function AttendanceTable({ data, selectedMonth, loginName, userRo
           </table>
         </div>
       </div>
+      <IncentiveBar total={totalPt} selfClose={totalSelfClose} />
     </>
   );
 }

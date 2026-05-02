@@ -11,7 +11,7 @@
 
 // ========== 設定（ここだけ変更してください） ==========
 const CONFIG = {
-  SYNC_URL: 'https://YOUR_APP_NAME.vercel.app/api/sync',
+  SYNC_URL: 'https://sales-studio-iota.vercel.app/api/sync',
   SYNC_SECRET: 'my-super-secret-key-2026',
 };
 // ======================================================
