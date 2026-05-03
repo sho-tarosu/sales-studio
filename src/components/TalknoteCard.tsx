@@ -140,6 +140,7 @@ function SiteCard({ site, staffList, agency, siteMap }: {
       borderRadius: 10,
       marginBottom: 8,
       overflow: 'hidden',
+      position: 'relative',
     }}>
       {/* ヘッダー */}
       <div style={{
@@ -155,30 +156,6 @@ function SiteCard({ site, staffList, agency, siteMap }: {
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-main)', flexShrink: 0 }}>
             {normalizeSiteName(site)}
           </span>
-          {hasReport && (
-            <button
-              onClick={handleCopy}
-              title="コピー"
-              style={{
-                marginLeft: 4, flexShrink: 0,
-                background: copied ? 'rgba(74,222,128,0.15)' : 'rgba(255,255,255,0.06)',
-                border: `1px solid ${copied ? 'rgba(74,222,128,0.4)' : 'rgba(255,255,255,0.1)'}`,
-                borderRadius: 6, padding: '3px 8px',
-                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
-                transition: 'all 0.2s',
-              }}
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke={copied ? '#4ade80' : '#aaa'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                {copied
-                  ? <polyline points="20 6 9 17 4 12" />
-                  : <><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></>
-                }
-              </svg>
-              <span style={{ fontSize: 10, color: copied ? '#4ade80' : '#aaa' }}>
-                {copied ? 'コピー済み' : 'コピー'}
-              </span>
-            </button>
-          )}
 
           {agency && (() => { const c = agencyColor(agency); return (
             <span style={{
@@ -279,6 +256,31 @@ function SiteCard({ site, staffList, agency, siteMap }: {
         }}>
           報告なし
         </div>
+      )}
+
+      {/* コピーボタン（右上絶対配置） */}
+      {hasReport && (
+        <button
+          onClick={handleCopy}
+          style={{
+            position: 'absolute', top: 8, right: 8,
+            background: copied ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.1)',
+            border: `1px solid ${copied ? '#4ade80' : 'rgba(255,255,255,0.2)'}`,
+            borderRadius: 6, padding: '4px 10px',
+            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5,
+            transition: 'all 0.2s',
+          }}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke={copied ? '#4ade80' : '#ccc'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {copied
+              ? <polyline points="20 6 9 17 4 12" />
+              : <><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></>
+            }
+          </svg>
+          <span style={{ fontSize: 11, color: copied ? '#4ade80' : '#ccc', whiteSpace: 'nowrap' }}>
+            {copied ? 'コピー済み' : 'コピー'}
+          </span>
+        </button>
       )}
     </div>
   );
